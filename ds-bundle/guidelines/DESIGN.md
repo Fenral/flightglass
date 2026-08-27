@@ -181,6 +181,12 @@ components:
 > (v2) er parkert som utforsket alternativ i `_source/DESIGN-v2-oransje-parkert.md`.
 > Reglene v2 bygde — tallformat, hierarki, tilstander, bevegelse — er ARVET hit;
 > kun malingen er byttet.
+>
+> **Oppdatert 2026-08-27** med låste vedtak D94–D132: ink-fokusring, nøytral
+> LIE, kromnavnene, treffsone-regelen, auto-referansen, portrettgulvet og
+> bunnmenyens rammer. Studio-splitten (D128–D130) og menyens endelige form
+> (H-runden) skrives inn når de er BYGGET — mockiterasjonene i
+> HANDOVER/G-DESIGNBRIEF-* er retning, ikke system ennå.
 
 ## Overview
 
@@ -214,6 +220,10 @@ CTA-er, aktiv tilstand, hårlinjer i tre styrker (full, 55 %, 30 %).
 | Swing Plane | `plane` | #9C8DF5 |
 | Strike | `strike` | #E3B05C |
 | Strike depth | `depth` | #C98AE6 |
+
+**LIE (underlaget) har bevisst ingen parameterkulør (D95):** underlag er
+kontekst, ikke en leveringsparameter — LIE-chip og -etikett står i `ink`/`ghost`
+som holdte parametre, aldri i `secondary`.
 
 **Hierarkiregelen over dem (arvet fra v2, omformulert):** den AKTIVE parameteren
 vises i full kulør; holdte parametre vises avmettet — tekst i `ghost`, kulør kun
@@ -264,18 +274,32 @@ er små chips i meta-nivået — aldri ord i svarlinjen.
 | cm-input | 1 | `10.5 cm` |
 
 Avstander bærer bokstav (`16.3 m L`), vinkler fortegn (`−16.3°`), foran/bak
-bærer ord (`10.5 cm ahead`). Aldri to bærere på samme verdi.
+bærer ord (`10.5 cm after` · `1.5 cm before` — bransjebegrepet, eieravgjort
+2026-08-25; et utkast sa «ahead/behind»). Aldri to bærere på samme verdi.
 
 ### Språk
 
 Hele UI-et på engelsk. Fagbegreper som i launch monitor-litteraturen,
 aldri forkortet. Ingen emoji, noe sted.
 
+**Presisering (D119):** «aldri forkortet» gjelder FAGBEGREPER — modulnavn i
+krom er unntatt. Kromnavnene er låst: **HOME · IMPACT** (Ball Flight) **·
+GEOMETRY** (Impact Studio); Connections får kortere kromord (f.eks. LINKS)
+eller går ut av menyen — avgjøres av Home-utfallet (D121).
+
 ## Layout & Spacing
 
 Portrett telefon; Impact Studio i landskap. `landscape` er en
 orienteringsbetingelse — bredde over høyde, minimum 568 × 320 (D59) —
-aldri en breddeterskel. Spacing på 4-punkts skala.
+aldri en breddeterskel. **Portrettgulvet er 390 × 844 (D118):** alt innhold
+(scene, menykrom, kontroller, coachmarks) skal garantert få plass der;
+SE-klassen er utenfor garantien. Spacing på 4-punkts skala.
+
+**Folden er en tillatelse, ikke et krav (D127):** innhold som får plass over
+folden på gulvet står der — aldri kunstig luft eller påfunnet innhold for å
+skyve noe under. Safe-area-insets bæres som padding på det NEDERSTE krommet
+(menyen når den finnes, ellers kontrollraden — aldri begge); treffradene
+krymper aldri av insettet.
 
 **Scenen og avlesningene deler aldri piksler.** Faste avlesninger i reservert
 sone; scenefestede etiketter løses med kandidatankere og hysterese
@@ -310,6 +334,10 @@ verditall følger fingeren i sanntid.
 | `ease` | cubic-bezier(.2,.8,.2,1) | mockens egen kurve — beholdt |
 
 Reduced motion setter overganger til `instant`; all informasjon består.
+
+**Auto-referansen i Ball Flight (D123):** forrige tilstand står som
+`ghost`-referanse — full styrke mens man drar, holder ~700 ms etter slipp,
+fader ut over `slow` (260 ms). Kun gjeldende slag bærer farge.
 
 ## Ikonografi (arvet)
 
@@ -351,12 +379,25 @@ v2 med v3-tokens; coachmarkens plasseringsregel gjelder uendret
 utfallssemantikk, aldri retning. **Milestone** — `celebrate`, kun milepæler.
 **Param-\*** — parameterens kulørprikk/stråle; én swatch-komponent per
 parameter, så fargen alltid konsumeres via token og aldri som naken hex.
+**Bunnmeny (portrett, D110/D126)** — modulnivåets hjem: ordceller (D119-navnene),
+stripe ≤ 60 px + safe-area, `plate`-flate med 1 px `line`-overkant; designes
+sentralt i H-runden, aldri per flate. I landskap finnes den ikke — der bærer
+HOME-sirkelen modulnivået. **Mode-pille (D128)** — DELIVERY/STRIKE-toggle inne
+i Studio-canvasen; visuelt lett, treffer 44 px via treffsone-regelen.
+**Lie-kontekstord (D129)** — lie styres der kontekst står: ordet i
+avlesningsraden ER kontrollen og åpner sju-stegs-slideren (D93-kjernen urørt).
 
 ### Interaksjonstilstander (arvet)
 
 rest / hover / active / pressed / disabled per komponent. **Fokus er en egen
-akse:** 2 px `secondary`-ring med 2 px avstand, synlig i alle tilstander.
-Berøringsflate minimum 44 × 44 px.
+akse:** `ink`-ring etter mock-konvensjonen (`.sa-focus` dobbel ring med 2 px
+avstand; `.ts-back` enkel ring), synlig i alle tilstander (D94 — mocken vinner
+over tidligere «2 px secondary»-prosa). Berøringsflate minimum 44 × 44 px.
+
+**Treffsone-regelen (D132):** en kontroll som med vilje er visuelt lettere enn
+44 px får usynlig utvidet treffsone som treffer kravet — verifisert med måling
+(elementFromPoint), aldri antatt. Visuell vekt og treffflate er to uavhengige
+beslutninger.
 
 ## Tilstander utenfor normalen (arvet)
 
