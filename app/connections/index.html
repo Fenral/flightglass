@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flight Glass — Connections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../nav/nav.css">
+<link rel="stylesheet" href="connections.css">
+<link rel="stylesheet" href="../onboarding/onboarding.css">
+</head>
+<body data-screen="connections" data-home="../nav/index.html">
+<a class="home-circle t-label" href="../nav/index.html" aria-label="Home">HOME</a>
+
+<!--
+  Connections: motoruavhengig årsakskart (D44). Struktur, aldri størrelse —
+  ingen tall, ingen deriverte. Data: /connections-graph-v2.json (D47).
+
+  Hviletilstanden ER metrikkvelgeren (D68) — grafen tegnes først når en
+  metrikk er valgt. Kjeden leses bakover til de fem leveringsinputene (D69);
+  Geometry nås progressivt ved å trykke videre på en input-node.
+
+  Visuelt språk: DESIGN.md v3 (mockene). C er unntatt komposisjonsfasiten
+  (D78) og bygger fra de låste beslutningene alene.
+-->
+<div class="cx">
+
+  <!-- Hviletilstand: velg metrikk. Bygges av connections.js fra grafen. -->
+  <section class="cx-view cx-selector" id="view-selector" aria-label="Choose a metric">
+    <h1 class="t-display-lens cx-title">Connections</h1>
+    <p class="t-body cx-sub">Choose a metric to see what shapes it.</p>
+    <div id="metric-groups"></div>
+  </section>
+
+  <!-- Kjedevisning -->
+  <section class="cx-view cx-chain" id="view-chain" hidden>
+    <div class="cx-top">
+      <span class="t-label cx-top-label" id="metric-pill-label">METRIC</span>
+      <button class="metric-pill t-label" id="metric-pill"
+              aria-describedby="metric-pill-label"></button>
+    </div>
+
+    <div class="cx-diagram-scroll" id="diagram-scroll">
+      <div class="cx-diagram" id="diagram">
+        <svg class="cx-svg" id="edge-svg" aria-hidden="true"></svg>
+        <div class="cx-rows" id="rows"></div>
+        <!-- Nøkkelinjen: eneste synlige typebegrep — Direct / Modelled -->
+        <div class="cx-key t-caption" id="edge-key" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- Nodekortet: glassplate i egen sone under diagrammet, aldri overlapp -->
+    <div class="cx-card" id="node-card" hidden></div>
+  </section>
+
+</div>
+<script type="module" src="connections.js"></script>
+<script type="module" src="../nav/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-08-25T12:06:10.051Z",
+  "sourceCommit": "410a365d47de5c7a1542edc71d0336cd5b7d1b56",
+  "counts": {
+    "records": 130,
+    "filesOnDisk": 134,
+    "html": 7
+  },
+  "checks": {
+    "hashes": true,
+    "htmlScope": true,
+    "browserSmoke": true
+  },
+  "smoke": [
+    {
+      "id": "set-b-home",
+      "status": 200,
+      "title": "Flightglass — Understand the numbers",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    },
+    {
+      "id": "set-b-ball-flight",
+      "status": 200,
+      "title": "See the Shot — Live Outcome, Side and Top",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    },
+    {
+      "id": "set-b-impact-studio",
+      "status": 200,
+      "title": "Impact Studio",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    },
+    {
+      "id": "set-a-connections",
+      "status": 200,
+      "title": "Flightglass · Connections",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    },
+    {
+      "id": "set-a-impact-viz",
+      "status": 200,
+      "title": "VIZ MOCK — See the Shot (visualization-primary + chip row + transient lens overlays)",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    },
+    {
+      "id": "set-a-impact-kamera",
+      "status": 200,
+      "title": "StrikeArc · Impact · kamera-mock",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    },
+    {
+      "id": "set-a-impact-studio",
+      "status": 200,
+      "title": "Impact Studio",
+      "visible": true,
+      "pageErrors": [],
+      "local404": []
+    }
+  ],
+  "intentionalExcludedNavigation": [
+    "Home retains links to jarvis.html, terms.html and privacy.html, which are outside the explicitly requested seven surfaces.",
+    "Shared shell code retains Guide/support route strings from the original source; those pages are intentionally not exported."
+  ],
+  "warnings": [],
+  "errors": [],
+  "pass": true
+}

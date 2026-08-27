@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flight Glass — Home: tre mocks (strøm H)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<!--
+  home-demo.html — strøm H, beslutningshjelp for Home-redesign (D96/D110).
+
+  IKKE PRODUKTKODE. Ikke koblet inn noe sted. Samme mønster og hjemmel som
+  app/studio/split-demo.html (G) og app/onboarding/splash-demo.html (E).
+
+  Alle tall er ekte: selectOutcome() gjennom engine/ + adapter/. Grafkjeden er
+  lest fra app/connections/graph-data.js (D47-fasiten, 24 noder) — IKKE fra
+  connections-map.js, som er den erstattede spec 05-utgaven på 23 noder.
+  Spørsmålene er lest fra motor/export/ask-catalog.json.
+  Dette dokumentet regner ingenting selv.
+-->
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--neutral);color:var(--ink);
+    font-family:var(--font-ui);-webkit-font-smoothing:antialiased}
+
+  /* ── verktøylinje: stillas, ikke design ───────────────────────────── */
+  .tool{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:var(--sp-lg);
+    align-items:center;padding:var(--sp-md) var(--sp-lg);
+    background:var(--surface);border-bottom:1px solid var(--line)}
+  .tool h1{margin:0;font:700 13px/1.3 var(--font-display);letter-spacing:.04em}
+  .tool .grp{display:flex;align-items:center;gap:var(--sp-sm)}
+  .tool .grp>span{font:700 9px/1.3 var(--font-ui);letter-spacing:.12em;color:var(--muted)}
+  .tool button{font:700 10px/1 var(--font-ui);letter-spacing:.08em;color:var(--ghost);
+    background:var(--plate);border:1px solid var(--line);border-radius:var(--r-control);
+    padding:8px 10px;cursor:pointer;transition:color var(--t-fast) var(--ease),
+      border-color var(--t-fast) var(--ease)}
+  .tool button[aria-pressed="true"]{color:var(--ink);border-color:var(--primary)}
+  .tool button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .note{max-width:64ch;margin:0;padding:var(--sp-md) var(--sp-lg) 0;
+    font:400 12px/1.55 var(--font-ui);color:var(--muted)}
+  .note code{font-family:var(--font-data);color:var(--ghost)}
+
+  .stagearea{display:flex;justify-content:center;padding:var(--sp-xl) var(--sp-lg) 64px}
+
+  /* ── telefonrammen ────────────────────────────────────────────────── */
+  .frame{position:relative;overflow:hidden;flex:0 0 auto;
+    border:1px solid var(--line);border-radius:28px;
+    background:var(--neutral);box-shadow:0 24px 60px rgba(0,0,0,.55)}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column}
+  .content{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;
+    scrollbar-width:none}
+  .content::-webkit-scrollbar{display:none}
+  .atmos{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 60% at 50% 0%,
+      color-mix(in srgb,var(--surface) 90%,transparent), transparent 70%)}
+  .pad{position:relative;padding:var(--sp-lg)}
+
+  /* fold-markør: kun stillas */
+  .foldline{position:absolute;left:0;right:0;height:0;border-top:1px dashed
+    color-mix(in srgb,var(--primary) 55%,transparent);z-index:5;pointer-events:none}
+  .foldline::after{content:"FOLD";position:absolute;right:6px;top:4px;
+    font:700 8px/1 var(--font-ui);letter-spacing:.14em;
+    color:color-mix(in srgb,var(--primary) 80%,transparent)}
+  .frame:not(.showfold) .foldline{display:none}
+
+  /* ── typografiroller fra DESIGN.md ────────────────────────────────── */
+  .t-eyebrow{font:700 10px/1.3 var(--font-ui);letter-spacing:.1em;color:var(--muted);
+    margin:0 0 var(--sp-sm)}
+  .t-display{font:700 26px/1.08 var(--font-display);letter-spacing:-.01em;
+    color:var(--ink);margin:0}
+  .t-lens{font:500 18px/1.15 var(--font-display);letter-spacing:.1em;color:var(--ink);margin:0}
+  .t-body{font:400 14px/1.55 var(--font-ui);color:var(--muted);margin:var(--sp-md) 0 0}
+  .t-cap{font:400 11px/1.5 var(--font-ui);color:var(--muted);margin:var(--sp-sm) 0 0}
+  .t-num{font:600 30px/1.1 var(--font-data);color:var(--ink);font-variant-numeric:tabular-nums}
+  .sub{font:500 15px/1.2 var(--font-data);color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .chip{display:inline-block;font:700 9px/1.3 var(--font-ui);letter-spacing:.1em;
+    padding:4px 7px;border-radius:var(--r-control);
+    background:var(--plate);color:var(--ghost)}
+
+  .cta{display:block;width:100%;margin-top:var(--sp-lg);padding:14px;
+    min-height:44px;border:0;border-radius:var(--r-control);
+    background:var(--primary);color:var(--on-primary);cursor:pointer;
+    font:700 11px/1.3 var(--font-ui);letter-spacing:.1em;text-align:center}
+  .cta:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ── kjeden: én fast, ikke-interaktiv (eiervedtak) ────────────────── */
+  .chain{margin-top:var(--sp-md)}
+  .node{display:inline-block;font:700 10px/1.3 var(--font-ui);letter-spacing:.06em;
+    padding:8px 10px;border-radius:var(--r-control);
+    background:var(--plate);border:1px solid var(--line);color:var(--ink)}
+  .node--lead{border-color:color-mix(in srgb,var(--primary) 60%,transparent)}
+  .node--ctx{color:var(--ghost)}
+  .arm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    margin:6px 0 6px 10px;padding-left:12px;border-left:1px solid var(--line)}
+  .edge{font:400 10px/1.4 var(--font-ui);color:var(--muted);white-space:nowrap}
+  .strength{display:inline-block;height:2px;width:16px;vertical-align:middle;
+    margin-right:5px;background:var(--ghost);border-radius:2px}
+  .strength--primary{height:3px;width:22px;background:var(--ink)}
+  .strength--contextual{height:1px;width:12px}
+
+  .truth{margin-top:var(--sp-xl);padding-top:var(--sp-md);
+    border-top:1px solid var(--line-soft);
+    font:400 11px/1.5 var(--font-ui);color:var(--muted)}
+  .rowlink{display:flex;justify-content:space-between;align-items:center;
+    min-height:44px;padding:var(--sp-md) 0;border-top:1px solid var(--line-soft);
+    font:700 10px/1.3 var(--font-ui);letter-spacing:.1em;color:var(--ghost)}
+
+  .metriclist{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:var(--sp-sm)}
+  .metriclist span{font:700 9px/1.3 var(--font-ui);letter-spacing:.08em;color:var(--ghost);
+    padding:9px 8px;background:var(--plate);border-radius:var(--r-control)}
+  .grouplab{font:700 9px/1.3 var(--font-ui);letter-spacing:.12em;color:var(--muted);
+    margin:var(--sp-lg) 0 0}
+
+  .delivery{display:flex;gap:5px;margin-top:var(--sp-lg)}
+  .delivery div{flex:1;background:var(--plate);border-radius:var(--r-control);padding:8px 5px}
+  .delivery b{display:block;font:700 8px/1.3 var(--font-ui);letter-spacing:.06em;
+    color:var(--muted);margin-bottom:3px}
+  .delivery i{font:500 12px/1.2 var(--font-data);font-style:normal;color:var(--ink);
+    font-variant-numeric:tabular-nums}
+
+  .bigrow{display:flex;gap:var(--sp-lg);margin-top:var(--sp-lg);align-items:flex-end}
+
+  /* ── bunnmenyen ───────────────────────────────────────────────────── */
+  .menu{flex:0 0 auto;display:flex;align-items:stretch;
+    height:56px;background:var(--plate);border-top:1px solid var(--line)}
+  .menu[hidden]{display:none}
+  .cell{flex:1;position:relative;display:flex;align-items:center;justify-content:center;
+    min-height:44px;border:0;background:none;cursor:pointer;white-space:nowrap;
+    font:700 10px/1.3 var(--font-ui);letter-spacing:.1em;color:var(--ghost);
+    transition:color var(--t-base) var(--ease)}
+  .cell[aria-current="page"]{color:var(--ink)}
+  .cell::before{content:"";position:absolute;top:0;left:14%;right:14%;height:2px;
+    background:var(--primary);border-radius:2px;opacity:0;
+    transition:opacity var(--t-base) var(--ease)}
+  .cell[aria-current="page"]::before{opacity:1}
+  /* trykk-blomstringen: bevegelsen bærer feiringen, ikke en permanent tilstand */
+  .cell::after{content:"";position:absolute;top:0;left:50%;width:64px;height:26px;
+    transform:translateX(-50%);pointer-events:none;opacity:0;
+    background:radial-gradient(60% 100% at 50% 0%,
+      color-mix(in srgb,var(--primary) 55%,transparent), transparent 72%)}
+  .cell.bloom::after{animation:bloom var(--t-fast) var(--ease)}
+  @keyframes bloom{from{opacity:.9}to{opacity:0}}
+  .cell:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="tool">
+  <h1>Home — tre mocks</h1>
+  <div class="grp"><span>VARIANT</span>
+    <button type="button" data-v="A" aria-pressed="true">A · SPØRSMÅLET</button>
+    <button type="button" data-v="B" aria-pressed="false">B · KARTET</button>
+    <button type="button" data-v="C" aria-pressed="false">C · SLAGET</button>
+  </div>
+  <div class="grp"><span>PORT</span>
+    <button type="button" data-p="390x844" aria-pressed="true">390×844 · GULV</button>
+    <button type="button" data-p="430x932" aria-pressed="false">430×932</button>
+    <button type="button" data-p="375x667" aria-pressed="false">375×667 · UNDER GULV</button>
+  </div>
+  <div class="grp"><span>MENY</span>
+    <button type="button" data-m="0" aria-pressed="false">AV</button>
+    <button type="button" data-m="4" aria-pressed="true">4 CELLER</button>
+    <button type="button" data-m="3" aria-pressed="false">3 CELLER</button>
+  </div>
+  <div class="grp"><span>FOLD</span>
+    <button type="button" data-f="1" aria-pressed="true">VIS</button>
+  </div>
+  <div class="grp"><span>SAFE-AREA</span>
+    <button type="button" data-s="1" aria-pressed="true">NETTO</button>
+  </div>
+</header>
+
+<p class="note">
+  Beslutningshjelp for strøm H — <b>ikke produktkode</b>, ikke koblet inn noe sted.
+  Tallene er ekte gjennom <code>engine/</code> + <code>adapter/</code>; kjeden er lest fra
+  <code>graph-data.js</code> (D47-fasiten). Korrelasjonene er <b>én fast, ikke-interaktiv
+  kjede</b> i alle tre variantene. Menyen bruker eierens navn:
+  <code>HOME · IMPACT · GEOMETRY · LINKS</code>.
+</p>
+
+<div class="stagearea">
+  <div class="frame showfold" id="frame">
+    <div class="screen">
+      <div class="content" id="content">
+        <div class="atmos"></div>
+        <div class="foldline" id="foldline"></div>
+        <div class="pad" id="pad"></div>
+      </div>
+      <nav class="menu" id="menu"></nav>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import GRAPH from '../connections/graph-data.js';
+import { selectOutcome, UNIT_SYSTEM } from '../ball-flight/impact-outcome.js';
+import { displayValue } from '../../adapter/src/displayFlight.js';
+import haptics from '../shared/sa-haptics.js';
+
+/* ── D60-standardslaget. Ingen tall skrives for hånd. ─────────────────── */
+const DEFAULT_SHOT = { speed: 90, face: 2.0, path: 0.0, attack: 3.0, dynLoft: 24.0 };
+const oc = selectOutcome(DEFAULT_SHOT);
+const fmt = (kind, raw) => displayValue(kind, raw, UNIT_SYSTEM).text;
+
+const SHOT = {
+  shape:  oc.physical.shape,
+  carry:  fmt('distance',        oc.raw.carry),
+  side:   fmt('lateralDistance', oc.raw.offline),
+  curve:  fmt('lateralDistance', oc.raw.curve),
+};
+
+/* ── Kjeden, lest ut av grafen. Aldri skrevet inn. ────────────────────── */
+const byId = Object.fromEntries(GRAPH.nodes.map(n => [n.id, n]));
+const name = id => byId[id].displayName;
+const parents = to => GRAPH.edges.filter(e => e.to === to);
+
+const ROOT = 'curve';
+const L1 = parents(ROOT);
+const L2 = parents(L1[0].from);
+
+const armMarkup = e =>
+  '<div class="arm">' +
+    '<span class="node' + (e.strength === 'primary' ? '' : ' node--ctx') + '">' +
+      name(e.from) + '</span>' +
+    '<span class="edge"><i class="strength strength--' + e.strength + '"></i>' +
+      e.strength + ' · ' + e.type + '</span>' +
+  '</div>';
+
+const chainMarkup = () =>
+  '<div class="chain">' +
+    '<span class="node node--lead">' + name(ROOT) + '</span>' +
+    armMarkup(L1[0]) +
+    '<div style="margin-left:22px">' + L2.map(armMarkup).join('') + '</div>' +
+  '</div>';
+
+const TRUTH = 'Modelled shot — not a measurement. Strike is assumed centred.';
+const foot =
+  '<p class="truth">' + TRUTH + '</p>' +
+  '<div class="rowlink"><span>SETTINGS</span><span>→</span></div>';
+
+/* ── Spørsmålskatalogen ───────────────────────────────────────────────── */
+let ASK = null;
+try {
+  const res = await fetch('../../motor/export/ask-catalog.json');
+  if (res.ok) ASK = await res.json();
+} catch (e) { /* variant A faller tilbake på grafteksten */ }
+
+const Q = ASK && ASK.questions
+  ? (ASK.questions.find(q => q.metricIds && q.metricIds.includes('curve')) || ASK.questions[0])
+  : null;
+
+/* ── De tre variantene ────────────────────────────────────────────────── */
+const VARIANTS = {
+  A: () =>
+    '<p class="t-eyebrow">ASK FLIGHTGLASS</p>' +
+    '<h1 class="t-display">' + (Q ? Q.prompt : 'Why does the ball curve right?') + '</h1>' +
+    '<p class="t-body">' + (Q ? Q.shortAnswer : byId[ROOT].explanation) + '</p>' +
+    '<p class="t-cap"><span class="chip">RANGE MODELLED</span></p>' +
+    (Q ? '<p class="t-cap">' + Q.boundary + '</p>' : '') +
+    '<button class="cta" type="button">' +
+      (Q ? Q.nextAction.toUpperCase() : 'OPEN THE FACE–PATH MODEL') + '</button>' +
+    '<p class="t-eyebrow" style="margin-top:var(--sp-xl)">WHAT SHAPES ' +
+      name(ROOT).toUpperCase() + '</p>' +
+    chainMarkup() + foot,
+
+  B: () =>
+    '<p class="t-eyebrow">THE MODEL</p>' +
+    '<h1 class="t-lens">WHAT SHAPES<br>' + name(ROOT).toUpperCase() + '</h1>' +
+    chainMarkup() +
+    '<p class="t-cap">' + byId[ROOT].explanation + '</p>' +
+    '<button class="cta" type="button">OPEN THIS CHAIN</button>' +
+    '<p class="grouplab">EVERY METRIC</p>' +
+    '<div class="metriclist">' +
+      GRAPH.nodes.filter(n => ['separation', 'flight', 'landing'].includes(n.layer))
+        .map(n => '<span>' + n.displayName + '</span>').join('') +
+    '</div>' + foot,
+
+  C: () =>
+    '<p class="t-eyebrow">CURRENT SHOT</p>' +
+    '<h1 class="t-display">' + SHOT.shape + '</h1>' +
+    '<div class="bigrow">' +
+      '<div><p class="t-eyebrow" style="margin-bottom:2px">CARRY</p>' +
+        '<span class="t-num">' + SHOT.carry + '</span></div>' +
+      '<div><p class="t-eyebrow" style="margin-bottom:2px">SIDE</p>' +
+        '<span class="sub">' + SHOT.side + '</span></div>' +
+      '<div><p class="t-eyebrow" style="margin-bottom:2px">CURVE</p>' +
+        '<span class="sub">' + SHOT.curve + '</span></div>' +
+    '</div>' +
+    '<div class="delivery">' +
+      '<div><b>SPEED</b><i>' + DEFAULT_SHOT.speed + '</i></div>' +
+      '<div><b>FACE</b><i>' + fmt('signedAngle', DEFAULT_SHOT.face) + '</i></div>' +
+      '<div><b>PATH</b><i>' + fmt('signedAngle', DEFAULT_SHOT.path) + '</i></div>' +
+      '<div><b>ATTACK</b><i>' + fmt('signedAngle', DEFAULT_SHOT.attack) + '</i></div>' +
+      '<div><b>LOFT</b><i>' + fmt('plainAngle', DEFAULT_SHOT.dynLoft) + '</i></div>' +
+    '</div>' +
+    '<button class="cta" type="button">OPEN IN IMPACT</button>' +
+    '<p class="t-eyebrow" style="margin-top:var(--sp-xl)">WHY IT CURVES</p>' +
+    chainMarkup() + foot,
+};
+
+/* ── Menyen ───────────────────────────────────────────────────────────── */
+const CELLS4 = ['HOME', 'IMPACT', 'GEOMETRY', 'LINKS'];
+const CELLS3 = ['HOME', 'IMPACT', 'GEOMETRY'];
+
+/* D118: portrettgulvet er 390×844. 375 beholdt som stresstest, merket.
+   Safe-area per port (pt). 375×667 er SE-klassen: ingen insets i det hele tatt.
+   G §16: tallene skal regnes NETTO. Bunninsettet bæres av NEDERSTE krom —
+   menyen når den finnes, ellers innholdet. Aldri begge (dobbeltpadding). */
+const INSETS = {
+  '390x844': { top: 47, bottom: 34 },
+  '430x932': { top: 59, bottom: 34 },
+  '375x667': { top: 0,  bottom: 0  },
+};
+
+const state = { v: 'A', p: '390x844', m: 4, f: 1, s: 1 };
+const $ = id => document.getElementById(id);
+
+function renderMenu() {
+  const menu = $('menu');
+  menu.hidden = state.m === 0;
+  if (state.m === 0) { menu.innerHTML = ''; return; }
+  const cells = state.m === 3 ? CELLS3 : CELLS4;
+  menu.innerHTML = cells.map((c, i) =>
+    '<button class="cell" type="button"' +
+    (i === 0 ? ' aria-current="page"' : '') + '>' + c + '</button>'
+  ).join('');
+  menu.querySelectorAll('.cell').forEach(b => b.addEventListener('click', () => {
+    if (b.getAttribute('aria-current') === 'page') return;   // ingenting skjedde
+    haptics.impact('light');
+    menu.querySelectorAll('.cell').forEach(x => x.removeAttribute('aria-current'));
+    b.setAttribute('aria-current', 'page');
+    b.classList.remove('bloom'); void b.offsetWidth; b.classList.add('bloom');
+  }));
+}
+
+function render() {
+  const parts = state.p.split('x');
+  const frame = $('frame');
+  frame.style.width = parts[0] + 'px';
+  frame.style.height = parts[1] + 'px';
+  frame.classList.toggle('showfold', !!state.f);
+
+  const ins = state.s ? INSETS[state.p] : { top: 0, bottom: 0 };
+  const menuOn = state.m !== 0;
+  /* toppinsettet spises av innholdet; bunninsettet av nederste krom */
+  $('content').style.paddingTop = ins.top + 'px';
+  $('content').style.paddingBottom = menuOn ? '0px' : ins.bottom + 'px';
+  $('menu').style.height = menuOn ? (56 + ins.bottom) + 'px' : '';
+  $('menu').style.paddingBottom = menuOn ? ins.bottom + 'px' : '';
+
+  $('pad').innerHTML = VARIANTS[state.v]();
+  renderMenu();
+  requestAnimationFrame(() => {
+    $('foldline').style.top = $('content').clientHeight + 'px';
+  });
+}
+
+document.querySelectorAll('.tool button').forEach(b => {
+  b.addEventListener('click', () => {
+    const g = b.dataset.v ? 'v' : b.dataset.p ? 'p'
+            : b.dataset.m ? 'm' : b.dataset.s ? 's' : 'f';
+    if (g === 'f' || g === 's') {
+      state[g] = state[g] ? 0 : 1;
+      b.setAttribute('aria-pressed', String(!!state[g]));
+      if (g === 's') b.textContent = state.s ? 'NETTO' : 'BRUTTO';
+    } else {
+      const val = b.dataset[g];
+      state[g] = g === 'm' ? Number(val) : val;
+      document.querySelectorAll('.tool button[data-' + g + ']')
+        .forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    }
+    render();
+  });
+});
+
+render();
+
+/* verifiseringskrok: tallene skal kunne leses uten skjermdump */
+window.__homeDemo = { SHOT, DEFAULT_SHOT, chain: { root: ROOT, L1, L2 }, state, question: Q };
+</script>
+</body>
+</html>

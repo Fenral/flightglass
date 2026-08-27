@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flight Glass — Impact Studio (skeleton)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="nav.css">
+</head>
+<body data-screen="studio">
+<!--
+  Landskap er et modus man går INN i og UT av (D59, eierens svar 2).
+  CSS-porten er orienteringsbetingelsen selv: bredde > høyde, min 568×320.
+  HOME-sirkelen finnes i BEGGE tilstander — tilbakeveien forsvinner aldri.
+  Rotasjonsteksten er et FORSLAG (se NAVIGASJON.md).
+-->
+<a class="home-circle t-label" href="./index.html" aria-label="Home">HOME</a>
+
+<div class="studio-rotate">
+  <h1 class="t-display-lens">Impact Studio</h1>
+  <p class="t-body">Rotate to landscape — the arc needs width over height.</p>
+</div>
+
+<div class="studio-landscape">
+  <div class="scene">
+    <span class="t-caption zone-name">arc scene</span>
+  </div>
+  <div class="zone">
+    <span class="t-label zone-name">strike</span>
+    <p class="t-caption skeleton-note">Skeleton — Impact Studio is built by stream B.</p>
+  </div>
+</div>
+<script type="module" src="nav.js"></script>
+</body>
+</html>

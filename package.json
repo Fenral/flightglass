@@ -1,0 +1,14 @@
+{
+  "name": "flightglass",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Flight Glass — rotoppsett (D58). Kjeder fysikklint, motortester og adaptertester.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "//scripts.test": "Tre trinn: (1) fysikklinten (spec §11 krav 2/5 — feiler på fysikk utenfor engine/), (2) motorens 465 tester via engine/package.json (IKKE rør glob-formen der — Node 24-fellen, se engine/README.md), (3) adapterlaget + lintens selvtest. Ingen avhengigheter utenfor node:test.",
+  "scripts": {
+    "test": "node tools/lint-physics.mjs && npm --prefix engine test && node --test adapter/test/**/*.test.js tools/lint-physics.test.mjs"
+  }
+}

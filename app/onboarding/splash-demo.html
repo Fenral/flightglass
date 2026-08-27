@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flight Glass — splash: tre konsepter (D98)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<!--
+  BESLUTNINGSHJELP, IKKE PRODUKTKODE. Denne sida er ikke koblet inn i appen
+  noe sted — den finnes for at eieren skal se de tre splash-konseptene i
+  BEVEGELSE før valget tas (D98). Når konseptet er valgt, bygges det ene inn
+  i Home og denne fila kan slettes.
+
+  Alle tre er tegnet av logoens EGNE to strøk, hentet fra
+  `app/home/assets/flightglass-lockup.svg`:
+    - ink-ringen med det bevisste gapet (r 54, dash 277/63, rotert -24 grader)
+    - primary-banen som sveiper gjennom den
+    - ball-prikken
+  Ingen nye former er funnet på. Ingen nattfoto (D98). Kun tokens.
+  SKIP og per-økt-visning følger D106.
+-->
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: var(--sp-xl);
+    background: var(--neutral);
+    color: var(--ink);
+    font: 400 15px/1.55 var(--font-ui);
+  }
+  h1 { margin: 0 0 var(--sp-sm); font: 700 34px/1.05 var(--font-display); letter-spacing: -.01em; }
+  .lede { margin: 0 0 var(--sp-xl); color: var(--muted); max-width: 62ch; }
+
+  .grid { display: flex; flex-wrap: wrap; gap: var(--sp-xl); }
+
+  .card { flex: 0 0 300px; max-width: 100%; }
+  .card h2 { margin: 0 0 var(--sp-xs); font: 500 22px/1.1 var(--font-display); }
+  .card .why { margin: 0 0 var(--sp-md); color: var(--muted); font-size: 12px; line-height: 1.5; min-height: 54px; }
+
+  /* Scenen er telefonformat, som den ekte splashen. */
+  .stage {
+    position: relative;
+    aspect-ratio: 375 / 640;
+    border-radius: var(--r-card);
+    background: var(--neutral);
+    box-shadow: inset 0 0 0 1px var(--glass-edge);
+    overflow: hidden;
+  }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .lockup {
+    position: absolute;
+    left: 50%;
+    bottom: 16%;
+    width: 58%;
+    transform: translateX(-50%);
+    opacity: 0;
+  }
+
+  /* D106: ordet SKIP, samme plass som i onboardingen. */
+  .skip {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    min-height: 32px;
+    padding: 0 var(--sp-md);
+    border: 0;
+    border-radius: var(--r-control);
+    background: transparent;
+    color: var(--muted);
+    font: 700 10px/1.3 var(--font-ui);
+    letter-spacing: .1em;
+    cursor: pointer;
+  }
+  .skip:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .controls { display: flex; gap: var(--sp-sm); margin-top: var(--sp-md); }
+  .btn {
+    min-height: 44px; padding: 0 var(--sp-lg); border: 0;
+    border-radius: var(--r-control); background: var(--plate); color: var(--ink);
+    font: 700 10px/1.3 var(--font-ui); letter-spacing: .1em; cursor: pointer;
+  }
+  .btn--go { background: var(--primary); color: var(--on-primary); }
+  .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .timing { margin-top: var(--sp-sm); color: var(--muted); font: 400 12px/1.5 var(--font-data); }
+
+  .toolbar { margin-bottom: var(--sp-xl); }
+
+  /* ── felles strøk ──────────────────────────────────────────────────────── */
+  .ring { fill: none; stroke: var(--ink); stroke-width: 8; stroke-linecap: round; }
+  .arc  { fill: none; stroke: var(--primary); stroke-width: 6; stroke-linecap: round; }
+  .ball { fill: var(--neutral); stroke: var(--ink); stroke-width: 3; }
+
+  /* ══ KONSEPT 1 — banen tegner instrumentet ═══════════════════════════════
+     Banen først, ringen rundt den etterpå, gapet lander der banen går ut. */
+  .c1 .arc  { stroke-dasharray: 190; stroke-dashoffset: 190; }
+  .c1 .ring { stroke-dasharray: 277 63; stroke-dashoffset: 340; }
+  .c1 .ball { opacity: 0; }
+  .c1.run .arc  { animation: c1arc 620ms var(--ease) forwards; }
+  .c1.run .ring { animation: c1ring 520ms var(--ease) 480ms forwards; }
+  .c1.run .ball { animation: fade 200ms var(--ease) 1000ms forwards; }
+  .c1.run .lockup { animation: fade 250ms var(--ease) 1150ms forwards; }
+  @keyframes c1arc  { to { stroke-dashoffset: 0; } }
+  @keyframes c1ring { to { stroke-dashoffset: 0; } }
+
+  /* ══ KONSEPT 2 — blenderen stopper ned ═══════════════════════════════════
+     Ringen trekker seg inn utenfra mens gapet roterer på plass; banen tennes
+     i det ringen setter seg. */
+  .c2 .ringwrap { transform-origin: 90px 90px; transform: scale(2.2); opacity: 0; }
+  /* Ballen hører til banen, ikke til ringen: de ligger dempet sammen og
+     tennes sammen. Uten dette sto prikken i full ink mot en bane på 22 %. */
+  .c2 .arc, .c2 .ball { opacity: .22; }
+  .c2.run .ringwrap { animation: c2stop 700ms var(--ease) forwards; }
+  .c2.run .arc, .c2.run .ball { animation: c2ignite 180ms var(--ease) 640ms forwards; }
+  .c2.run .lockup { animation: fade 250ms var(--ease) 900ms forwards; }
+  @keyframes c2stop   { from { transform: scale(2.2) rotate(-26deg); opacity: 0; }
+                        to   { transform: scale(1) rotate(0deg); opacity: 1; } }
+  @keyframes c2ignite { to { opacity: 1; } }
+
+  /* ══ KONSEPT 3 — punktet blir en bane ════════════════════════════════════
+     Én prikk slår ut; banen spoles ut fra den, og sveipet avdekker ringen. */
+  .c3 .arc  { stroke-dasharray: 190; stroke-dashoffset: 190; }
+  .c3 .ring { stroke-dasharray: 277 63; stroke-dashoffset: 340; opacity: .9; }
+  .c3 .ball { opacity: 0; }
+  .c3.run .ball { animation: pop 220ms var(--ease) forwards; }
+  .c3.run .arc  { animation: c1arc 740ms var(--ease) 160ms forwards; }
+  .c3.run .ring { animation: c1ring 600ms var(--ease) 500ms forwards; }
+  .c3.run .lockup { animation: fade 300ms var(--ease) 1150ms forwards; }
+  @keyframes pop { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: scale(1); } }
+
+  @keyframes fade { to { opacity: 1; } }
+
+  /* Reduced motion: sluttbildet med én gang. Ingen informasjon ligger i
+     bevegelsen, så den kan falle bort i sin helhet (DESIGN.md Bevegelse). */
+  @media (prefers-reduced-motion: reduce) {
+    .stage .arc, .stage .ring { stroke-dashoffset: 0 !important; animation: none !important; }
+    .stage .ball, .stage .lockup { opacity: 1 !important; animation: none !important; }
+    .c2 .ringwrap { transform: none !important; opacity: 1 !important; animation: none !important; }
+    .c2 .arc { opacity: 1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Splash — tre konsepter</h1>
+<p class="lede">
+  Alle tre er bygget av logoens egne to strøk: ink-ringen med det bevisste gapet, og
+  primary-banen som sveiper gjennom den. Ingen nye former, ingen nattfoto, kun tokens.
+  Ekte timing. Trykk <b>PLAY ALL</b> for å se dem etter hverandre, eller spill ett om gangen.
+</p>
+
+<div class="toolbar">
+  <button class="btn btn--go" id="playAll" type="button">PLAY ALL</button>
+</div>
+
+<div class="grid">
+
+  <!-- ── 1 ────────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>1 · Banen tegner instrumentet</h2>
+    <p class="why">Banen streker seg opp først. Ringen lukker seg rundt den, og gapet lander
+      der banen går ut. Slaget først, instrumentet rundt det — den rekkefølgen produktet virker i.</p>
+    <div class="stage c1" data-concept="1">
+      <button class="skip" type="button">SKIP</button>
+      <svg viewBox="0 0 180 260" aria-hidden="true">
+        <g transform="translate(0 20)">
+          <circle class="ring" cx="90" cy="90" r="54" transform="rotate(-24 90 90)"/>
+          <path class="arc" d="M34 116 C55 113 67 103 78 86 C91 66 108 57 146 55"/>
+          <circle class="ball" cx="83" cy="79" r="4.2"/>
+        </g>
+      </svg>
+      <img class="lockup" src="../home/assets/flightglass-lockup.svg" alt="Flightglass">
+    </div>
+    <div class="controls"><button class="btn" data-play="1" type="button">REPLAY</button></div>
+    <p class="timing">~1400 ms · bane 620 · ring 520 @480 · ball @1000 · navn @1150</p>
+  </div>
+
+  <!-- ── 2 ────────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>2 · Blenderen stopper ned</h2>
+    <p class="why">Ringen kommer inn utenfra og trekker seg til sin radius mens gapet roterer
+      på plass — en blender som stopper ned. Banen ligger dempet og tennes i det ringen setter seg.</p>
+    <div class="stage c2" data-concept="2">
+      <button class="skip" type="button">SKIP</button>
+      <svg viewBox="0 0 180 260" aria-hidden="true">
+        <g transform="translate(0 20)">
+          <g class="ringwrap">
+            <circle class="ring" cx="90" cy="90" r="54" transform="rotate(-24 90 90)"/>
+          </g>
+          <path class="arc" d="M34 116 C55 113 67 103 78 86 C91 66 108 57 146 55"/>
+          <circle class="ball" cx="83" cy="79" r="4.2"/>
+        </g>
+      </svg>
+      <img class="lockup" src="../home/assets/flightglass-lockup.svg" alt="Flightglass">
+    </div>
+    <div class="controls"><button class="btn" data-play="2" type="button">REPLAY</button></div>
+    <p class="timing">~1300 ms · ring 700 · bane tennes 180 @640 · navn @900</p>
+  </div>
+
+  <!-- ── 3 ────────────────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2>3 · Punktet blir en bane</h2>
+    <p class="why">Én ball-prikk slår ut. Banen spoles ut fra den i én bevegelse, og sveipet
+      avdekker ringen bak seg. Nærmest den opprinnelige «flaten som fødes», men ender på logoen.</p>
+    <div class="stage c3" data-concept="3">
+      <button class="skip" type="button">SKIP</button>
+      <svg viewBox="0 0 180 260" aria-hidden="true">
+        <g transform="translate(0 20)">
+          <circle class="ring" cx="90" cy="90" r="54" transform="rotate(-24 90 90)"/>
+          <path class="arc" d="M34 116 C55 113 67 103 78 86 C91 66 108 57 146 55"/>
+          <circle class="ball" cx="34" cy="116" r="4.6" style="transform-origin:34px 116px"/>
+        </g>
+      </svg>
+      <img class="lockup" src="../home/assets/flightglass-lockup.svg" alt="Flightglass">
+    </div>
+    <div class="controls"><button class="btn" data-play="3" type="button">REPLAY</button></div>
+    <p class="timing">~1500 ms · ball 220 · bane 740 @160 · ring 600 @500 · navn @1150</p>
+  </div>
+
+</div>
+
+<script type="module">
+const DURATION = { 1: 1500, 2: 1400, 3: 1600 };
+
+function play(stage) {
+  stage.classList.remove('run');
+  void stage.offsetWidth;          // tvinger reflow så animasjonen kan startes på nytt
+  stage.classList.add('run');
+}
+
+for (const btn of document.querySelectorAll('[data-play]')) {
+  btn.addEventListener('click', () => play(document.querySelector(`.stage[data-concept="${btn.dataset.play}"]`)));
+}
+
+/* SKIP hopper til sluttbildet — samme utvei som den ekte splashen (D106). */
+for (const btn of document.querySelectorAll('.skip')) {
+  btn.addEventListener('click', () => {
+    const stage = btn.closest('.stage');
+    stage.classList.remove('run');
+    void stage.offsetWidth;
+    stage.classList.add('run');
+    for (const el of stage.querySelectorAll('svg *, .lockup')) {
+      const anims = el.getAnimations ? el.getAnimations() : [];
+      for (const a of anims) a.finish();
+    }
+  });
+}
+
+document.getElementById('playAll').addEventListener('click', async () => {
+  for (const n of [1, 2, 3]) {
+    play(document.querySelector(`.stage[data-concept="${n}"]`));
+    await new Promise(r => setTimeout(r, DURATION[n] + 500));
+  }
+});
+
+/* Spill alle én gang ved åpning, så eieren ser bevegelse uten å lete. */
+for (const stage of document.querySelectorAll('.stage')) play(stage);
+</script>
+</body>
+</html>

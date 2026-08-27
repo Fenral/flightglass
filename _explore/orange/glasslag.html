@@ -1,0 +1,1170 @@
+<title>Flight Glass — Glasslag</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   FLIGHT GLASS — retning: GLASSLAG
+   Bakbelyst måleglass. Ett sammenhengende oransje lysfelt bak
+   hele skjermen; frostede glassplater er det eneste som demper
+   det. Der en verdi er levende, er glasset kuttet bort og rå
+   #F75105 kommer gjennom. Deltaflaten er det tynneste punktet.
+   ============================================================ */
+
+:root{
+  --ink:#06060A;
+  --text:#D2D3D4;
+  --text-2:#A5A2A7;
+  --muted:#78757B;
+  --acc:#F75105;
+  --acc-warm:#F78E21;
+  --acc-hot:#FFC48A;
+  --plate:rgba(13,11,15,.54);
+  --plate-dense:rgba(8,7,10,.72);
+  --hair:rgba(255,255,255,.10);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:
+    radial-gradient(120% 70% at 50% 108%, #2A0C03 0%, #120608 42%, #08080C 72%),
+    #06060A;
+  color:var(--text);
+  font-family:'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-variation-settings:'wdth' 100,'wght' 430;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  padding:40px 16px 64px;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+}
+
+/* ---------- typografiske hjelpere ---------- */
+.wide{font-variation-settings:'wdth' 124,'wght' 500;letter-spacing:.185em;text-transform:uppercase}
+.wideb{font-variation-settings:'wdth' 121,'wght' 640;letter-spacing:.10em;text-transform:uppercase}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;font-variation-settings:'wdth' 100,'wght' 560}
+
+/* ============================================================
+   TELEFON
+   ============================================================ */
+.stage{width:100%;max-width:392px}
+.cap{
+  font-size:9.5px;color:#5E5A60;text-align:center;
+  font-variation-settings:'wdth' 118,'wght' 500;letter-spacing:.2em;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.phone{
+  position:relative;width:392px;max-width:100%;
+  border-radius:46px;padding:5px;
+  background:linear-gradient(160deg,#3A3A40,#101014 32%,#08080B 60%,#43413F 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.06),
+    0 50px 90px -40px rgba(247,81,5,.42),
+    0 40px 120px -30px rgba(0,0,0,.95);
+}
+.screen{
+  position:relative;border-radius:41px;overflow:hidden;
+  background:var(--ink);
+  isolation:isolate;
+}
+
+/* ---------- LYSKILDEN: bakbelysningen ---------- */
+.lightfield{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(150% 34% at 50% 103%, #FFA53F 0%, #F75105 20%, rgba(190,50,6,.60) 42%, rgba(60,14,4,0) 68%),
+    radial-gradient(86% 20% at 24% 42%, rgba(247,81,5,.62), rgba(247,81,5,0) 72%),
+    radial-gradient(74% 13% at 84% 56%, rgba(247,142,33,.44), rgba(247,142,33,0) 74%),
+    radial-gradient(74% 13% at 12% 66%, rgba(247,81,5,.46), rgba(247,81,5,0) 74%),
+    radial-gradient(90% 12% at 50% 15%, rgba(247,81,5,.30), rgba(247,81,5,0) 74%),
+    linear-gradient(180deg,#06060A 0%, #0B090E 18%, #150A0B 38%, #240C06 52%, #3B1207 68%, #6E2405 86%, #C43D06 100%);
+}
+/* frostkorn — glasset selv */
+.grain{
+  position:absolute;inset:0;z-index:6;pointer-events:none;opacity:.075;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.content{position:relative;z-index:2}
+
+/* ============================================================
+   GLASSPLATE
+   ============================================================ */
+.panel{
+  position:relative;border-radius:20px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.022) 44%, rgba(255,255,255,.008)),
+    var(--plate);
+  -webkit-backdrop-filter:blur(24px) saturate(1.75) brightness(1.03);
+  backdrop-filter:blur(24px) saturate(1.75) brightness(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.17),
+    inset 0 -1px 0 rgba(0,0,0,.5),
+    0 20px 40px -22px rgba(0,0,0,.9);
+}
+/* kantlys — oransje som lekker rundt kanten av platen */
+.panel::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(152deg,
+    rgba(247,142,33,.60) 0%,
+    rgba(247,81,5,.14) 30%,
+    rgba(255,255,255,.10) 62%,
+    rgba(247,81,5,.42) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  pointer-events:none;
+}
+
+/* ============================================================
+   STATUSLINJE + NAV
+   ============================================================ */
+.status{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 26px 6px;font-size:12.5px;
+}
+.status .t{font-variation-settings:'wdth' 100,'wght' 620;letter-spacing:.01em}
+.status .icons{display:flex;gap:5px;align-items:flex-end;height:11px}
+.status .icons i{display:block;width:3px;background:var(--text);border-radius:1px}
+.status .icons i:nth-child(1){height:4px}
+.status .icons i:nth-child(2){height:6px}
+.status .icons i:nth-child(3){height:8px}
+.status .icons i:nth-child(4){height:11px}
+.status .bat{
+  width:24px;height:11px;border:1px solid rgba(210,211,212,.55);border-radius:3px;
+  position:relative;margin-left:6px;
+}
+.status .bat::before{content:'';position:absolute;inset:1.5px;width:60%;background:var(--acc);border-radius:1px}
+.status .bat::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:5px;background:rgba(210,211,212,.55);border-radius:0 1px 1px 0}
+
+.nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 2px}
+.navbtn{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), inset 0 0 0 1px rgba(255,255,255,.055);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+.navbtn span{display:block;width:13px;height:1.5px;background:var(--text);border-radius:2px;box-shadow:0 4px 0 var(--text)}
+.navbtn.bell{position:relative}
+.navbtn.bell b{
+  width:12px;height:12px;border:1.5px solid var(--text);border-radius:4px 4px 0 0;border-bottom:none;display:block
+}
+.navbtn.bell::after{
+  content:'';position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;
+  background:var(--acc);box-shadow:0 0 10px 1px rgba(247,81,5,.9), 0 0 0 2px rgba(10,9,12,.85);
+}
+.brand{
+  display:flex;align-items:center;gap:7px;font-size:12px;
+  font-variation-settings:'wdth' 124,'wght' 560;letter-spacing:.24em;text-transform:uppercase;
+}
+.brand .mk{
+  width:13px;height:15px;
+  background:linear-gradient(160deg,var(--acc-warm),var(--acc));
+  clip-path:polygon(52% 0%, 100% 42%, 62% 42%, 100% 100%, 8% 54%, 44% 54%, 0% 20%);
+  filter:drop-shadow(0 0 7px rgba(247,81,5,.85));
+}
+
+/* ============================================================
+   TITTEL
+   ============================================================ */
+.title{padding:16px 18px 0;text-align:center}
+.title h1{
+  font-size:41px;line-height:.90;
+  font-variation-settings:'wdth' 125,'wght' 470;
+  letter-spacing:.115em;text-transform:uppercase;
+  background:linear-gradient(178deg,#F2F1F2 0%,#CFCED0 38%,#7E7A7E 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.4);
+}
+.viewtog{
+  margin:14px auto 0;display:inline-flex;padding:3px;border-radius:999px;gap:2px;
+  background:rgba(255,255,255,.045);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), inset 0 1px 0 rgba(255,255,255,.12);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+}
+.viewtog button{
+  font:inherit;border:0;cursor:pointer;color:var(--muted);background:transparent;
+  padding:7px 20px;border-radius:999px;font-size:10px;
+  font-variation-settings:'wdth' 122,'wght' 560;letter-spacing:.17em;text-transform:uppercase;
+}
+.viewtog button[aria-pressed="true"]{
+  color:#170701;
+  background:linear-gradient(180deg,var(--acc-warm),var(--acc));
+  box-shadow:0 0 22px -2px rgba(247,81,5,.9), inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+/* ============================================================
+   DRAW-SLABEN — den store oransje massen
+   ============================================================ */
+.slab{
+  position:relative;margin:18px 0 0;padding:18px 18px 16px;
+  background:
+    radial-gradient(120% 180% at 4% 0%, rgba(255,214,160,.55) 0%, rgba(255,178,90,0) 46%),
+    linear-gradient(104deg,#F75105 0%, #F75105 46%, #F97A14 74%, #F78E21 100%);
+  box-shadow:
+    0 0 60px -6px rgba(247,81,5,.75),
+    inset 0 1px 0 rgba(255,225,190,.6),
+    inset 0 -1px 0 rgba(120,28,2,.55);
+}
+.slab::before{
+  content:'';position:absolute;left:0;right:0;top:-24px;height:24px;
+  background:linear-gradient(180deg,rgba(247,81,5,0),rgba(247,81,5,.42));
+  pointer-events:none;
+}
+.slab-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.slab h2{
+  font-size:38px;line-height:.86;color:#180800;
+  font-variation-settings:'wdth' 125,'wght' 700;letter-spacing:.045em;text-transform:uppercase;
+}
+.slab .sub{
+  margin-top:7px;font-size:9.5px;color:rgba(24,8,0,.74);
+  font-variation-settings:'wdth' 118,'wght' 620;letter-spacing:.13em;text-transform:uppercase;
+}
+/* mørk glassbrikke som flyter på det oransje — lagene */
+.slabchip{
+  flex:0 0 auto;border-radius:13px;padding:9px 13px 10px;text-align:right;
+  background:rgba(12,8,8,.60);
+  -webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20), inset 0 0 0 1px rgba(255,255,255,.10), 0 8px 18px -8px rgba(80,20,0,.8);
+}
+.slabchip .l{display:block;font-size:8px;color:#C9B7AE;font-variation-settings:'wdth' 120,'wght' 560;letter-spacing:.17em;text-transform:uppercase}
+.slabchip .v{display:block;margin-top:3px;font-size:19px;color:#FFE2CB}
+.slabchip .d{display:block;margin-top:2px;font-size:8px;color:#F7B27E;font-variation-settings:'wdth' 120,'wght' 620;letter-spacing:.15em}
+
+/* ---------- ÉN global setning ---------- */
+.truth{
+  display:flex;align-items:center;gap:9px;padding:10px 18px;
+  background:rgba(6,5,8,.86);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09), inset 0 -1px 0 rgba(0,0,0,.6);
+}
+.truth .dot{
+  width:6px;height:6px;border-radius:50%;flex:0 0 auto;
+  background:var(--acc-warm);box-shadow:0 0 10px 1px rgba(247,142,33,.8);
+}
+.truth p{font-size:10.5px;color:#B6B2B7;font-variation-settings:'wdth' 108,'wght' 480;letter-spacing:.045em}
+
+/* ============================================================
+   INNHOLDSKOLONNE
+   ============================================================ */
+.col{padding:16px 14px 0;display:flex;flex-direction:column;gap:14px}
+
+/* ---------- ENDRINGSPANEL (Phoenix' frostede varselpanel) ---------- */
+.delta-panel{padding:13px 14px 13px 17px;overflow:hidden}
+.delta-panel .rule{
+  position:absolute;left:7px;top:12px;bottom:12px;width:2px;border-radius:2px;
+  background:linear-gradient(180deg,rgba(247,81,5,0),var(--acc) 22%,var(--acc-warm) 78%,rgba(247,142,33,0));
+  box-shadow:0 0 14px 1px rgba(247,81,5,.85);
+}
+.dp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px}
+.dp-head .t{font-size:9px;color:var(--text-2)}
+.dchip{
+  font-size:10px;padding:3px 9px;border-radius:999px;color:#1A0800;
+  background:linear-gradient(180deg,var(--acc-warm),var(--acc));
+  box-shadow:0 0 18px -2px rgba(247,81,5,.9), inset 0 1px 0 rgba(255,255,255,.5);
+  font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 112,'wght' 660;letter-spacing:.06em;
+}
+.dp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+.dp-cell{
+  background:linear-gradient(180deg,rgba(247,81,5,.16),rgba(247,81,5,.05));
+  padding:9px 9px 10px;
+}
+.dp-cell .l{display:block;font-size:7.5px;color:#B79A8C;font-variation-settings:'wdth' 120,'wght' 580;letter-spacing:.15em;text-transform:uppercase}
+.dp-cell .v{display:block;margin-top:4px;font-size:15px;color:var(--acc-hot)}
+.dp-cell .v i{font-style:normal;font-size:9px;color:#C69A78;margin-left:2px}
+.dp-note{margin-top:9px;font-size:8.5px;color:var(--muted);letter-spacing:.05em}
+.dp-note b{color:#C0A08F;font-variation-settings:'wdth' 112,'wght' 600}
+
+/* ---------- KART ---------- */
+.mapwrap{position:relative}
+.map-glow{
+  position:absolute;z-index:0;left:-2%;top:9%;width:64%;height:40%;
+  border-radius:50%;
+  background:radial-gradient(closest-side, rgba(247,81,5,1), rgba(247,81,5,.42) 52%, rgba(247,81,5,0) 100%);
+  filter:blur(20px);pointer-events:none;
+}
+.map-glow.b{left:34%;top:52%;width:64%;height:38%;background:radial-gradient(closest-side, rgba(247,142,33,.42), rgba(247,142,33,0));}
+.map{
+  position:relative;z-index:1;padding:12px 11px 9px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.014) 44%, rgba(255,255,255,.006)),
+    var(--plate-dense);
+  -webkit-backdrop-filter:blur(30px) saturate(1.55) brightness(1.02);
+  backdrop-filter:blur(30px) saturate(1.55) brightness(1.02);
+}
+.map-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;padding:0 3px}
+.map-head .a{font-size:9.5px;color:var(--text-2)}
+.map-head .b{font-size:8px;color:var(--muted);font-variation-settings:'wdth' 118,'wght' 520;letter-spacing:.14em;text-transform:uppercase}
+svg.flight{display:block;width:100%;height:auto;border-radius:12px;overflow:visible}
+svg text{font-family:'Archivo',sans-serif}
+.t-lab{font-size:7.6px;fill:#8B888D;font-variation-settings:'wdth' 120,'wght' 560;letter-spacing:.13em}
+.t-num{font-size:9px;fill:#DAD8DB;font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 100,'wght' 600}
+.t-hot{fill:#FFCB96}
+.t-dim{fill:#6C696E}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px 14px;padding:10px 4px 2px;align-items:center}
+.lg{display:flex;align-items:center;gap:6px;font-size:8.5px;color:var(--text-2);font-variation-settings:'wdth' 116,'wght' 520;letter-spacing:.11em;text-transform:uppercase}
+.lg .sw{width:20px;height:0;border-top:2.5px solid var(--acc);box-shadow:0 0 8px rgba(247,81,5,.9)}
+.lg.ref .sw{border-top:2px dashed #9C99A0;box-shadow:none}
+.lg.area .sw{
+  height:9px;border:0;border-radius:2px;
+  background:linear-gradient(90deg,rgba(247,81,5,.25),rgba(255,176,90,.72));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+}
+.conv{
+  margin-left:auto;font-size:8px;color:var(--muted);
+  font-variation-settings:'wdth' 116,'wght' 560;letter-spacing:.11em;text-transform:uppercase;
+}
+
+/* ---------- UTFALLSGRUPPER ---------- */
+.grp{padding:13px 13px 14px}
+.grp-h{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.grp-h .bar{
+  width:3px;height:13px;border-radius:2px;
+  background:linear-gradient(180deg,var(--acc-warm),var(--acc));
+  box-shadow:0 0 12px 1px rgba(247,81,5,.9);
+}
+.grp-h h3{font-size:10px;color:var(--text);font-variation-settings:'wdth' 124,'wght' 520;letter-spacing:.2em;text-transform:uppercase}
+.grp-h .n{margin-left:auto;font-size:9px;color:var(--muted)}
+
+.tiles{display:grid;gap:1px;background:rgba(255,255,255,.07);border-radius:12px;overflow:hidden}
+.t2{grid-template-columns:1fr 1fr}
+.tile{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.010)),
+    linear-gradient(180deg,rgba(5,4,8,.30),rgba(5,4,8,.46));
+  padding:10px 11px 11px;min-height:64px;display:flex;flex-direction:column;
+}
+.tile.dir{
+  background:
+    linear-gradient(180deg,rgba(247,81,5,.34),rgba(247,81,5,.09)),
+    linear-gradient(180deg,rgba(5,4,8,.34),rgba(5,4,8,.48));
+}
+.tile.span2{grid-column:span 2}
+.tile .l{font-size:7.5px;color:#8F8C91;font-variation-settings:'wdth' 121,'wght' 580;letter-spacing:.16em;text-transform:uppercase}
+.tile.dir .l{color:#BC9C8C}
+.tile .v{margin-top:5px;font-size:20px;color:#EAE8EA;line-height:1}
+.tile .v i{font-style:normal;font-size:10px;color:var(--text-2);margin-left:3px;font-variation-settings:'wdth' 110,'wght' 500}
+.tile.dir .v{color:#FFD3AC}
+.tile .side{
+  margin-top:6px;display:inline-flex;align-self:flex-start;align-items:center;gap:4px;
+  font-size:7.5px;padding:2.5px 6px;border-radius:5px;
+  font-variation-settings:'wdth' 120,'wght' 660;letter-spacing:.14em;text-transform:uppercase;
+  color:#FFE0C4;background:rgba(247,81,5,.30);
+  box-shadow:inset 0 0 0 1px rgba(255,196,138,.42);
+}
+.tile .side.c{color:#CFCDD1;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.tile .side .ar{font-size:8.5px;line-height:1;transform:translateY(-.5px)}
+
+/* ---------- SLIDERE ---------- */
+.slwrap{position:relative}
+.sl-glow{
+  position:absolute;z-index:0;left:6%;right:6%;top:18%;height:70%;
+  border-radius:40px;background:radial-gradient(closest-side,rgba(247,81,5,.55),rgba(247,81,5,0));
+  filter:blur(24px);pointer-events:none;
+}
+.sliders{position:relative;z-index:1;padding:14px 14px 8px}
+.sl{padding:9px 0 13px;border-bottom:1px solid rgba(255,255,255,.055)}
+.sl:last-of-type{border-bottom:0}
+.sl-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
+.sl-lab{font-size:8.5px;color:#8B888D;font-variation-settings:'wdth' 122,'wght' 580;letter-spacing:.17em;text-transform:uppercase}
+.sl-val{font-size:15px;color:#DEDCDF}
+.sl-val i{font-style:normal;font-size:9px;color:var(--muted);margin-left:2px;font-variation-settings:'wdth' 110,'wght' 500}
+.sl-word{
+  font-size:7.5px;margin-left:7px;padding:2px 6px;border-radius:5px;color:#B7B4B9;
+  background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  font-variation-settings:'wdth' 120,'wght' 620;letter-spacing:.14em;text-transform:uppercase;
+}
+.sl-track{
+  position:relative;height:22px;border-radius:8px;
+  background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.28));
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.8), inset 0 0 0 1px rgba(255,255,255,.075), 0 1px 0 rgba(255,255,255,.05);
+  overflow:visible;
+}
+.sl-ruler{
+  position:absolute;inset:0;border-radius:inherit;opacity:.5;
+  background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 10px);
+  -webkit-mask:linear-gradient(180deg,#000 0 34%,transparent 34%);
+  mask:linear-gradient(180deg,#000 0 34%,transparent 34%);
+}
+.sl-mid{position:absolute;left:50%;top:2px;bottom:2px;width:1px;background:rgba(255,255,255,.22)}
+.sl-fill{
+  position:absolute;top:2px;bottom:2px;border-radius:6px;
+  background:linear-gradient(180deg,rgba(180,178,183,.55),rgba(120,118,124,.42));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24);
+}
+.sl-thumb{
+  position:absolute;top:50%;width:26px;height:15px;border-radius:8px;transform:translate(-50%,-50%);
+  background:linear-gradient(180deg,#6E6C72,#3D3C41);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 3px 8px -2px rgba(0,0,0,.9), 0 0 0 1px rgba(0,0,0,.5);
+}
+
+/* AKTIV SLIDER = ÅPNING I GLASSET */
+.sl.on .sl-lab{color:#E6E4E7}
+.sl.on .sl-val{color:#FFE0C4;font-size:17px}
+.sl.on .sl-track{
+  height:36px;border-radius:11px;cursor:ew-resize;touch-action:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.62),rgba(30,10,4,.35));
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,.9),
+    inset 0 0 0 1px rgba(247,81,5,.42),
+    0 0 44px -4px rgba(247,81,5,.72);
+}
+.sl.on .sl-fill{
+  background:linear-gradient(90deg, rgba(247,81,5,.42) 0%, #F75105 42%, #F97914 76%, #F78E21 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,226,196,.55),
+    0 0 30px 2px rgba(247,81,5,.72);
+}
+.sl.on .sl-thumb{
+  width:16px;height:30px;border-radius:7px;
+  background:linear-gradient(180deg,#FFF3E6,#FFC48A 46%,#F97A14);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.5),
+    0 0 26px 3px rgba(255,170,80,.95),
+    0 4px 10px -3px rgba(0,0,0,.8);
+}
+/* deltabåndet i sliderkanalen — samme laminat som deltaflaten i kartet */
+.sl-delta{
+  position:absolute;top:2px;bottom:2px;pointer-events:none;
+  /* fringene står vinkelrett på endringsretningen — som laminatet i kartet */
+  background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.34) 0 1px, transparent 1px 5px);
+  box-shadow:inset 1px 0 0 rgba(255,255,255,.45), inset -1px 0 0 rgba(255,255,255,.45);
+}
+.sl-ref{position:absolute;top:-8px;bottom:-8px;width:1px;background:rgba(255,255,255,.55);pointer-events:none}
+.sl-ref::after{
+  content:'';position:absolute;left:50%;top:-5px;width:9px;height:9px;margin-left:-4.5px;
+  border-radius:50%;border:1.5px solid rgba(255,255,255,.75);background:rgba(10,8,10,.85);
+}
+.sl-scale{display:flex;justify-content:space-between;margin-top:7px;font-size:7.5px;color:#5E5B61}
+.sl-scale span{font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 112,'wght' 540;letter-spacing:.08em}
+.sl-hint{
+  margin-top:8px;font-size:8px;color:#A08A7C;letter-spacing:.06em;
+  display:flex;align-items:center;gap:6px;
+}
+.sl-hint u{text-decoration:none;color:#FFC48A;font-variation-settings:'wdth' 112,'wght' 620}
+.active-tag{
+  font-size:7.5px;padding:2px 7px;border-radius:5px;margin-left:8px;color:#1A0800;
+  background:linear-gradient(180deg,var(--acc-warm),var(--acc));
+  box-shadow:0 0 16px -2px rgba(247,81,5,.95);
+  font-variation-settings:'wdth' 121,'wght' 660;letter-spacing:.15em;text-transform:uppercase;
+}
+.derived{
+  margin:2px 0 0;padding:11px 13px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.012));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.075);
+  font-size:9px;color:var(--text-2);line-height:1.55;letter-spacing:.03em;
+}
+.derived b{color:#FFC48A;font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 104,'wght' 620}
+
+.interim{
+  display:none;margin-top:10px;padding:8px 11px;border-radius:10px;font-size:8.5px;
+  color:#FFD9B4;background:rgba(247,81,5,.20);
+  box-shadow:inset 0 0 0 1px rgba(255,196,138,.45);
+  letter-spacing:.06em;
+}
+.scrubbing .interim{display:block}
+.scrubbing .roll-grp{opacity:.06}
+
+/* ---------- BUNN ---------- */
+.tabbar{
+  margin-top:18px;display:flex;align-items:flex-end;justify-content:space-around;
+  padding:12px 12px 6px;
+  background:linear-gradient(180deg,rgba(8,6,9,.30),rgba(8,6,9,.72));
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+}
+.tab{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:8px;color:#757278;
+  font-variation-settings:'wdth' 114,'wght' 540;letter-spacing:.1em}
+.tab .ic{width:17px;height:17px;border-radius:5px;box-shadow:inset 0 0 0 1.4px currentColor;opacity:.75}
+.tab.on{color:#FFD3AC}
+.tab.on .ic{
+  border-radius:50%;opacity:1;
+  background:linear-gradient(180deg,var(--acc-warm),var(--acc));box-shadow:0 0 20px -1px rgba(247,81,5,.95);
+}
+.homebar{height:26px;display:grid;place-items:center;background:rgba(6,5,8,.55)}
+.homebar span{width:118px;height:4px;border-radius:3px;background:rgba(230,228,231,.65)}
+
+.footnote{
+  max-width:392px;font-size:9.5px;line-height:1.6;color:#5E5A60;text-align:center;letter-spacing:.04em;
+}
+.footnote b{color:#8A8188}
+
+@media (prefers-reduced-motion: no-preference){
+  .sweep{animation:sweep 1150ms cubic-bezier(.22,.68,.24,1) 220ms both}
+  .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 1150ms cubic-bezier(.22,.68,.24,1) 220ms both}
+  .breathe{animation:breathe 7s ease-in-out infinite}
+  /* Skrubben skriver left/width hver frame; en CSS-transition på de samme
+     egenskapene ville både henge etter fingeren og tvinge layout hver frame.
+     Tilbakespretten drives av rAF i skriptet i stedet. Kun maling animeres her. */
+  .sl.on .sl-track{transition:box-shadow .2s ease}
+  .sl.on .sl-thumb{transition:box-shadow .2s ease}
+}
+@keyframes sweep{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes breathe{0%,100%{opacity:.82}50%{opacity:1}}
+</style>
+
+<div class="stage">
+  <p class="cap">Flight Glass · retning “Glasslag” · portrett 392 px · rullende skjerm</p>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="lightfield" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+
+      <div class="content">
+
+        <!-- STATUS -->
+        <div class="status">
+          <span class="t num">9:41</span>
+          <span class="icons" aria-hidden="true">
+            <i></i><i></i><i></i><i></i>
+            <span class="bat"></span>
+          </span>
+        </div>
+
+        <!-- NAV -->
+        <div class="nav">
+          <div class="navbtn" aria-hidden="true"><span></span></div>
+          <div class="brand"><span class="mk" aria-hidden="true"></span>Flight Glass</div>
+          <div class="navbtn bell" aria-hidden="true"><b></b></div>
+        </div>
+
+        <!-- TITTEL -->
+        <div class="title">
+          <h1>Ball<br>Flight</h1>
+          <div class="viewtog" role="group" aria-label="Visning">
+            <button type="button" aria-pressed="true">Topp</button>
+            <button type="button" aria-pressed="false">Side</button>
+          </div>
+        </div>
+
+        <!-- DRAW-SLABEN -->
+        <div class="slab">
+          <div class="slab-row">
+            <div>
+              <h2>Draw</h2>
+              <div class="sub">Face-to-path −6.0° · lukket</div>
+            </div>
+            <div class="slabchip">
+              <span class="l">Spin axis</span>
+              <span class="v num">−16.26°</span>
+              <span class="d">L · venstre</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÉN GLOBAL SETNING -->
+        <div class="truth">
+          <span class="dot" aria-hidden="true"></span>
+          <p>Modellert slag — ikke en måling.</p>
+        </div>
+
+        <div class="col">
+
+          <!-- ENDRINGSPANEL -->
+          <section class="panel delta-panel" aria-label="Endring fra forrige tilstand">
+            <span class="rule" aria-hidden="true"></span>
+            <div class="dp-head">
+              <span class="t wide">Endring · club path</span>
+              <span class="dchip" id="dchipPath">+2.0° → +5.0°</span>
+            </div>
+            <div class="dp-grid">
+              <div class="dp-cell">
+                <span class="l">Δ Side</span>
+                <span class="v num" id="dSide">+5.9<i>m L</i></span>
+              </div>
+              <div class="dp-cell">
+                <span class="l">Δ Curve</span>
+                <span class="v num" id="dCurve">+6.3<i>m L</i></span>
+              </div>
+              <div class="dp-cell">
+                <span class="l">Δ Carry</span>
+                <span class="v num" id="dCarry">+1.6<i>m</i></span>
+              </div>
+            </div>
+            <p class="dp-note">Deltaflaten i kartet er <b>arealet</b> mellom forrige og nåværende bane. Tall og flate bærer samme informasjon.</p>
+          </section>
+
+          <!-- KART -->
+          <div class="mapwrap">
+            <div class="map-glow breathe" aria-hidden="true"></div>
+            <div class="map-glow b" aria-hidden="true"></div>
+
+            <section class="panel map" aria-label="Ballbane, toppvisning">
+              <div class="map-head">
+                <span class="a wide">Bane · topp</span>
+                <span class="b">Sideskala ×3.3</span>
+              </div>
+
+              <svg class="flight" viewBox="0 0 360 420" preserveAspectRatio="xMidYMid meet" role="img"
+                   aria-label="Toppvisning av ballbanen. Nåværende bane ender 15,7 meter venstre for mållinjen ved 173,5 meter carry. Referansebanen ender 9,8 meter venstre ved 171,9 meter. Flaten mellom banene er 5,9 meter bred ved landing.">
+                <defs>
+                  <clipPath id="mapClip"><rect x="0" y="0" width="360" height="420" rx="12"/></clipPath>
+
+                  <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,.075)"/>
+                  </pattern>
+
+                  <!-- laminat: interferensstriper mellom to glassplater -->
+                  <pattern id="lam" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-7)">
+                    <rect width="6" height="6" fill="none"/>
+                    <line x1="0" y1="0.5" x2="6" y2="0.5" stroke="rgba(255,240,222,.13)" stroke-width="1"/>
+                  </pattern>
+
+                  <linearGradient id="deltaG" gradientUnits="userSpaceOnUse" x1="180" y1="396" x2="97" y2="58">
+                    <stop offset="0"    stop-color="#F75105" stop-opacity=".08"/>
+                    <stop offset=".30"  stop-color="#F75105" stop-opacity=".40"/>
+                    <stop offset=".62"  stop-color="#FB7A10" stop-opacity=".64"/>
+                    <stop offset=".88"  stop-color="#FFA855" stop-opacity=".80"/>
+                    <stop offset="1"    stop-color="#FFD1A2" stop-opacity=".93"/>
+                  </linearGradient>
+
+                  <linearGradient id="pathG" gradientUnits="userSpaceOnUse" x1="180" y1="396" x2="78" y2="56">
+                    <stop offset="0" stop-color="#F75105"/>
+                    <stop offset=".55" stop-color="#F97A14"/>
+                    <stop offset="1" stop-color="#FFC48A"/>
+                  </linearGradient>
+
+                  <filter id="bloomA" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="13"/>
+                  </filter>
+                  <filter id="bloomB" x="-80%" y="-80%" width="260%" height="260%">
+                    <feGaussianBlur stdDeviation="32"/>
+                  </filter>
+                  <filter id="lineGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="4.2" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/></feMerge>
+                  </filter>
+                </defs>
+
+                <g clip-path="url(#mapClip)">
+
+                  <!-- glassgrunn -->
+                  <rect x="0" y="0" width="360" height="420" rx="12" fill="rgba(4,4,7,.55)"/>
+                  <rect x="0" y="0" width="360" height="420" rx="12" fill="url(#dots)"/>
+
+                  <!-- avstandsrutenett -->
+                  <g stroke="rgba(255,255,255,.10)" stroke-width="1">
+                    <line x1="0" y1="298.10" x2="360" y2="298.10"/>
+                    <line x1="0" y1="200.21" x2="360" y2="200.21"/>
+                    <line x1="0" y1="102.31" x2="360" y2="102.31"/>
+                  </g>
+                  <g class="t-lab" text-anchor="end">
+                    <text x="352" y="294">50 M</text>
+                    <text x="352" y="196">100 M</text>
+                    <text x="352" y="98">150 M</text>
+                  </g>
+
+                  <!-- carrylinje -->
+                  <line x1="0" y1="56.30" x2="360" y2="56.30" stroke="rgba(255,196,138,.34)" stroke-width="1" stroke-dasharray="2 4"/>
+                  <text class="t-lab t-hot" text-anchor="end" x="352" y="52">CARRY 173.5 M</text>
+
+                  <!-- ============ DELTAFLATEN ============ -->
+                  <!-- ytre bløming: lys som siver ut mellom platene -->
+                  <g id="deltaGrp" class="sweep" style="transform-origin:180px 396px">
+                    <path id="deltaBloomB" filter="url(#bloomB)" fill="#F75105" opacity=".58"
+                          d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30L116.30 59.44L128.75 93.09L139.86 126.75L149.61 160.40L158.00 194.06L165.05 227.72L170.74 261.37L175.09 295.03L178.08 328.69L179.71 362.34Z"/>
+                    <path id="deltaBloomA" filter="url(#bloomA)" fill="#FB7A10" opacity=".72"
+                          d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30L116.30 59.44L128.75 93.09L139.86 126.75L149.61 160.40L158.00 194.06L165.05 227.72L170.74 261.37L175.09 295.03L178.08 328.69L179.71 362.34Z"/>
+                    <!-- selve flaten -->
+                    <path id="deltaFill" fill="url(#deltaG)"
+                          d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30L116.30 59.44L128.75 93.09L139.86 126.75L149.61 160.40L158.00 194.06L165.05 227.72L170.74 261.37L175.09 295.03L178.08 328.69L179.71 362.34Z"/>
+                    <!-- laminat -->
+                    <path id="deltaLam" fill="url(#lam)" opacity=".85"
+                          d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30L116.30 59.44L128.75 93.09L139.86 126.75L149.61 160.40L158.00 194.06L165.05 227.72L170.74 261.37L175.09 295.03L178.08 328.69L179.71 362.34Z"/>
+                  </g>
+
+                  <!-- mållinje -->
+                  <line x1="180" y1="396" x2="180" y2="22" stroke="rgba(255,255,255,.34)" stroke-width="1" stroke-dasharray="1 5"/>
+                  <text class="t-lab" text-anchor="end" x="175" y="15">MÅL 0.0° C</text>
+
+                  <!-- utslagslinje -->
+                  <line id="launchLine" x1="180" y1="396" x2="186.90" y2="24" stroke="rgba(255,196,138,.42)" stroke-width="1" stroke-dasharray="5 4"/>
+                  <text id="launchLab" class="t-lab t-hot" x="192" y="15">UTSLAG +0.32° R</text>
+                  <circle id="launchTick" cx="186.30" cy="56.30" r="2" fill="none" stroke="rgba(255,196,138,.6)" stroke-width="1"/>
+
+                  <!-- referansebane: den andre glassplatens kant -->
+                  <path id="refUnder" fill="none" stroke="rgba(6,5,9,.62)" stroke-width="5" stroke-linecap="round"
+                        d="M180.00 396.00L179.71 362.34L178.08 328.69L175.09 295.03L170.74 261.37L165.05 227.72L158.00 194.06L149.61 160.40L139.86 126.75L128.75 93.09L116.30 59.44"/>
+                  <path id="refPath" fill="none" stroke="#DAD7DC" stroke-width="2.2" stroke-dasharray="7 5" stroke-linecap="round"
+                        d="M180.00 396.00L179.71 362.34L178.08 328.69L175.09 295.03L170.74 261.37L165.05 227.72L158.00 194.06L149.61 160.40L139.86 126.75L128.75 93.09L116.30 59.44"/>
+
+                  <!-- utrull (carry → total) -->
+                  <g class="roll-grp">
+                    <line id="rollLine" x1="77.75" y1="56.30" x2="69.50" y2="42.99" stroke="rgba(255,196,138,.55)" stroke-width="1.6" stroke-dasharray="3 3"/>
+                    <rect id="totMark" x="66.5" y="40" width="6" height="6" fill="none" stroke="rgba(255,196,138,.85)" stroke-width="1.2"/>
+                    <text class="t-lab t-hot" x="6" y="30">TOTAL 180.3 M</text>
+                  </g>
+
+                  <!-- nåværende bane: glød + kjerne -->
+                  <path id="curGlow" fill="none" stroke="#F75105" stroke-width="7" stroke-linecap="round" opacity=".85" filter="url(#lineGlow)"
+                        d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30"/>
+                  <path id="curPath" class="draw" style="--len:400" fill="none" stroke="url(#pathG)" stroke-width="3.4" stroke-linecap="round"
+                        d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30"/>
+                  <path id="curCore" class="draw" style="--len:400" fill="none" stroke="#FFF0DC" stroke-width="1.1" stroke-linecap="round" opacity=".9"
+                        d="M180.00 396.00L179.55 362.03L176.92 328.06L172.12 294.09L165.15 260.12L156.01 226.15L144.70 192.18L131.22 158.21L115.57 124.24L97.74 90.27L77.75 56.30"/>
+
+                  <!-- landingsakkord: bredden på deltaflaten -->
+                  <line id="chord" x1="77.75" y1="56.30" x2="116.30" y2="59.44" stroke="#FFC48A" stroke-width="1.6"/>
+                  <line id="chordL" x1="77.75" y1="50.30" x2="77.75" y2="62.30" stroke="#FFC48A" stroke-width="1.4"/>
+                  <line id="chordR" x1="116.30" y1="53.44" x2="116.30" y2="65.44" stroke="rgba(255,196,138,.6)" stroke-width="1.2"/>
+
+                  <!-- Δ-brikke: sitter PÅ deltaflaten og navngir den -->
+                  <g id="dchip" transform="translate(0,0)">
+                    <rect x="73" y="100" width="98" height="19" rx="6" fill="rgba(7,5,9,.90)" stroke="rgba(255,196,138,.55)" stroke-width="1"/>
+                    <text id="dchipTxt" class="t-num t-hot" text-anchor="middle" x="122" y="113.5">Δ SIDE 5.9 m L</text>
+                  </g>
+
+                  <!-- apex -->
+                  <g id="apexGrp">
+                    <line x1="141.5" y1="193.6" x2="152.8" y2="204.3" stroke="rgba(255,255,255,.45)" stroke-width="1"/>
+                    <text class="t-lab" text-anchor="end" x="139" y="192">APEX 29.4 M</text>
+                  </g>
+
+                  <!-- markører -->
+                  <circle id="refDot" cx="116.30" cy="59.44" r="4.4" fill="rgba(8,7,10,.9)" stroke="#B3B0B5" stroke-width="1.8"/>
+                  <circle id="curHalo" cx="77.75" cy="56.30" r="9" fill="#F75105" opacity=".5" filter="url(#bloomA)"/>
+                  <circle id="curDot" cx="77.75" cy="56.30" r="4.6" fill="#FFD9B4" stroke="#F75105" stroke-width="2"/>
+
+                  <!-- etiketter ved landing: små mørke glassbrikker over lyset -->
+                  <rect id="labNowPl" x="20.75" y="56.30" width="54" height="26" rx="6" fill="rgba(7,5,9,.86)" stroke="rgba(255,196,138,.42)" stroke-width="1"/>
+                  <g text-anchor="end">
+                    <text id="labNowA" class="t-lab t-hot" x="71" y="66">NÅ</text>
+                    <text id="labNowB" class="t-num t-hot" x="71" y="77">−15.7 m L</text>
+                  </g>
+                  <rect x="119" y="56.30" width="53" height="26" rx="6" fill="rgba(7,5,9,.86)" stroke="rgba(255,255,255,.20)" stroke-width="1"/>
+                  <g text-anchor="start">
+                    <text class="t-lab" fill="#B9B6BB" x="124" y="66">FØR</text>
+                    <text class="t-num" fill="#C7C4C9" x="124" y="77">−9.8 m L</text>
+                  </g>
+
+                  <!-- ball / tee -->
+                  <circle cx="180" cy="396" r="10" fill="#F75105" opacity=".55" filter="url(#bloomA)"/>
+                  <circle cx="180" cy="396" r="3.6" fill="#FFF4E7"/>
+                  <text class="t-lab" text-anchor="middle" x="180" y="386">TEE</text>
+
+                  <!-- sideskala -->
+                  <g class="t-lab" text-anchor="middle" fill="#6C696E">
+                    <text x="50"  y="414">20 L</text>
+                    <text x="115" y="414">10 L</text>
+                    <text x="180" y="414">0 C</text>
+                    <text x="245" y="414">10 R</text>
+                    <text x="310" y="414">20 R</text>
+                  </g>
+                  <g stroke="rgba(255,255,255,.16)" stroke-width="1">
+                    <line x1="50" y1="400" x2="50" y2="404"/>
+                    <line x1="115" y1="400" x2="115" y2="404"/>
+                    <line x1="245" y1="400" x2="245" y2="404"/>
+                    <line x1="310" y1="400" x2="310" y2="404"/>
+                  </g>
+                </g>
+              </svg>
+
+              <div class="legend">
+                <span class="lg"><span class="sw"></span>Nå</span>
+                <span class="lg ref"><span class="sw"></span>Før</span>
+                <span class="lg area"><span class="sw"></span>Deltaflate</span>
+                <span class="conv">− venstre · + høyre</span>
+              </div>
+              <div class="interim" id="interim">Mellomtilstand — kun Launch Dir, Curve, Side og Carry er beregnet i denne posisjonen.</div>
+            </section>
+          </div>
+
+          <!-- RETNING -->
+          <section class="panel grp" aria-label="Utfall: retning">
+            <div class="grp-h"><span class="bar" aria-hidden="true"></span><h3>Retning</h3><span class="n num">04</span></div>
+            <div class="tiles t2">
+              <div class="tile dir">
+                <span class="l">Launch dir</span>
+                <span class="v num" id="oLaunchDir">+0.32<i>°</i></span>
+                <span class="side" id="oLaunchDirSide"><span class="ar">▶</span>R · høyre</span>
+              </div>
+              <div class="tile dir">
+                <span class="l">Spin axis</span>
+                <span class="v num">−16.26<i>°</i></span>
+                <span class="side"><span class="ar">◀</span>L · venstre</span>
+              </div>
+              <div class="tile dir">
+                <span class="l">Curve</span>
+                <span class="v num" id="oCurve">−16.7<i>m</i></span>
+                <span class="side"><span class="ar">◀</span>L · venstre</span>
+              </div>
+              <div class="tile dir">
+                <span class="l">Side</span>
+                <span class="v num" id="oSide">−15.7<i>m</i></span>
+                <span class="side"><span class="ar">◀</span>L · venstre</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- UTSLAG & SPINN -->
+          <section class="panel grp" aria-label="Utfall: utslag og spinn">
+            <div class="grp-h"><span class="bar" aria-hidden="true"></span><h3>Utslag &amp; spinn</h3><span class="n num">04</span></div>
+            <div class="tiles t2">
+              <div class="tile"><span class="l">Launch</span><span class="v num">14.5<i>°</i></span></div>
+              <div class="tile"><span class="l">Spin loft</span><span class="v num">19.9<i>°</i></span></div>
+              <div class="tile"><span class="l">Backspin</span><span class="v num">3173<i>rpm</i></span></div>
+              <div class="tile"><span class="l">Landing</span><span class="v num">45.5<i>°</i></span></div>
+            </div>
+          </section>
+
+          <!-- DISTANSE -->
+          <section class="panel grp" aria-label="Utfall: distanse">
+            <div class="grp-h"><span class="bar" aria-hidden="true"></span><h3>Distanse</h3><span class="n num">05</span></div>
+            <div class="tiles t2">
+              <div class="tile"><span class="l">Ball speed</span><span class="v num">130.6<i>mph</i></span></div>
+              <div class="tile"><span class="l">Smash</span><span class="v num">1.451</span></div>
+              <div class="tile"><span class="l">Carry</span><span class="v num" id="oCarry">173.5<i>m</i></span></div>
+              <div class="tile"><span class="l">Total</span><span class="v num">180.3<i>m</i></span></div>
+              <div class="tile span2"><span class="l">Apex</span><span class="v num">29.4<i>m</i></span></div>
+            </div>
+          </section>
+
+          <!-- SLIDERE -->
+          <div class="slwrap">
+            <div class="sl-glow" aria-hidden="true"></div>
+            <section class="panel sliders" aria-label="Treffparametre">
+              <div class="grp-h"><span class="bar" aria-hidden="true"></span><h3>Treffparametre</h3><span class="n num">05</span></div>
+
+              <div class="sl">
+                <div class="sl-head">
+                  <span class="sl-lab">Club speed</span>
+                  <span class="sl-val num">90<i>mph</i></span>
+                </div>
+                <div class="sl-track">
+                  <span class="sl-ruler"></span>
+                  <span class="sl-fill" style="left:2px;width:calc(42.86% - 2px)"></span>
+                  <span class="sl-thumb" style="left:42.86%"></span>
+                </div>
+                <div class="sl-scale"><span>60</span><span>95</span><span>130</span></div>
+              </div>
+
+              <div class="sl">
+                <div class="sl-head">
+                  <span class="sl-lab">Club face</span>
+                  <span class="sl-val num">−1.0<i>°</i><span class="sl-word">Lukket</span></span>
+                </div>
+                <div class="sl-track">
+                  <span class="sl-ruler"></span><span class="sl-mid"></span>
+                  <span class="sl-fill" style="left:45%;width:5%"></span>
+                  <span class="sl-thumb" style="left:45%"></span>
+                </div>
+                <div class="sl-scale"><span>−10 L</span><span>0 C</span><span>+10 R</span></div>
+              </div>
+
+              <!-- AKTIV -->
+              <div class="sl on" id="pathSl">
+                <div class="sl-head">
+                  <span class="sl-lab">Club path <span class="active-tag">Aktiv</span></span>
+                  <span class="sl-val num" id="pathVal">+5.0<i>°</i><span class="sl-word">Inn–ut</span></span>
+                </div>
+                <div class="sl-track" id="pathTrack" role="slider" tabindex="0"
+                     aria-label="Club path, skrubb mellom forrige tilstand +2,0 grader og nåværende +5,0 grader"
+                     aria-valuemin="2" aria-valuemax="5" aria-valuenow="5" aria-valuetext="+5,0 grader">
+                  <span class="sl-ruler"></span><span class="sl-mid"></span>
+                  <span class="sl-fill" id="pathFill" style="left:50%;width:25%"></span>
+                  <span class="sl-delta" id="pathDelta" style="left:60%;width:15%"></span>
+                  <span class="sl-ref" style="left:60%"></span>
+                  <span class="sl-thumb" id="pathThumb" style="left:75%"></span>
+                </div>
+                <div class="sl-scale"><span>−10 L</span><span>0 C</span><span>+10 R</span></div>
+                <div class="sl-hint">
+                  <span>⌾ +2.0° før</span><span>·</span><span>● +5.0° nå</span><span>·</span>
+                  <u>Dra mellom merkene — deltaflaten følger.</u>
+                </div>
+              </div>
+
+              <div class="sl">
+                <div class="sl-head">
+                  <span class="sl-lab">Attack angle</span>
+                  <span class="sl-val num">+5.0<i>°</i><span class="sl-word">Opp</span></span>
+                </div>
+                <div class="sl-track">
+                  <span class="sl-ruler"></span><span class="sl-mid"></span>
+                  <span class="sl-fill" style="left:50%;width:25%"></span>
+                  <span class="sl-thumb" style="left:75%"></span>
+                </div>
+                <div class="sl-scale"><span>−10 ned</span><span>0</span><span>+10 opp</span></div>
+              </div>
+
+              <div class="sl">
+                <div class="sl-head">
+                  <span class="sl-lab">Dynamic loft</span>
+                  <span class="sl-val num">24.0<i>°</i></span>
+                </div>
+                <div class="sl-track">
+                  <span class="sl-ruler"></span>
+                  <span class="sl-fill" style="left:2px;width:calc(47.5% - 2px)"></span>
+                  <span class="sl-thumb" style="left:47.5%"></span>
+                </div>
+                <div class="sl-scale"><span>5</span><span>25</span><span>45</span></div>
+              </div>
+
+              <p class="derived">
+                Face-to-path <b>−6.0°</b> (lukket) med path <b>+5.0°</b> inn–ut gir spin axis <b>−16.26°</b> venstre.
+                Spin loft <b>19.9°</b> ved dynamic loft <b>24.0°</b> og attack <b>+5.0°</b>.
+              </p>
+            </section>
+          </div>
+
+        </div>
+
+        <!-- TABBAR -->
+        <div class="tabbar">
+          <span class="tab"><span class="ic"></span>Økt</span>
+          <span class="tab"><span class="ic"></span>Kølle</span>
+          <span class="tab on"><span class="ic"></span>Flight</span>
+          <span class="tab"><span class="ic"></span>Data</span>
+          <span class="tab"><span class="ic"></span>Mer</span>
+        </div>
+        <div class="homebar"><span></span></div>
+
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    Geometri regnet fra motorens fixture. Nåværende bane: utslag <b>+0.32° R</b>, curve <b>16.7 m L</b>, carry <b>173.5 m</b>.
+    Referanse (path +2.0°): utslag <b>+0.20° R</b>, curve <b>10.4 m L</b>, carry <b>171.9 m</b>.
+    Sideskalaen er forstørret 3.3× mot avstandsskalaen slik at 16 m kurve er lesbart over 174 m.
+  </p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- to verifiserte tilstander ---- */
+  var REF = { path:2.0, carry:171.9, curve:10.4, lat:0.600 };  /* t = 0 */
+  var CUR = { path:5.0, carry:173.5, curve:16.7, lat:0.969 };  /* t = 1 */
+
+  var TX = 180, TY = 396, SY = 1.9578947, SX = 6.5, N = 60;
+  var ROLL = 6.8; /* total 180.3 − carry 173.5 */
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  function blend(t){
+    return {
+      path : REF.path  + (CUR.path  - REF.path ) * t,
+      carry: REF.carry + (CUR.carry - REF.carry) * t,
+      curve: REF.curve + (CUR.curve - REF.curve) * t,
+      lat  : REF.lat   + (CUR.lat   - REF.lat  ) * t
+    };
+  }
+
+  function points(s){
+    var tan = s.lat / s.carry, out = [], i, u, d, la;
+    for(i = 0; i <= N; i++){
+      u = i / N;
+      d = s.carry * u;
+      la = d * tan - s.curve * u * u;
+      out.push([ TX + la * SX, TY - d * SY ]);
+    }
+    return out;
+  }
+  function dstr(p){
+    var i, s = 'M' + p[0][0].toFixed(2) + ' ' + p[0][1].toFixed(2);
+    for(i = 1; i < p.length; i++){ s += 'L' + p[i][0].toFixed(2) + ' ' + p[i][1].toFixed(2); }
+    return s;
+  }
+  /* x-koordinat på en bane ved en gitt y i kartrommet */
+  function xAt(s, y){
+    var d = (TY - y) / SY;
+    if(d < 0) d = 0;
+    if(d > s.carry) d = s.carry;
+    var u = d / s.carry;
+    var la = d * (s.lat / s.carry) - s.curve * u * u;
+    return TX + la * SX;
+  }
+  function poly(a, b){
+    var i, s = dstr(a);
+    for(i = b.length - 1; i >= 0; i--){ s += 'L' + b[i][0].toFixed(2) + ' ' + b[i][1].toFixed(2); }
+    return s + 'Z';
+  }
+  function sgn(n, dec){ return (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(dec); }
+
+  var refPts = points(REF);
+  var refD   = dstr(refPts);
+  $('refPath').setAttribute('d', refD);
+  $('refUnder').setAttribute('d', refD);
+
+  var els = {
+    curPath:$('curPath'), curCore:$('curCore'), curGlow:$('curGlow'),
+    dFill:$('deltaFill'), dLam:$('deltaLam'), dA:$('deltaBloomA'), dB:$('deltaBloomB'),
+    chord:$('chord'), chordL:$('chordL'), chordR:$('chordR'),
+    curDot:$('curDot'), curHalo:$('curHalo'),
+    rollLine:$('rollLine'), totMark:$('totMark'),
+    launchLine:$('launchLine'), launchTick:$('launchTick'), launchLab:$('launchLab'),
+    dchip:$('dchip'), dchipTxt:$('dchipTxt'),
+    labNowA:$('labNowA'), labNowB:$('labNowB'), labNowPl:$('labNowPl'),
+    refUnder:$('refUnder'),
+    oLaunchDir:$('oLaunchDir'), oCurve:$('oCurve'), oSide:$('oSide'), oCarry:$('oCarry'),
+    dSide:$('dSide'), dCurve:$('dCurve'), dCarry:$('dCarry'), dchipPath:$('dchipPath'),
+    pathVal:$('pathVal'), pathFill:$('pathFill'), pathDelta:$('pathDelta'), pathThumb:$('pathThumb'),
+    track:$('pathTrack'), screen:$('screen')
+  };
+
+  /* sliderposisjoner: −10..+10 over sporet */
+  function pct(deg){ return ((deg + 10) / 20) * 100; }
+  var REF_PCT = pct(REF.path), CUR_PCT = pct(CUR.path);
+
+  function render(t){
+    var s   = blend(t);
+    var pts = points(s);
+    var d   = dstr(pts);
+    var pd  = poly(pts, refPts);
+
+    els.curPath.setAttribute('d', d);
+    els.curCore.setAttribute('d', d);
+    els.curGlow.setAttribute('d', d);
+    els.dFill.setAttribute('d', pd);
+    els.dLam.setAttribute('d', pd);
+    els.dA.setAttribute('d', pd);
+    els.dB.setAttribute('d', pd);
+
+    var end = pts[pts.length - 1];
+    var rEnd = refPts[refPts.length - 1];
+
+    els.curDot.setAttribute('cx', end[0]);  els.curDot.setAttribute('cy', end[1]);
+    els.curHalo.setAttribute('cx', end[0]); els.curHalo.setAttribute('cy', end[1]);
+
+    els.chord.setAttribute('x1', end[0]);  els.chord.setAttribute('y1', end[1]);
+    els.chord.setAttribute('x2', rEnd[0]); els.chord.setAttribute('y2', rEnd[1]);
+    els.chordL.setAttribute('x1', end[0]); els.chordL.setAttribute('x2', end[0]);
+    els.chordL.setAttribute('y1', end[1] - 6); els.chordL.setAttribute('y2', end[1] + 6);
+
+    /* utslagslinje */
+    var tan = s.lat / s.carry;
+    var topD = 190, topLat = topD * tan;
+    els.launchLine.setAttribute('x2', (TX + topLat * SX).toFixed(2));
+    els.launchLine.setAttribute('y2', (TY - topD * SY).toFixed(2));
+    els.launchTick.setAttribute('cx', (TX + s.lat * SX).toFixed(2));
+    els.launchTick.setAttribute('cy', end[1]);
+
+    var ldeg = Math.atan(tan) * 180 / Math.PI;
+    els.launchLab.textContent = 'UTSLAG ' + sgn(ldeg, 2) + '° ' + (ldeg >= 0 ? 'R' : 'L');
+
+    /* utrull kun i den verifiserte NÅ-tilstanden */
+    var atNow = t > 0.999;
+    var slope = tan - 2 * s.curve / s.carry;
+    var rx = TX + (s.lat - s.curve + slope * ROLL) * SX;
+    var ry = TY - (s.carry + ROLL) * SY;
+    els.rollLine.setAttribute('x1', end[0]); els.rollLine.setAttribute('y1', end[1]);
+    els.rollLine.setAttribute('x2', rx.toFixed(2)); els.rollLine.setAttribute('y2', ry.toFixed(2));
+    els.totMark.setAttribute('x', (rx - 3).toFixed(2)); els.totMark.setAttribute('y', (ry - 3).toFixed(2));
+
+    /* etiketter ved landing */
+    var side = s.curve - s.lat;         /* positivt tall = meter til venstre */
+    els.labNowPl.setAttribute('x', (end[0] - 57).toFixed(2));
+    els.labNowPl.setAttribute('y', end[1].toFixed(2));
+    els.labNowA.setAttribute('x', (end[0] - 7).toFixed(2));
+    els.labNowA.setAttribute('y', (end[1] + 10).toFixed(2));
+    els.labNowB.setAttribute('x', (end[0] - 7).toFixed(2));
+    els.labNowB.setAttribute('y', (end[1] + 21).toFixed(2));
+    els.labNowB.textContent = '−' + side.toFixed(1) + ' m L';
+
+    /* Δ-brikke: forankret på deltaflatens midtlinje ved y = 110 */
+    var dSide = side - (REF.curve - REF.lat);
+    var CHIP_Y = 110;
+    var mid = (xAt(s, CHIP_Y) + xAt(REF, CHIP_Y)) / 2;
+    var cx = Math.min(Math.max(mid, 56), 128);
+    els.dchip.setAttribute('transform', 'translate(' + (cx - 122).toFixed(2) + ',0)');
+    els.dchipTxt.textContent = 'Δ SIDE ' + dSide.toFixed(1) + ' m L';
+
+    /* numeriske utfall som faktisk beregnes i skrubben */
+    if(atNow){
+      els.oLaunchDir.innerHTML = '+0.32<i>°</i>';
+      els.oCurve.innerHTML     = '−16.7<i>m</i>';
+      els.oSide.innerHTML      = '−15.7<i>m</i>';
+      els.oCarry.innerHTML     = '173.5<i>m</i>';
+      els.pathVal.innerHTML    = '+5.0<i>°</i><span class="sl-word">Inn–ut</span>';
+    } else {
+      els.oLaunchDir.innerHTML = sgn(ldeg, 2) + '<i>°</i>';
+      els.oCurve.innerHTML     = '−' + s.curve.toFixed(1) + '<i>m</i>';
+      els.oSide.innerHTML      = '−' + side.toFixed(1) + '<i>m</i>';
+      els.oCarry.innerHTML     = s.carry.toFixed(1) + '<i>m</i>';
+      els.pathVal.innerHTML    = sgn(s.path, 1) + '<i>°</i><span class="sl-word">Inn–ut</span>';
+    }
+
+    /* endringspanel */
+    els.dchipPath.textContent = '+2.0° → ' + sgn(s.path, 1) + '°';
+    els.dSide.innerHTML  = '+' + dSide.toFixed(1) + '<i>m L</i>';
+    els.dCurve.innerHTML = '+' + (s.curve - REF.curve).toFixed(1) + '<i>m L</i>';
+    els.dCarry.innerHTML = '+' + (s.carry - REF.carry).toFixed(1) + '<i>m</i>';
+
+    /* slider */
+    var p = REF_PCT + (CUR_PCT - REF_PCT) * t;
+    els.pathThumb.style.left = p + '%';
+    els.pathFill.style.left  = '50%';
+    els.pathFill.style.width = (p - 50) + '%';
+    els.pathDelta.style.left = REF_PCT + '%';
+    els.pathDelta.style.width = Math.max(0, p - REF_PCT) + '%';
+    els.track.setAttribute('aria-valuenow', s.path.toFixed(1));
+    els.track.setAttribute('aria-valuetext', sgn(s.path, 1) + ' grader, deltaflate ' + dSide.toFixed(1) + ' meter venstre');
+
+    els.screen.classList.toggle('scrubbing', !atNow);
+  }
+
+  /* ---- skrubb ---- */
+  var T = 1, dragging = false, raf = 0;
+
+  function fromX(clientX){
+    var r = els.track.getBoundingClientRect();
+    var p = ((clientX - r.left) / r.width) * 100;
+    return Math.min(1, Math.max(0, (p - REF_PCT) / (CUR_PCT - REF_PCT)));
+  }
+  function set(t){ T = t; render(T); }
+
+  function down(e){
+    dragging = true;
+    els.track.setPointerCapture && els.track.setPointerCapture(e.pointerId);
+    set(fromX(e.clientX));
+    e.preventDefault();
+  }
+  function move(e){ if(dragging){ set(fromX(e.clientX)); } }
+  function up(){
+    if(!dragging) return;
+    dragging = false;
+    if(reduce){ set(1); return; }
+    var from = T, t0 = performance.now(), dur = 380;
+    cancelAnimationFrame(raf);
+    (function step(now){
+      var k = Math.min(1, (now - t0) / dur);
+      var e = 1 - Math.pow(1 - k, 3);
+      set(from + (1 - from) * e);
+      if(k < 1) raf = requestAnimationFrame(step);
+    })(t0);
+  }
+
+  els.track.addEventListener('pointerdown', down);
+  els.track.addEventListener('pointermove', move);
+  els.track.addEventListener('pointerup', up);
+  els.track.addEventListener('pointercancel', up);
+  els.track.addEventListener('keydown', function(e){
+    var k = e.key, step = 1 / 30;
+    if(k === 'ArrowLeft' || k === 'ArrowDown'){ set(Math.max(0, T - step)); e.preventDefault(); }
+    else if(k === 'ArrowRight' || k === 'ArrowUp'){ set(Math.min(1, T + step)); e.preventDefault(); }
+    else if(k === 'Home'){ set(0); e.preventDefault(); }
+    else if(k === 'End'){ set(1); e.preventDefault(); }
+  });
+
+  /* eksakt geometri fra første bilde */
+  render(1);
+
+  /* strektegning: sett reell lengde slik at animasjonen ikke hopper */
+  if(!reduce){
+    ['curPath','curCore'].forEach(function(id){
+      var el = $(id), L;
+      try { L = el.getTotalLength(); } catch(err){ L = 400; }
+      el.style.setProperty('--len', L.toFixed(1));
+    });
+  }
+})();
+</script>

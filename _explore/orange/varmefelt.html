@@ -1,0 +1,816 @@
+<title>Varmefelt</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#08090B;
+  --s1:#131519;
+  --s2:#1B1E24;
+  --s3:#262931;
+  --line:#31343B;
+  --line-soft:#23262C;
+  --muted:#7C7E85;
+  --dim:#9A9CA2;
+  --text:#D2D3D4;
+  --hi:#EFF0F1;
+  --o:#F75105;
+  --ow:#F78E21;
+  --ohot:#FFC078;
+  --opale:#FFE3C6;
+  --oink:#170D04;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:
+    radial-gradient(120% 60% at 50% 5%, rgba(247,81,5,.20) 0%, rgba(247,81,5,.06) 42%, rgba(0,0,0,0) 72%),
+    radial-gradient(90% 46% at 50% 102%, rgba(247,142,33,.12) 0%, rgba(0,0,0,0) 66%),
+    #050609;
+  color:var(--text);
+  font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-variation-settings:'wdth' 100,'wght' 400;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  padding:34px 16px 56px;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+
+/* ---------- shared type ---------- */
+.dcaps{font-variation-settings:'wdth' 122,'wght' 500;text-transform:uppercase;letter-spacing:.145em}
+.dcaps-b{font-variation-settings:'wdth' 122,'wght' 600;text-transform:uppercase;letter-spacing:.13em}
+.num{font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 100,'wght' 600}
+.lbl{
+  font-size:9.5px;line-height:1;color:var(--muted);
+  font-variation-settings:'wdth' 118,'wght' 500;
+  text-transform:uppercase;letter-spacing:.13em;
+}
+
+/* ---------- device ---------- */
+.rig{width:100%;max-width:430px;display:flex;flex-direction:column;align-items:center;gap:16px}
+
+.phone{
+  position:relative;width:390px;max-width:100%;
+  border-radius:46px;padding:9px;
+  background:linear-gradient(160deg,#3a3d45 0%,#15171b 26%,#0c0d10 60%,#2a2d34 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.05),
+    0 40px 90px -20px rgba(0,0,0,.9),
+    0 0 140px -28px rgba(247,81,5,.5);
+}
+.screen{
+  position:relative;border-radius:38px;background:var(--bg);
+  overflow:hidden;isolation:isolate;
+}
+/* the field's own light, escaping the plot and washing the chassis */
+.screen::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(64% 24% at 34% 21%, rgba(247,81,5,.30) 0%, rgba(247,81,5,.09) 46%, rgba(0,0,0,0) 74%),
+    radial-gradient(120% 14% at 50% 0%, rgba(247,142,33,.15) 0%, rgba(0,0,0,0) 70%),
+    radial-gradient(140% 40% at 40% 100%, rgba(247,81,5,.13) 0%, rgba(0,0,0,0) 70%),
+    linear-gradient(180deg, rgba(247,81,5,.10) 0%, rgba(247,81,5,.07) 34%, rgba(247,81,5,.025) 62%, rgba(0,0,0,0) 88%);
+}
+.screen > *{position:relative;z-index:1}
+
+.statusbar{
+  height:44px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 9px;font-size:12px;color:var(--text);
+  font-variation-settings:'wdth' 100,'wght' 600;font-variant-numeric:tabular-nums;
+}
+.statusbar .glyphs{display:flex;gap:5px;align-items:center;opacity:.85}
+.statusbar .bar{width:3px;border-radius:1px;background:var(--text)}
+
+/* ---------- app bar ---------- */
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 14px 10px}
+.home{
+  width:34px;height:34px;flex:none;border-radius:11px;
+  background:var(--s2);border:1px solid var(--line);display:grid;place-items:center;
+}
+.wordmark{font-size:10.5px;color:var(--dim)}
+.views{display:flex;gap:2px;padding:3px;border-radius:11px;background:var(--s2);border:1px solid var(--line)}
+.views span{
+  font-size:9px;padding:5px 8px;border-radius:8px;color:var(--muted);
+  font-variation-settings:'wdth' 116,'wght' 600;text-transform:uppercase;letter-spacing:.11em;
+}
+.views span.on{background:var(--o);color:var(--oink)}
+
+/* ---------- header ---------- */
+.header{padding:2px 18px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:9.5px;color:var(--ow);margin-bottom:6px}
+.display{
+  font-size:37px;line-height:.88;color:var(--hi);
+  font-variation-settings:'wdth' 125,'wght' 500;
+  text-transform:uppercase;letter-spacing:.035em;
+}
+.display em{font-style:normal;display:block;color:#8E9096}
+.shape-chip{
+  flex:none;text-align:right;background:var(--o);color:var(--oink);
+  border-radius:12px;padding:8px 12px 9px;
+  box-shadow:0 0 36px -6px rgba(247,81,5,.95);
+}
+.shape-chip .t{font-size:8px;opacity:.72;font-variation-settings:'wdth' 118,'wght' 700;text-transform:uppercase;letter-spacing:.14em}
+.shape-chip .v{font-size:18px;line-height:1.05;margin-top:2px;font-variation-settings:'wdth' 118,'wght' 700;text-transform:uppercase;letter-spacing:.02em}
+
+/* ---------- plot ---------- */
+.plotwrap{padding:0 8px}
+.plot{
+  border-radius:20px;
+  background:linear-gradient(180deg,#101217 0%,#0A0B0E 62%,#0B0C10 100%);
+  border:1px solid var(--line-soft);overflow:hidden;
+  box-shadow:0 0 78px -16px rgba(247,81,5,.6);
+}
+.plot svg{display:block;width:100%;height:auto}
+
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;padding:11px 18px 0}
+.legend div{display:flex;align-items:center;gap:8px;font-size:9px;color:var(--muted);
+  font-variation-settings:'wdth' 116,'wght' 500;text-transform:uppercase;letter-spacing:.1em}
+.key{width:20px;height:0;flex:none;border-top-width:2px;border-top-style:solid}
+.k-target{border-top-color:#6A6C74;border-top-style:dashed;border-top-width:1.5px}
+.k-launch{border-top-color:#B07C4A;border-top-style:dotted;border-top-width:2px}
+.k-cur{border-top-color:var(--opale);border-top-width:2.5px;box-shadow:0 0 8px rgba(255,150,60,.9)}
+.k-ref{border-top-color:#FFD2A6;border-top-style:dashed;border-top-width:2px}
+
+/* ---------- sweep band : full-bleed orange mass ---------- */
+.sweep{
+  margin-top:15px;
+  background:linear-gradient(102deg,#F75105 0%,#F86A0C 44%,#F78E21 100%);
+  color:var(--oink);padding:12px 18px 13px;position:relative;overflow:hidden;
+}
+.sweep::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(102deg,rgba(255,255,255,.11) 0 1px,rgba(255,255,255,0) 1px 9px);
+}
+.sweep-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;z-index:1}
+.sweep h2{font-size:22px;line-height:.9;font-variation-settings:'wdth' 125,'wght' 700;text-transform:uppercase;letter-spacing:.07em}
+.sweep .sub{font-size:9.5px;margin-top:5px;opacity:.8;font-variant-numeric:tabular-nums;
+  font-variation-settings:'wdth' 118,'wght' 600;text-transform:uppercase;letter-spacing:.11em}
+.replay{
+  flex:none;border:1.5px solid rgba(23,13,4,.5);background:rgba(23,13,4,.1);
+  color:var(--oink);border-radius:999px;padding:7px 11px;
+  font-family:inherit;font-size:8.5px;cursor:pointer;
+  font-variation-settings:'wdth' 118,'wght' 700;text-transform:uppercase;letter-spacing:.12em;
+  display:flex;align-items:center;gap:6px;
+}
+.sweep-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:11px;
+  background:rgba(23,13,4,.34);border-radius:9px;overflow:hidden;position:relative;z-index:1;
+}
+.sweep-stats > div{background:rgba(255,255,255,.10);padding:8px 9px 9px}
+.sweep-stats .t{font-size:8px;opacity:.74;font-variation-settings:'wdth' 118,'wght' 700;text-transform:uppercase;letter-spacing:.12em}
+.sweep-stats .v{font-size:16px;margin-top:3px;font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 105,'wght' 700}
+.sweep-stats .v small{font-size:10px;font-variation-settings:'wdth' 110,'wght' 700}
+
+/* ---------- outcome groups ---------- */
+.groups{padding:15px 14px 2px;display:flex;flex-direction:column;gap:12px}
+.ghead{display:flex;align-items:center;gap:10px;margin-bottom:7px;padding-left:4px}
+.ghead .rule{height:4px;flex:1;border-radius:2px;background:linear-gradient(90deg,var(--o),rgba(247,142,33,.10))}
+.ghead h3{font-size:10.5px;color:var(--hi);font-variation-settings:'wdth' 122,'wght' 600;text-transform:uppercase;letter-spacing:.16em}
+.ghead .n{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.tile{
+  background:linear-gradient(168deg,rgba(247,81,5,.07) 0%,rgba(247,81,5,.02) 55%,var(--s1) 100%);
+  border:1px solid var(--line-soft);border-radius:13px;
+  padding:9px 11px 10px;min-height:56px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.tile .v{margin-top:6px;font-size:20px;line-height:1;color:var(--hi);
+  font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 100,'wght' 600}
+.tile .v u{text-decoration:none;font-size:11px;color:var(--dim);margin-left:3px;
+  font-variation-settings:'wdth' 108,'wght' 500}
+.tile .v u.deg,.sval u.deg{margin-left:1px}
+.tile .v b{font-size:13px;margin-left:4px;color:var(--opale);
+  font-variation-settings:'wdth' 116,'wght' 700;letter-spacing:.04em}
+/* D10: direction is carried by sign + L/R/C *and* the word — never by colour */
+.tile .v em{font-style:normal;font-size:9px;margin-left:5px;color:#BE967C;
+  font-variation-settings:'wdth' 116,'wght' 700;text-transform:uppercase;letter-spacing:.1em}
+
+/* direction group sits on a warm plane */
+.g-dir .grid .tile{
+  background:linear-gradient(168deg,rgba(247,81,5,.17) 0%,rgba(247,81,5,.05) 58%,#131519 100%);
+  border-color:rgba(247,142,33,.24);
+}
+.tile.wide{grid-column:1/-1}
+
+.dchip{
+  display:inline-flex;align-items:center;margin-top:6px;align-self:flex-start;
+  background:rgba(247,81,5,.26);border:1px solid rgba(247,142,33,.62);
+  color:var(--ohot);border-radius:999px;padding:3px 7px 4px;
+  font-size:9px;font-variant-numeric:tabular-nums;
+  font-variation-settings:'wdth' 108,'wght' 600;
+}
+
+.tile.carry{
+  background:linear-gradient(150deg,rgba(247,81,5,.24),#131519 72%);
+  border-color:rgba(247,142,33,.32);
+}
+.tile.carry .v{font-size:33px}
+
+/* ---------- sliders ---------- */
+.controls{
+  padding:15px 14px 4px;
+  background:linear-gradient(180deg,rgba(247,81,5,.07),rgba(247,81,5,.015) 60%,rgba(0,0,0,0));
+}
+.slider{padding:9px 2px 10px;border-bottom:1px solid var(--line-soft)}
+.slider:last-child{border-bottom:0}
+.srow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px}
+.sname{display:flex;align-items:center;gap:7px}
+.sname .lbl{color:var(--dim)}
+.active-chip{
+  background:var(--o);color:var(--oink);border-radius:5px;padding:2px 5px 3px;
+  font-size:7.5px;font-variation-settings:'wdth' 118,'wght' 700;text-transform:uppercase;letter-spacing:.13em;
+}
+.sval{font-size:15px;color:var(--text);font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 100,'wght' 600}
+.slider.on .sval{color:var(--opale);font-size:17px}
+.sval u{text-decoration:none;font-size:10px;color:var(--muted);margin-left:2px;font-variation-settings:'wdth' 108,'wght' 500}
+
+.track{position:relative;height:6px;border-radius:3px;background:#2C2820;margin:0 10px}
+.track .zero{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--line);left:50%}
+.track .fill{position:absolute;top:0;bottom:0;border-radius:3px;background:#54575F}
+.track .thumb{
+  position:absolute;top:50%;width:15px;height:15px;border-radius:50%;
+  transform:translate(-50%,-50%);background:#9EA1A8;border:2px solid var(--bg);
+}
+.slider.on .track{height:12px;border-radius:6px;background:#221F1C}
+.slider.on .track .fill{
+  background:linear-gradient(90deg,rgba(247,81,5,.5),var(--o) 58%,var(--ow));
+  box-shadow:0 0 24px -2px rgba(247,81,5,.9);
+}
+/* swept sub-band inside the control — the same delta language as the field */
+.track .sweptband{
+  position:absolute;top:-5px;bottom:-5px;border-radius:4px;
+  background:linear-gradient(90deg,rgba(247,142,33,.05),rgba(255,206,150,.6));
+  border-left:1.5px dashed rgba(255,206,150,.9);
+  box-shadow:0 0 22px rgba(247,81,5,.7);
+}
+.slider.on .track .thumb{
+  width:20px;height:20px;background:var(--opale);border:3px solid #150C05;
+  box-shadow:0 0 0 1.5px var(--ow),0 0 26px 2px rgba(247,81,5,.95);
+}
+.ghost{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;transform:translate(-50%,-50%);
+  border:1.5px dashed rgba(255,206,150,.85);background:rgba(0,0,0,.6)}
+.ticks{display:flex;justify-content:space-between;margin:6px 10px 0}
+.ticks span{font-size:8.5px;color:#5F6168;font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 108,'wght' 500}
+.sweptlabel{
+  margin:8px 10px 0;font-size:8.5px;color:var(--ohot);
+  font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 112,'wght' 600;
+  text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:6px;
+}
+.sweptlabel i{display:block;width:14px;height:8px;border-radius:2px;flex:none;
+  background:linear-gradient(90deg,rgba(247,142,33,.12),rgba(255,206,150,.65))}
+
+/* ---------- caveat ---------- */
+.caveat{
+  margin:12px 0 0;padding:14px 18px 15px;border-top:1px solid var(--line-soft);
+  background:linear-gradient(180deg,rgba(247,81,5,.10),rgba(0,0,0,0));
+  display:flex;align-items:center;gap:11px;
+}
+.caveat .dot{width:7px;height:7px;border-radius:50%;background:var(--o);flex:none;box-shadow:0 0 12px 2px rgba(247,81,5,.9)}
+.caveat p{font-size:11.5px;color:var(--dim);font-variation-settings:'wdth' 106,'wght' 500}
+.homebar{height:28px;display:grid;place-items:center}
+.homebar i{display:block;width:126px;height:5px;border-radius:3px;background:#3A3D44}
+
+.fold{position:absolute;left:0;right:0;top:844px;height:0;border-top:1px dashed rgba(255,192,120,.32);z-index:5;pointer-events:none}
+.fold span{position:absolute;right:10px;top:4px;font-size:8px;color:rgba(255,192,120,.72);
+  background:rgba(8,9,11,.8);padding:2px 6px 3px;border-radius:4px;
+  font-variation-settings:'wdth' 116,'wght' 600;text-transform:uppercase;letter-spacing:.14em}
+
+.caption{max-width:390px;text-align:center;font-size:11px;line-height:1.6;color:#63656C}
+.caption b{color:#8E9096;font-variation-settings:'wdth' 112,'wght' 600}
+
+@media (max-width:430px){
+  body{padding:14px 0 36px}
+  .phone{border-radius:0;padding:0;box-shadow:none;width:100%}
+  .screen{border-radius:0}
+  .caption{padding:0 18px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .replay{display:none}
+  *{animation:none !important;transition:none !important}
+}
+</style>
+
+<div class="rig">
+<div class="phone">
+<div class="screen" id="screen">
+  <div class="fold"><span>fold · 844 px</span></div>
+
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="glyphs">
+      <i class="bar" style="height:5px"></i><i class="bar" style="height:7px"></i>
+      <i class="bar" style="height:9px"></i><i class="bar" style="height:11px"></i>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><rect x=".6" y=".6" width="11" height="9.8" rx="2.4" stroke="#D2D3D4" stroke-opacity=".55"/><rect x="2" y="2" width="8" height="7" rx="1.4" fill="#F75105"/><path d="M13.2 4v3" stroke="#D2D3D4" stroke-opacity=".45" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </span>
+  </div>
+
+  <div class="appbar">
+    <div class="home" aria-label="Hjem">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2.2 7.1 8 2.4l5.8 4.7V13a.8.8 0 0 1-.8.8h-3.1v-3.6H6.1v3.6H3a.8.8 0 0 1-.8-.8z" stroke="#9A9CA2" stroke-width="1.25" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="wordmark dcaps">Flight&nbsp;Glass</span>
+    <div class="views"><span>Outcome</span><span>Side</span><span class="on">Top</span></div>
+  </div>
+
+  <div class="header">
+    <div>
+      <div class="eyebrow dcaps-b">Ball Flight · Top</div>
+      <div class="display">Retnings<em>plan</em></div>
+    </div>
+    <div class="shape-chip"><div class="t">Form</div><div class="v">Draw</div></div>
+  </div>
+
+  <!-- ============================ THE FIELD ============================ -->
+  <div class="plotwrap">
+  <div class="plot">
+  <svg viewBox="0 0 360 492" role="img"
+       aria-label="Toppvisning av modellert ballbane. Mållinjen går rett fram. Utgangsretningen er 0,32 grader høyre. Banen kurver 16,7 meter venstre og lander 15,7 meter venstre for mållinjen etter 173,5 meter carry. Referansebanen, med Club Path pluss 2,0 grader, landet 9,8 meter venstre etter 171,9 meter. Arealet mellom de to banene er fylt som et sammenhengende varmefelt: 1,6 meter bredt ved 100 meter, 4,1 meter ved 150 meter og 5,9 meter ved landing.">
+    <defs>
+      <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r=".85" fill="#2B2E36"/>
+      </pattern>
+
+      <!-- field body: cold at the tee, incandescent where the change is largest -->
+      <linearGradient id="fieldGrad" gradientUnits="userSpaceOnUse" x1="0" y1="448" x2="0" y2="46">
+        <stop offset="0"   stop-color="#F75105" stop-opacity="0"/>
+        <stop offset=".22" stop-color="#F75105" stop-opacity=".14"/>
+        <stop offset=".48" stop-color="#F85E08" stop-opacity=".34"/>
+        <stop offset=".76" stop-color="#FA7413" stop-opacity=".52"/>
+        <stop offset="1"   stop-color="#FA7413" stop-opacity=".62"/>
+      </linearGradient>
+
+      <!-- halo: the same shape, softened far past its edges -->
+      <linearGradient id="bloomGrad" gradientUnits="userSpaceOnUse" x1="0" y1="448" x2="0" y2="46">
+        <stop offset="0"   stop-color="#F75105" stop-opacity="0"/>
+        <stop offset=".34" stop-color="#F75105" stop-opacity=".30"/>
+        <stop offset=".70" stop-color="#F75105" stop-opacity=".66"/>
+        <stop offset="1"   stop-color="#F78E21" stop-opacity=".92"/>
+      </linearGradient>
+
+      <linearGradient id="wedgeGrad" gradientUnits="userSpaceOnUse" x1="0" y1="448" x2="0" y2="18">
+        <stop offset="0" stop-color="#F78E21" stop-opacity="0"/>
+        <stop offset="1" stop-color="#F78E21" stop-opacity=".17"/>
+      </linearGradient>
+
+      <linearGradient id="rimGrad" gradientUnits="userSpaceOnUse" x1="0" y1="448" x2="0" y2="46">
+        <stop offset="0"  stop-color="#FF8A2E" stop-opacity="0"/>
+        <stop offset=".6" stop-color="#FF8A2E" stop-opacity=".28"/>
+        <stop offset="1"  stop-color="#FFA24A" stop-opacity=".50"/>
+      </linearGradient>
+
+      <radialGradient id="landGlow">
+        <stop offset="0"   stop-color="#FFE3C6" stop-opacity=".9"/>
+        <stop offset=".35" stop-color="#F78E21" stop-opacity=".5"/>
+        <stop offset="1"   stop-color="#F75105" stop-opacity="0"/>
+      </radialGradient>
+
+      <filter id="haloFar" x="-70%" y="-45%" width="240%" height="210%"><feGaussianBlur stdDeviation="20"/></filter>
+      <filter id="haloNear" x="-45%" y="-30%" width="190%" height="180%"><feGaussianBlur stdDeviation="7"/></filter>
+      <filter id="softEdge" x="-25%" y="-18%" width="150%" height="140%"><feGaussianBlur stdDeviation="2.4"/></filter>
+      <filter id="filament" x="-45%" y="-30%" width="190%" height="180%"><feGaussianBlur stdDeviation="2.3"/></filter>
+      <filter id="lineGlow" x="-60%" y="-40%" width="220%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
+
+      <linearGradient id="scaleGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0"   stop-color="#F75105" stop-opacity=".04"/>
+        <stop offset=".5"  stop-color="#F85E08" stop-opacity=".34"/>
+        <stop offset="1"   stop-color="#FA7413" stop-opacity=".72"/>
+      </linearGradient>
+
+      <clipPath id="plotClip"><rect x="8" y="18" width="344" height="436" rx="12"/></clipPath>
+      <clipPath id="burnClip"><rect id="burnRect" x="0" y="18" width="360" height="436"/></clipPath>
+    </defs>
+
+    <rect x="8" y="18" width="344" height="436" rx="12" fill="#0A0B0F"/>
+
+    <g clip-path="url(#plotClip)">
+      <rect x="8" y="18" width="344" height="436" fill="url(#dots)" opacity=".8"/>
+
+      <!-- lateral grid, every 5 m -->
+      <g stroke="#191C22" stroke-width="1" stroke-dasharray="3 6">
+        <line x1="10" y1="18" x2="10" y2="454"/>
+        <line x1="90" y1="18" x2="90" y2="454"/>
+        <line x1="170" y1="18" x2="170" y2="454"/>
+        <line x1="250" y1="18" x2="250" y2="454"/>
+      </g>
+
+      <!-- downrange rings -->
+      <g stroke="#22252C" stroke-width="1">
+        <line x1="8" y1="334.8" x2="352" y2="334.8"/>
+        <line x1="8" y1="221.7" x2="352" y2="221.7"/>
+        <line x1="8" y1="108.5" x2="352" y2="108.5"/>
+      </g>
+      <g fill="#4E5158" font-size="8" font-family="Archivo,sans-serif"
+         style="font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 110,'wght' 600">
+        <text x="14" y="330.8">50 m</text>
+        <text x="14" y="217.7">100 m</text>
+        <text x="14" y="104.5">150 m</text>
+      </g>
+
+      <!-- launch-direction wedge: the gap between target line and launch line, also filled -->
+      <polygon points="330,448 347,18 330,18" fill="url(#wedgeGrad)"/>
+
+      <!-- ===================== HEAT FIELD ===================== -->
+      <g clip-path="url(#burnClip)">
+        <!-- far halo — light spreading well past the edges -->
+        <g filter="url(#haloFar)" opacity=".42"><path id="deltaHaloFar" fill="url(#bloomGrad)"/></g>
+        <!-- near halo — soft shoulder that still keeps the shape -->
+        <g filter="url(#haloNear)" opacity=".42"><path id="deltaHaloNear" fill="url(#bloomGrad)"/></g>
+        <!-- body — the translucent field itself -->
+        <g filter="url(#softEdge)"><path id="deltaBody" fill="url(#fieldGrad)"/></g>
+        <!-- filaments — the sweep itself: intermediate trajectories fill the area -->
+        <g id="streaks" filter="url(#filament)" fill="none" stroke="#FFC98A" stroke-width=".9"></g>
+        <!-- hot rim along the leading edge -->
+        <path id="rimPath" fill="none" stroke="url(#rimGrad)" stroke-width="4" opacity=".38" filter="url(#haloNear)"/>
+        <!-- width gauges: the field, quantified -->
+        <g id="gauges"></g>
+      </g>
+
+      <!-- ===================== LINES ===================== -->
+      <line x1="330" y1="448" x2="330" y2="18" stroke="#6A6C74" stroke-width="1.4" stroke-dasharray="7 5"/>
+      <text x="322" y="212" transform="rotate(-90 322 212)" text-anchor="middle"
+            fill="#6A6C74" font-size="8" font-family="Archivo,sans-serif"
+            style="font-variation-settings:'wdth' 118,'wght' 600;letter-spacing:.18em">MÅLLINJE 0</text>
+
+      <line x1="330" y1="448" x2="347" y2="18" stroke="#B07C4A" stroke-width="1.3" stroke-dasharray="1.5 3.5"/>
+      <text x="322" y="31" text-anchor="end" fill="#BE8F60" font-size="7.5" font-family="Archivo,sans-serif"
+            style="font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 116,'wght' 600;letter-spacing:.13em">UTGANG +0.32° R</text>
+
+      <!-- reference path: dark underlay keeps it legible on top of the field -->
+      <path id="refUnder" fill="none" stroke="#0A0B0F" stroke-width="3.6" opacity=".6"/>
+      <path id="refPath"  fill="none" stroke="#FFD2A6" stroke-width="1.6" stroke-dasharray="5 4" opacity=".92"/>
+
+      <!-- current path: thin and bright -->
+      <path id="curGlow" fill="none" stroke="#FF7A2A" stroke-width="3" opacity=".45" filter="url(#lineGlow)"/>
+      <path id="curPath" fill="none" stroke="#FFF3E6" stroke-width="1.7" stroke-linecap="round"/>
+      <path id="rollPath" fill="none" stroke="#FFC078" stroke-width="1.3" stroke-dasharray="2 3" opacity=".8"/>
+
+      <g id="mouth"></g>
+      <g id="marks"></g>
+
+      <!-- encoding key: the glow tracks the size of the change; the gauges carry the numbers -->
+      <g>
+        <rect x="16" y="268" width="8" height="122" rx="4" fill="url(#scaleGrad)"/>
+        <rect x="16" y="268" width="8" height="122" rx="4" fill="none" stroke="#33363D"/>
+        <text x="36" y="329" transform="rotate(-90 36 329)" text-anchor="middle"
+              fill="#6E6259" font-size="7" font-family="Archivo,sans-serif"
+              style="font-variation-settings:'wdth' 116,'wght' 700;letter-spacing:.14em">GLØD = ENDRINGENS STØRRELSE</text>
+      </g>
+
+      <!-- OUTPUT tile: solid orange, sitting in the empty field the shot vacated -->
+      <line id="leader" x1="78.3" y1="124" x2="78.3" y2="60" stroke="#FFC078" stroke-width="1" stroke-dasharray="2 3" opacity=".85"/>
+      <g>
+        <rect x="12" y="124" width="138" height="62" rx="12" fill="#F75105"/>
+        <rect x="12" y="124" width="138" height="62" rx="12" fill="none" stroke="#FFB061" stroke-opacity=".55"/>
+        <text x="24" y="142" fill="#170D04" font-size="8" font-family="Archivo,sans-serif" opacity=".78"
+              style="font-variation-settings:'wdth' 120,'wght' 700;letter-spacing:.15em">SIDE · LANDING</text>
+        <text x="24" y="166" fill="#170D04" font-size="25" font-family="Archivo,sans-serif"
+              style="font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 106,'wght' 700">15.7<tspan font-size="12" dx="3">m</tspan><tspan font-size="18" dx="4">L</tspan></text>
+        <text x="24" y="179" fill="#170D04" font-size="8" font-family="Archivo,sans-serif" opacity=".82"
+              style="font-variation-settings:'wdth' 118,'wght' 700;letter-spacing:.13em">VENSTRE FOR MÅL</text>
+      </g>
+    </g>
+
+    <rect x="8" y="18" width="344" height="436" rx="12" fill="none" stroke="#2C2F36"/>
+
+    <!-- lateral scale -->
+    <g stroke="#3A3D44" stroke-width="1">
+      <line x1="10" y1="454" x2="10" y2="461"/>
+      <line x1="90" y1="454" x2="90" y2="461"/>
+      <line x1="170" y1="454" x2="170" y2="461"/>
+      <line x1="250" y1="454" x2="250" y2="461"/>
+      <line x1="330" y1="454" x2="330" y2="463" stroke="#7C7E85"/>
+    </g>
+    <g fill="#63656C" font-size="8" font-family="Archivo,sans-serif" text-anchor="middle"
+       style="font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 110,'wght' 600">
+      <text x="14" y="473" text-anchor="start">20 L</text>
+      <text x="90" y="473">15 L</text>
+      <text x="170" y="473">10 L</text>
+      <text x="250" y="473">5 L</text>
+      <text x="330" y="473" fill="#9A9CA2">0</text>
+    </g>
+    <text x="12" y="488" fill="#4E5158" font-size="7.5" font-family="Archivo,sans-serif"
+          style="font-variation-settings:'wdth' 116,'wght' 600;letter-spacing:.11em">SIDESKALA 7,1× · TALL I FELTET = ENDRINGENS BREDDE</text>
+  </svg>
+  </div>
+  </div>
+
+  <div class="legend">
+    <div><i class="key k-target"></i>Mållinje</div>
+    <div><i class="key k-launch"></i>Utgangsretning</div>
+    <div><i class="key k-cur"></i>Nåværende bane</div>
+    <div><i class="key k-ref"></i>Referanse +2.0°</div>
+  </div>
+
+  <!-- ============================ SWEEP BAND ============================ -->
+  <div class="sweep">
+    <div class="sweep-top">
+      <div>
+        <h2>Sveip</h2>
+        <div class="sub">Club Path +2.0° &rarr; +5.0°</div>
+      </div>
+      <button class="replay" id="replay" type="button">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M10.4 6a4.4 4.4 0 1 1-1.5-3.3" stroke="#170D04" stroke-width="1.6" stroke-linecap="round"/><path d="M10.8 1v2.6H8.2" stroke="#170D04" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Brenn på nytt
+      </button>
+    </div>
+    <div class="sweep-stats">
+      <div><div class="t">&Delta; Side</div><div class="v">+5.9<small> m L</small></div></div>
+      <div><div class="t">&Delta; Curve</div><div class="v">+6.3<small> m L</small></div></div>
+      <div><div class="t">&Delta; Carry</div><div class="v">+1.6<small> m</small></div></div>
+    </div>
+  </div>
+
+  <!-- ============================ 13 OUTCOMES ============================ -->
+  <div class="groups">
+
+    <section class="g-dir">
+      <div class="ghead"><h3>Direction</h3><i class="rule"></i><span class="n">4</span></div>
+      <div class="grid">
+        <div class="tile"><span class="lbl">Launch Dir</span><span class="v">+0.32<u class="deg">°</u><b>R</b><em>høyre</em></span></div>
+        <div class="tile"><span class="lbl">Spin Axis</span><span class="v">&minus;16.26<u class="deg">°</u><b>L</b><em>venstre</em></span></div>
+        <div class="tile">
+          <span class="lbl">Curve</span><span class="v">16.7<u>m</u><b>L</b><em>venstre</em></span>
+          <span class="dchip">&Delta; +6.3 m L</span>
+        </div>
+        <div class="tile">
+          <span class="lbl">Side</span><span class="v">15.7<u>m</u><b>L</b><em>venstre</em></span>
+          <span class="dchip">&Delta; +5.9 m L</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="ghead"><h3>Launch &amp; spin</h3><i class="rule"></i><span class="n">4</span></div>
+      <div class="grid">
+        <div class="tile"><span class="lbl">Launch Angle</span><span class="v">14.5<u class="deg">°</u></span></div>
+        <div class="tile"><span class="lbl">Spin Loft</span><span class="v">19.9<u class="deg">°</u></span></div>
+        <div class="tile"><span class="lbl">Backspin</span><span class="v">3173<u>rpm</u></span></div>
+        <div class="tile"><span class="lbl">Landing Angle</span><span class="v">45.5<u class="deg">°</u></span></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="ghead"><h3>Distance</h3><i class="rule"></i><span class="n">5</span></div>
+      <div class="grid">
+        <div class="tile carry wide">
+          <span class="lbl">Carry</span><span class="v">173.5<u>m</u></span>
+          <span class="dchip">&Delta; +1.6 m</span>
+        </div>
+        <div class="tile"><span class="lbl">Total</span><span class="v">180.3<u>m</u></span></div>
+        <div class="tile"><span class="lbl">Apex</span><span class="v">29.4<u>m</u></span></div>
+        <div class="tile"><span class="lbl">Ball Speed</span><span class="v">130.6<u>mph</u></span></div>
+        <div class="tile"><span class="lbl">Smash</span><span class="v">1.451</span></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================ FIVE INPUTS ============================ -->
+  <div class="controls">
+    <div class="ghead"><h3>Levering</h3><i class="rule"></i><span class="n">5 input</span></div>
+
+    <div class="slider">
+      <div class="srow"><span class="sname"><span class="lbl">Club Speed</span></span><span class="sval">90<u>mph</u></span></div>
+      <div class="track"><div class="fill" style="left:0;width:50%"></div><div class="thumb" style="left:50%"></div></div>
+      <div class="ticks"><span>30</span><span>150 mph</span></div>
+    </div>
+
+    <div class="slider">
+      <div class="srow"><span class="sname"><span class="lbl">Club Face</span></span><span class="sval">&minus;1.0<u class="deg">°</u></span></div>
+      <div class="track">
+        <div class="zero"></div>
+        <div class="fill" style="left:46.667%;width:3.333%"></div>
+        <div class="thumb" style="left:46.667%"></div>
+      </div>
+      <div class="ticks"><span>&minus;15</span><span>0</span><span>+15°</span></div>
+    </div>
+
+    <div class="slider on">
+      <div class="srow">
+        <span class="sname"><span class="lbl">Club Path</span><span class="active-chip">Aktiv</span></span>
+        <span class="sval">+5.0<u class="deg">°</u></span>
+      </div>
+      <div class="track">
+        <div class="zero"></div>
+        <div class="fill" style="left:50%;width:16.667%"></div>
+        <div class="sweptband" style="left:56.667%;width:10%"></div>
+        <div class="ghost" style="left:56.667%"></div>
+        <div class="thumb" style="left:66.667%"></div>
+      </div>
+      <div class="ticks"><span>&minus;15</span><span>0</span><span>+15°</span></div>
+      <div class="sweptlabel"><i></i>Sveipet område · fra +2.0° til +5.0°</div>
+    </div>
+
+    <div class="slider">
+      <div class="srow"><span class="sname"><span class="lbl">Attack Angle</span></span><span class="sval">+5.0<u class="deg">°</u></span></div>
+      <div class="track">
+        <div class="zero"></div>
+        <div class="fill" style="left:50%;width:16.667%"></div>
+        <div class="thumb" style="left:66.667%"></div>
+      </div>
+      <div class="ticks"><span>&minus;15</span><span>0</span><span>+15°</span></div>
+    </div>
+
+    <div class="slider">
+      <div class="srow"><span class="sname"><span class="lbl">Dynamic Loft</span></span><span class="sval">24.0<u class="deg">°</u></span></div>
+      <div class="track"><div class="fill" style="left:0;width:48%"></div><div class="thumb" style="left:48%"></div></div>
+      <div class="ticks"><span>0</span><span>50°</span></div>
+    </div>
+  </div>
+
+  <div class="caveat">
+    <i class="dot"></i>
+    <p>Modellert slag — ikke en måling.</p>
+  </div>
+  <div class="homebar"><i></i></div>
+</div>
+</div>
+
+<p class="caption"><b>Varmefelt.</b> Arealet mellom referansebanen og den nåværende banen er rendret
+som ett sammenhengende translusent varmefelt. Banelinjene er tynne. Endringen er massen.</p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---- plot mapping — must match the SVG chrome exactly ---- */
+  var X0  = 330;          // target line, lateral 0
+  var KX  = 16;           // px per metre, lateral
+  var Y0  = 448;          // tee
+  var KY  = 430 / 190;    // px per metre, downrange (2.263158)
+  var TOP = 18;
+  var P   = 2.2;          // curve growth: tangent at launch is exact, endpoint is exact
+  var D2R = Math.PI / 180;
+
+  /* ---- verified fixture states ---- */
+  /* REF launch dir is derived, not invented: side = carry*tan(ld) - curve
+     => tan(ld) = (10.4 - 9.8)/171.9  => 0.20 deg R  */
+  var REF  = { ld: 0.20, cv: 10.4, ca: 171.9 };   // Club Path +2.0°
+  var CUR  = { ld: 0.32, cv: 16.7, ca: 173.5 };   // Club Path +5.0°
+  var ROLL = 180.3 - 173.5;
+
+  function lerpShot(u){
+    return {
+      ld: REF.ld + (CUR.ld - REF.ld) * u,
+      cv: REF.cv + (CUR.cv - REF.cv) * u,
+      ca: REF.ca + (CUR.ca - REF.ca) * u
+    };
+  }
+  function lateral(s, t){                          // metres, right positive
+    return t * s.ca * Math.tan(s.ld * D2R) - s.cv * Math.pow(t, P);
+  }
+  function pt(s, t){ return [ X0 + lateral(s, t) * KX, Y0 - s.ca * t * KY ]; }
+  function poly(s, n){ var a = [], i; for (i = 0; i <= n; i++) a.push(pt(s, i / n)); return a; }
+  function d(a){
+    var out = '', i;
+    for (i = 0; i < a.length; i++) out += (i ? 'L' : 'M') + a[i][0].toFixed(2) + ' ' + a[i][1].toFixed(2) + ' ';
+    return out;
+  }
+
+  var N   = 140;
+  var cur = poly(CUR, N);
+  var ref = poly(REF, N);
+
+  /* THE DELTA AREA — out along the current path, across the landing shift,
+     back along the reference path, closed. One surface, not two strokes. */
+  var deltaD = d(cur) + d(ref.slice().reverse()) + 'Z';
+
+  var $ = function(id){ return document.getElementById(id); };
+  $('deltaBody').setAttribute('d', deltaD);
+  $('deltaHaloFar').setAttribute('d', deltaD);
+  $('deltaHaloNear').setAttribute('d', deltaD);
+  $('rimPath').setAttribute('d', d(cur));
+  $('refPath').setAttribute('d', d(ref));
+  $('refUnder').setAttribute('d', d(ref));
+  $('curPath').setAttribute('d', d(cur));
+  $('curGlow').setAttribute('d', d(cur));
+
+  /* filaments: the family of intermediate trajectories fills the field.
+     The family is nested strictly between the two paths, so it never leaks. */
+  var streaks = $('streaks');
+  [0.10, 0.22, 0.34, 0.46, 0.58, 0.70, 0.82, 0.92].forEach(function(u){
+    var p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d(poly(lerpShot(u), 90)));
+    p.setAttribute('opacity', (0.10 + u * 0.22).toFixed(3));
+    streaks.appendChild(p);
+  });
+
+  /* roll-out to Total, along the ground-track heading at landing */
+  var slope   = Math.tan(CUR.ld * D2R) - CUR.cv * P / CUR.ca;   // m lateral per m downrange
+  var dz      = ROLL / Math.hypot(1, slope);
+  var land    = cur[N];
+  var rollEnd = [ land[0] + slope * dz * KX, land[1] - dz * KY ];
+  $('rollPath').setAttribute('d',
+    'M' + land[0].toFixed(2) + ' ' + land[1].toFixed(2) + 'L' + rollEnd[0].toFixed(2) + ' ' + rollEnd[1].toFixed(2));
+
+  /* ---- helpers ---- */
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(n, a, t){
+    var e = document.createElementNS(NS, n), k;
+    for (k in a) e.setAttribute(k, a[k]);
+    if (t != null) e.textContent = t;
+    return e;
+  }
+  /* dark halo behind numerals — keeps them crisp over the glow without blurring them */
+  var CRISP = "paint-order:stroke fill;stroke:#0A0B0F;stroke-width:2.8px;stroke-linejoin:round;" +
+              "font-variant-numeric:tabular-nums;";
+
+  /* ---- width gauges: the heat field, quantified ---- */
+  var gauges = $('gauges');
+  [100, 150].forEach(function(dist){
+    var xc = X0 + lateral(CUR, dist / CUR.ca) * KX;
+    var xr = X0 + lateral(REF, dist / REF.ca) * KX;
+    var y  = Y0 - dist * KY;
+    gauges.appendChild(el('line', { x1:xc, y1:y, x2:xr, y2:y, stroke:'#FFD9AE', 'stroke-width':'1', opacity:'.7' }));
+    gauges.appendChild(el('line', { x1:xc, y1:y-3.5, x2:xc, y2:y+3.5, stroke:'#FFD9AE', 'stroke-width':'1', opacity:'.7' }));
+    gauges.appendChild(el('line', { x1:xr, y1:y-3.5, x2:xr, y2:y+3.5, stroke:'#FFD9AE', 'stroke-width':'1', opacity:'.7' }));
+    gauges.appendChild(el('text', {
+      x:(xc - 7).toFixed(1), y:(y + 3).toFixed(1), 'text-anchor':'end',
+      fill:'#FFD0A0', 'font-size':'8.5', 'font-family':'Archivo,sans-serif',
+      style: CRISP + "font-variation-settings:'wdth' 108,'wght' 700"
+    }, ((xr - xc) / KX).toFixed(1) + ' m'));
+  });
+
+  /* ---- mouth of the field: the landing shift ---- */
+  var mouth = $('mouth'), lr = ref[N];
+  mouth.appendChild(el('line', { x1:land[0], y1:land[1], x2:lr[0], y2:lr[1], stroke:'#FFE3C6', 'stroke-width':'1.7' }));
+  mouth.appendChild(el('line', { x1:land[0], y1:land[1]-5.5, x2:land[0], y2:land[1]+5.5, stroke:'#FFE3C6', 'stroke-width':'1.7' }));
+  mouth.appendChild(el('line', { x1:lr[0], y1:lr[1]-5.5, x2:lr[0], y2:lr[1]+5.5, stroke:'#FFE3C6', 'stroke-width':'1.7' }));
+  mouth.appendChild(el('text', {
+    x:((land[0] + lr[0]) / 2).toFixed(1), y:(Math.min(land[1], lr[1]) - 11).toFixed(1),
+    'text-anchor':'middle', fill:'#FFE3C6', 'font-size':'10', 'font-family':'Archivo,sans-serif',
+    style: CRISP + "font-variation-settings:'wdth' 110,'wght' 700;letter-spacing:.04em"
+  }, 'Δ 5.9 m'));
+
+  /* ---- landing markers ---- */
+  var marks = $('marks');
+  marks.appendChild(el('circle', { cx:lr[0], cy:lr[1], r:'3.8', fill:'#0A0B0F', stroke:'#FFD2A6', 'stroke-width':'1.5' }));
+  marks.appendChild(el('rect', { x:(lr[0] + 12).toFixed(1), y:(lr[1] - 15).toFixed(1),
+    width:'104', height:'30', rx:'8', fill:'#15171C', stroke:'rgba(247,142,33,.45)' }));
+  marks.appendChild(el('text', { x:(lr[0] + 21).toFixed(1), y:(lr[1] - 4).toFixed(1),
+    fill:'#9A8878', 'font-size':'7.5', 'font-family':'Archivo,sans-serif',
+    style:"font-variation-settings:'wdth' 118,'wght' 700;letter-spacing:.14em" }, 'REFERANSE'));
+  marks.appendChild(el('text', { x:(lr[0] + 21).toFixed(1), y:(lr[1] + 8).toFixed(1),
+    fill:'#E7C7A4', 'font-size':'11', 'font-family':'Archivo,sans-serif',
+    style:"font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 104,'wght' 700" }, '9.8 m L'));
+
+  marks.appendChild(el('circle', { cx:land[0], cy:land[1], r:'24', fill:'url(#landGlow)', opacity:'.85' }));
+  marks.appendChild(el('circle', { cx:land[0], cy:land[1], r:'8', fill:'none', stroke:'#FFC078', 'stroke-width':'1.2', opacity:'.85' }));
+  marks.appendChild(el('circle', { cx:land[0], cy:land[1], r:'4.4', fill:'#FFF3E6' }));
+  marks.appendChild(el('rect', { x:(rollEnd[0] - 3).toFixed(1), y:(rollEnd[1] - 3).toFixed(1),
+    width:'6', height:'6', fill:'none', stroke:'#FFC078', 'stroke-width':'1.2', opacity:'.85' }));
+  marks.appendChild(el('text', { x:'13', y:'30', fill:'#8C7B68', 'font-size':'7',
+    'font-family':'Archivo,sans-serif',
+    style:"font-variant-numeric:tabular-nums;font-variation-settings:'wdth' 116,'wght' 700;letter-spacing:.12em"
+  }, 'TOTAL 180.3 m'));
+
+  /* ---------------- the burn ---------------- */
+  var burnRect = $('burnRect'), curP = $('curPath'), curG = $('curGlow'),
+      refP = $('refPath'), refU = $('refUnder');
+  var len = curP.getTotalLength(), rlen = refP.getTotalLength();
+
+  function setProgress(p){
+    var h = (Y0 - TOP) * p;
+    burnRect.setAttribute('y', (Y0 - h).toFixed(2));
+    burnRect.setAttribute('height', h.toFixed(2));
+    curP.style.strokeDasharray = (len * p) + ' ' + (len + 1);
+    curG.style.strokeDasharray = (len * p) + ' ' + (len + 1);
+    refU.style.strokeDasharray = (rlen * p) + ' ' + (rlen + 1);
+    refP.style.strokeDasharray = (p >= 1) ? '5 4' : (rlen * p) + ' ' + (rlen + 1);
+  }
+  function settle(){
+    burnRect.setAttribute('y', TOP);
+    burnRect.setAttribute('height', Y0 - TOP);
+    curP.style.strokeDasharray = 'none';
+    curG.style.strokeDasharray = 'none';
+    refU.style.strokeDasharray = 'none';
+    refP.style.strokeDasharray = '5 4';
+  }
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function burn(){
+    if (reduce) { settle(); return; }
+    var t0 = null, DUR = 1150;
+    setProgress(0);
+    requestAnimationFrame(function step(ts){
+      if (t0 === null) t0 = ts;
+      var p = Math.min((ts - t0) / DUR, 1);
+      setProgress(1 - Math.pow(1 - p, 2.4));
+      if (p < 1) requestAnimationFrame(step); else settle();
+    });
+  }
+
+  settle();                       /* static state is the complete state */
+  if (!reduce) {
+    burn();
+    var rb = $('replay');
+    if (rb) rb.addEventListener('click', burn);
+    var tr = document.querySelector('.slider.on .track');
+    if (tr) { tr.style.cursor = 'pointer'; tr.addEventListener('click', burn); }
+  }
+})();
+</script>

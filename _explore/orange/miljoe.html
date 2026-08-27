@@ -1,0 +1,762 @@
+<title>Miljøgradient</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&display=swap');
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FLIGHT GLASS — retning «MILJØGRADIENT»
+   Top-visning av Ball Flight. Telefon, portrett.
+
+   GREPET
+   Phoenix' signaturgradient svart → #F75105 → #F78E21 er ikke dekor her. Den
+   ER baneområdet. Varmen sitter ved treffet nederst og dør ut i lengden — en
+   horisont lagt ned i planet. Banen skjærer gjennom miljøet som en lys linje.
+   Deltaflaten mellom forrige og nåværende bane er ikke malt på: den LYSNER
+   gradienten lokalt (mix-blend-mode: screen). Over svart blir den glødende
+   oransje, over den varme sonen blir den hvitglødende. Lys som brer seg.
+
+   KONTRAST — gradienten endrer lokal kontrast, så den er løst eksplisitt:
+   1. CASING. Hvert grafisk merke tegnes to ganger — svart casing under, lyst
+      kjernestrøk over. Et casing-merke er lesbart mot både #000 og #F78E21.
+   2. SCRIM. Ingen tekst ligger bar på gradienten. All tekst i baneområdet
+      sitter i mørke kapsler (rgba(6,7,10,.78) + blur), som har konstant
+      kontrast uansett hvor på gradienten de havner.
+   3. INGEN GLØD PÅ TEKST. Glødefiltre berører kun banegeometri. Aldri tall.
+
+   LÅSTE BESLUTNINGER
+   D10  Farge er aldri eneste bærer. Retning = fortegn + L/R/C + posisjon
+        relativt null + tykkelse. Ingen rød/grønn retningsakse noe sted.
+   D11  Én global setning. Ingen firetrinns truth-labels.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  color-scheme: dark;
+  --ink:#06070A;
+  --s1:#14161A;
+  --line:#31343B;
+  --muted:#5D5C5B;
+  --dim:#8C8D90;
+  --text:#D2D3D4;
+  --acc:#F75105;
+  --warm:#F78E21;
+  --onacc:#1A0702;
+  --onacc-2:rgba(26,7,2,.60);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:#000000;
+  color:var(--text);
+  font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-variation-settings:'wdth' 100,'wght' 400;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* ── Miljøet rundt telefonen: Phoenix plate 11, svart rom med smeltet glød ── */
+.scene{
+  position:relative;min-height:100vh;padding:30px 8px 46px;
+  display:flex;justify-content:center;background:#000;isolation:isolate;
+}
+.scene::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(122% 44% at 50% 72%, rgba(247,81,5,.36) 0%, rgba(247,81,5,.13) 38%, rgba(0,0,0,0) 68%),
+    radial-gradient(66% 24% at 50% 80%, rgba(247,142,33,.28) 0%, rgba(0,0,0,0) 70%);
+}
+
+.stage{width:390px;transform-origin:top center}
+.phone{
+  width:390px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#0A0B0E 0%,#08090C 44%,#0C0A07 100%);
+  border:1px solid #2B2E34;border-radius:44px;padding:9px 0 9px;
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.9),
+    0 0 0 3px rgba(247,81,5,.16),
+    0 40px 88px -24px rgba(247,81,5,.34),
+    0 18px 56px rgba(0,0,0,.9);
+}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:104px;height:22px;border-radius:14px;background:#000;z-index:6}
+.statusbar{height:21px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;font-size:10.5px;color:var(--text);
+  font-variant-numeric:tabular-nums;font-variation-settings:'wght' 600}
+.sg{display:flex;gap:4px;align-items:center}
+.sg i{display:block;width:2.6px;background:var(--text);border-radius:1px}
+.batt{width:19px;height:9.5px;border:1.2px solid rgba(210,211,212,.6);border-radius:3px;
+  position:relative;margin-left:4px}
+.batt::after{content:"";position:absolute;inset:1.5px;width:10px;background:var(--acc);border-radius:1px}
+
+.screen{padding:0 16px}
+
+/* ── Header ── */
+.hdr{display:flex;align-items:center;gap:9px;height:36px}
+.home{width:28px;height:28px;flex:none;border-radius:9px;border:1px solid var(--line);
+  background:var(--s1);display:grid;place-items:center;color:var(--text)}
+.home svg{width:12px;height:12px}
+.wordmark{font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);
+  font-variation-settings:'wdth' 118,'wght' 600}
+.seg{margin-left:auto;display:flex;background:var(--s1);border:1px solid var(--line);
+  border-radius:9px;padding:2px;gap:2px}
+.seg span{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  padding:5px 8px;border-radius:7px;font-variation-settings:'wdth' 112,'wght' 600}
+.seg span.on{background:var(--acc);color:#fff;box-shadow:0 0 16px rgba(247,81,5,.6)}
+
+/* ── Tittel: Phoenix' brede sperrede display-caps ── */
+.titlebar{display:flex;align-items:center;gap:10px;margin-top:7px}
+.display{font-size:27px;line-height:1;text-transform:uppercase;letter-spacing:.05em;
+  font-variation-settings:'wdth' 125,'wght' 470;color:var(--text);white-space:nowrap}
+.display b{font-variation-settings:'wdth' 125,'wght' 470;color:#fff}
+.subline{margin-top:5px;font-size:8px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);font-variation-settings:'wdth' 115,'wght' 600}
+.verdict{margin-left:auto;flex:none;background:var(--acc);color:#fff;padding:6px 10px;
+  border-radius:9px;text-align:right;
+  box-shadow:0 0 24px rgba(247,81,5,.55), inset 0 1px 0 rgba(255,255,255,.24)}
+.verdict .k{display:block;font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.72);
+  font-variation-settings:'wdth' 115,'wght' 600}
+.verdict .v{display:block;font-size:16px;line-height:1;letter-spacing:.05em;text-transform:uppercase;
+  font-variation-settings:'wdth' 122,'wght' 620;margin-top:2px}
+
+/* ── D11: én global setning ── */
+.truth{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:9.5px;color:var(--dim)}
+.truth::before{content:"";width:2px;height:14px;flex:none;border-radius:2px;
+  background:linear-gradient(180deg,rgba(247,81,5,0),var(--acc) 26%,var(--warm) 74%,rgba(247,142,33,0))}
+
+/* ══ BANEKORTET — miljøet ═════════════════════════════════════════════════ */
+.card{margin-top:8px;border-radius:16px;overflow:hidden;border:1px solid #3A2A1E;
+  box-shadow:0 20px 44px -18px rgba(247,81,5,.44), inset 0 0 0 1px rgba(255,255,255,.03)}
+.canvas{position:relative;width:358px;height:262px;isolation:isolate;background:#000}
+.canvas svg{display:block;width:358px;height:262px;isolation:isolate}
+.ov{position:absolute;inset:0;pointer-events:none}
+
+.chip{position:absolute;background:rgba(6,7,10,.78);border:1px solid rgba(255,255,255,.13);
+  border-radius:5px;padding:3px 6px;white-space:nowrap;line-height:1.25;
+  -webkit-backdrop-filter:blur(7px) saturate(1.1);backdrop-filter:blur(7px) saturate(1.1);
+  font-variant-numeric:tabular-nums}
+.chip .k{display:block;font-size:6.5px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--muted);font-variation-settings:'wdth' 115,'wght' 620}
+.chip .v{display:block;font-size:10px;color:var(--text);font-variation-settings:'wght' 560}
+.chip .v.sm{font-size:8.5px;color:var(--dim);font-variation-settings:'wght' 480}
+.chip.tick{padding:2px 4px;font-size:7px;letter-spacing:.13em;color:var(--dim);
+  font-variation-settings:'wdth' 112,'wght' 620;text-transform:uppercase}
+.chip.dlt{border-color:rgba(247,142,33,.6);background:rgba(30,10,2,.86);
+  box-shadow:0 0 22px rgba(247,81,5,.45);padding:3px 7px}
+.chip.dlt b{font-size:9.5px;color:var(--warm);font-variation-settings:'wght' 680;letter-spacing:.04em}
+.chip.dlt span{font-size:7px;letter-spacing:.17em;text-transform:uppercase;color:rgba(247,142,33,.72);
+  font-variation-settings:'wdth' 112,'wght' 640}
+.chip.now{border-color:rgba(247,142,33,.44)}
+.legend{display:flex;gap:6px;align-items:flex-start}
+.gl{width:10px;height:10px;flex:none;margin-top:2px;border-radius:50%}
+.gl.n{background:var(--warm);box-shadow:0 0 10px rgba(247,142,33,.9),inset 0 0 0 2px rgba(255,255,255,.88)}
+.gl.r{border:1.4px dashed rgba(210,211,212,.75)}
+.gl.d{border-radius:2px;background:linear-gradient(135deg,rgba(247,81,5,.9),rgba(247,142,33,.32))}
+
+/* ── Δ-slaben: solid mettet oransje, festet til bildet. Phoenix' OUTPUT-blokk ── */
+.dslab{background:var(--acc);color:var(--onacc);padding:7px 12px 7px;position:relative;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), inset 0 -20px 36px -20px rgba(0,0,0,.4)}
+.dslab::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;opacity:.6;
+  background:linear-gradient(90deg,var(--warm),#fff 40%,var(--warm))}
+.dtop{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.dtop .lbl{font-size:7.5px;letter-spacing:.2em;text-transform:uppercase;
+  font-variation-settings:'wdth' 118,'wght' 700}
+.dtop .path{margin-left:auto;font-size:9px;font-variant-numeric:tabular-nums;
+  font-variation-settings:'wght' 620;letter-spacing:.02em}
+.dtop .path em{font-style:normal;color:var(--onacc-2)}
+.replay{pointer-events:auto;cursor:pointer;border:1px solid rgba(26,7,2,.42);
+  background:rgba(255,255,255,.22);color:var(--onacc);border-radius:6px;font:inherit;
+  font-size:7px;letter-spacing:.16em;text-transform:uppercase;
+  font-variation-settings:'wdth' 112,'wght' 700;padding:3px 6px}
+.replay:hover{background:rgba(255,255,255,.36)}
+.replay:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(26,7,2,.28)}
+.dcell{background:var(--acc);padding:5px 7px 6px}
+.dcell .k{display:block;font-size:6.5px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--onacc-2);font-variation-settings:'wdth' 115,'wght' 700}
+.dcell .row{display:flex;align-items:baseline;gap:4px;margin-top:2px;font-variant-numeric:tabular-nums}
+.dcell .from{font-size:9px;color:var(--onacc-2);font-variation-settings:'wght' 540}
+.dcell .ar{font-size:8.5px;color:var(--onacc-2)}
+.dcell .to{font-size:12.5px;color:#160600;font-variation-settings:'wght' 690}
+.dcell .dd{display:block;margin-top:1px;font-size:8px;color:#3E1202;
+  font-variation-settings:'wght' 640;font-variant-numeric:tabular-nums}
+
+/* ══ LEVERING ═════════════════════════════════════════════════════════════ */
+.sect{margin-top:9px}
+.sect>h2{font-size:7.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+  font-variation-settings:'wdth' 118,'wght' 650;display:flex;align-items:center;gap:8px}
+.sect>h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.sect>h2 i{font-style:normal;color:#4A4C50}
+
+/* Aktiv slider — massiv oransje slab. Deltabåndet i sporet er samme grep som
+   deltaflaten i banen: mellomrommet mellom ref og nå er en fylt flate. */
+.active{margin-top:6px;background:var(--acc);border-radius:12px;padding:8px 13px 9px;
+  color:var(--onacc);position:relative;overflow:hidden;
+  box-shadow:0 0 32px -6px rgba(247,81,5,.64), inset 0 1px 0 rgba(255,255,255,.28)}
+.active::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 12% 0%, rgba(255,220,180,.30), rgba(0,0,0,0) 62%)}
+.active:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.arow{display:flex;align-items:flex-end;gap:8px;position:relative;z-index:1}
+.arow .k{font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;
+  font-variation-settings:'wdth' 120,'wght' 700}
+.arow .tag{font-size:6.5px;letter-spacing:.18em;text-transform:uppercase;background:rgba(26,7,2,.34);
+  color:#fff;padding:3px 5px;border-radius:5px;font-variation-settings:'wdth' 112,'wght' 700}
+.arow .v{margin-left:auto;font-size:23px;line-height:.86;color:#fff;font-variant-numeric:tabular-nums;
+  font-variation-settings:'wdth' 108,'wght' 640;text-shadow:0 1px 0 rgba(26,7,2,.3)}
+.atrack{position:relative;height:14px;border-radius:7px;background:rgba(20,5,0,.52);margin-top:8px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.6);z-index:1}
+.atrack .zero{position:absolute;left:50%;top:2px;bottom:2px;width:1px;background:rgba(255,222,190,.45)}
+.aband{position:absolute;top:2px;bottom:2px;border-radius:5px;
+  background:linear-gradient(90deg,rgba(255,232,206,.30),rgba(255,241,224,.88));
+  box-shadow:0 0 14px rgba(255,236,214,.55)}
+.aref{position:absolute;top:-5px;bottom:-5px;width:2px;background:rgba(26,7,2,.75);border-radius:1px}
+.athumb{position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:#fff;
+  transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,.5);display:grid;place-items:center}
+.athumb::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--acc)}
+.ascale{display:flex;margin-top:6px;font-size:7px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--onacc-2);font-variation-settings:'wdth' 112,'wght' 660;position:relative;z-index:1;
+  font-variant-numeric:tabular-nums}
+.ascale .mid{margin:0 auto}
+.ascale .rt{margin-left:auto;color:var(--onacc);font-variation-settings:'wght' 700}
+
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.mcell{background:var(--s1);border:1px solid var(--line);border-radius:9px;padding:5px 7px 6px}
+.mcell .k{display:block;font-size:6.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-variation-settings:'wdth' 110,'wght' 640;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.mcell .v{display:block;margin-top:2px;font-size:12px;color:var(--text);
+  font-variant-numeric:tabular-nums;font-variation-settings:'wght' 600;white-space:nowrap}
+.mcell .v small{font-size:8px;color:var(--dim);font-variation-settings:'wght' 500}
+.mtrack{display:block;position:relative;height:3px;border-radius:2px;background:#000;margin-top:5px;
+  border:1px solid rgba(255,255,255,.05)}
+.mtrack .z{position:absolute;top:-2px;bottom:-2px;width:1px;background:rgba(255,255,255,.28)}
+.mtrack .p{position:absolute;top:-2.5px;width:7px;height:7px;border-radius:50%;background:var(--acc);
+  transform:translateX(-50%);box-shadow:0 0 8px rgba(247,81,5,.9)}
+
+/* ══ UTFALL ═══════════════════════════════════════════════════════════════ */
+.grp{margin-top:7px}
+.grp h3{font-size:7px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+  font-variation-settings:'wdth' 118,'wght' 650;display:flex;align-items:center;gap:7px;
+  margin-bottom:4px;line-height:1}
+.grp h3 em{font-style:normal;color:var(--acc);font-size:7.5px}
+.grp h3::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),rgba(49,52,59,0))}
+.vals{display:grid;gap:6px}
+.vals.g4{grid-template-columns:repeat(4,1fr)}
+.vals.g5{grid-template-columns:repeat(5,1fr)}
+.o{background:var(--s1);border:1px solid var(--line);border-radius:9px;padding:5px 6px 6px;min-width:0}
+.o .k{font-size:6.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+  font-variation-settings:'wdth' 110,'wght' 640;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;line-height:1.2}
+.o .v{margin-top:3px;font-size:12.5px;color:var(--text);font-variant-numeric:tabular-nums;
+  font-variation-settings:'wght' 600;letter-spacing:-.01em;white-space:nowrap;line-height:1.1}
+.o .v small{font-size:8px;color:var(--dim);font-variation-settings:'wght' 500;letter-spacing:.03em}
+.o .v b{font-variation-settings:'wght' 700;color:#fff;letter-spacing:.04em}
+.o.hero{background:linear-gradient(180deg,#1E1811,#141517);border-color:#443122}
+.o.hero .v{font-size:14px;color:#fff}
+
+/* Retningsbjelker: posisjon mot null + tykkelse + luminans. Aldri farge alene. */
+.bar{position:relative;height:7px;border-radius:2px;background:rgba(255,255,255,.06);
+  margin-top:5px;overflow:hidden}
+.bar .z{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.36);z-index:3}
+.bar .f{position:absolute;top:0;bottom:0;background:var(--acc);z-index:2;
+  box-shadow:0 0 10px rgba(247,81,5,.75)}
+.bar .fd{position:absolute;top:0;bottom:0;background:rgba(247,142,33,.56);z-index:1;
+  border-left:1px solid rgba(255,236,214,.8)}
+.scl{margin-top:3px;font-size:6px;letter-spacing:.1em;text-transform:uppercase;color:#4E5054;
+  font-variation-settings:'wdth' 110,'wght' 600;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.hbar{width:118px;height:4px;border-radius:3px;background:#33363C;margin:9px auto 0}
+
+/* ── Bevegelse ── */
+.emberveil{opacity:.05;animation:ember 11s ease-in-out infinite alternate}
+@keyframes ember{0%{opacity:.02}100%{opacity:.17}}
+.fadein{opacity:0;transition:opacity .3s ease}
+.fadein.on{opacity:1}
+
+@media (prefers-reduced-motion: reduce){
+  .emberveil{animation:none;opacity:.09}
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important}
+}
+</style>
+
+<main class="scene">
+<div class="stage" id="stage">
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="statusbar">
+    <span>9:41</span>
+    <span class="sg">
+      <i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i>
+      <span class="batt"></span>
+    </span>
+  </div>
+
+  <div class="screen">
+
+    <div class="hdr">
+      <a class="home" href="#" aria-label="Hjem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <span class="wordmark">Flight&nbsp;Glass</span>
+      <div class="seg" role="tablist" aria-label="Visning">
+        <span role="tab">Outcome</span><span role="tab">Side</span>
+        <span class="on" role="tab" aria-selected="true">Top</span>
+      </div>
+    </div>
+
+    <div class="titlebar">
+      <div>
+        <div class="display">Ball&nbsp;<b>Flight</b></div>
+        <div class="subline">Top · retningsplan</div>
+      </div>
+      <div class="verdict"><span class="k">Shape</span><span class="v">Draw</span></div>
+    </div>
+
+    <p class="truth">Modellert slag — ikke en måling</p>
+
+    <!-- ══ BANEKORT ═══════════════════════════════════════════════ -->
+    <div class="card">
+      <div class="canvas">
+        <svg id="fs" viewBox="0 0 358 262" role="img"
+             aria-label="Top-visning av retningsplanet. Mållinje rett fram, launch-linje 0,32 grader
+             høyre. Referansebanen med Club Path pluss 2,0 grader lander 9,8 meter venstre etter 171,9
+             meter. Nåværende bane med Club Path pluss 5,0 grader lander 15,7 meter venstre etter 173,5
+             meter carry og 180,3 meter totalt. Arealet mellom de to banene er fylt med gjennomsiktig
+             oransje og måler 5,9 meter på det bredeste.">
+          <defs>
+            <!-- Miljøet. Varmen ved treffet nederst, mørket i lengden. -->
+            <linearGradient id="gEnv" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0"    stop-color="#000000"/>
+              <stop offset="0.26" stop-color="#050409"/>
+              <stop offset="0.42" stop-color="#240A03"/>
+              <stop offset="0.58" stop-color="#7A1E04"/>
+              <stop offset="0.72" stop-color="#C63C05"/>
+              <stop offset="0.84" stop-color="#F75105"/>
+              <stop offset="1"    stop-color="#F78E21"/>
+            </linearGradient>
+            <linearGradient id="gEmber" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#FFD9A8" stop-opacity="0"/>
+              <stop offset="1" stop-color="#FFE7C6" stop-opacity=".85"/>
+            </linearGradient>
+
+            <!-- Deltaflaten. Null ved treffet, sterkest ved landing. -->
+            <linearGradient id="gDelta" gradientUnits="userSpaceOnUse" x1="179" y1="234" x2="179" y2="30">
+              <stop offset="0"    stop-color="#F75105" stop-opacity="0"/>
+              <stop offset="0.20" stop-color="#F75105" stop-opacity=".17"/>
+              <stop offset="0.52" stop-color="#F75105" stop-opacity=".48"/>
+              <stop offset="0.84" stop-color="#F97A15" stop-opacity=".76"/>
+              <stop offset="1"    stop-color="#F78E21" stop-opacity=".92"/>
+            </linearGradient>
+
+            <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse">
+              <circle cx="1.2" cy="1.2" r="0.85" fill="#ffffff" fill-opacity="0.075"/>
+            </pattern>
+
+            <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3.2"/></filter>
+            <filter id="fBloom" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6"/></filter>
+            <filter id="fTee" x="-260%" y="-260%" width="620%" height="620%">
+              <feGaussianBlur stdDeviation="6"/></filter>
+            <clipPath id="clipCv"><rect x="0" y="0" width="358" height="262"/></clipPath>
+          </defs>
+
+          <g clip-path="url(#clipCv)">
+            <!-- 1 · miljø -->
+            <rect x="0" y="0" width="358" height="262" fill="url(#gEnv)"/>
+            <rect x="0" y="0" width="358" height="262" fill="url(#dots)"/>
+            <rect class="emberveil" x="0" y="186" width="358" height="76" fill="url(#gEmber)"/>
+
+            <!-- 2 · rutenett (casing + kjerne) -->
+            <g id="gGrid"></g>
+
+            <!-- 3 · treffkanten -->
+            <line x1="14" y1="234" x2="344" y2="234" stroke="#000" stroke-opacity=".55" stroke-width="4"/>
+            <line x1="14" y1="234" x2="344" y2="234" stroke="#FFE2BE" stroke-opacity=".94" stroke-width="1.2"/>
+
+            <!-- 4 · mållinje + launch-linje -->
+            <g id="gLines"></g>
+
+            <!-- 5 · DELTAFLATEN — lysner miljøet lokalt.
+                 Strøkbreddene under er bevisst tynne: deltakilen er 3 px bred ved
+                 80 m og 35 px ved landing. En tykk bane spiser hele flata. -->
+            <g style="mix-blend-mode:screen">
+              <path id="deltaBloom" fill="url(#gDelta)" filter="url(#fBloom)" opacity=".55"/>
+              <path id="deltaFill"  fill="url(#gDelta)" stroke="#FFE7C6" stroke-opacity=".30"
+                    stroke-width="0.9" stroke-linejoin="round"/>
+            </g>
+            <g id="gRungs" stroke="#000" stroke-opacity=".46" stroke-width="0.9" stroke-dasharray="1.4 2.6"></g>
+
+            <!-- 6 · referansebane -->
+            <path id="refCase" fill="none" stroke="#000" stroke-opacity=".62" stroke-width="4" stroke-linecap="round"/>
+            <path id="refPath" fill="none" stroke="#D2D3D4" stroke-opacity=".72" stroke-width="1.4"
+                  stroke-dasharray="5 4" stroke-linecap="round"/>
+
+            <!-- 7 · nåværende bane: glødende bånd med hvitglødende kjerne -->
+            <path id="curCase"  fill="none" stroke="#000" stroke-opacity=".72" stroke-width="6.4" stroke-linecap="round"/>
+            <path id="curBloom" fill="none" stroke="#F75105" stroke-width="7" stroke-linecap="round"
+                  filter="url(#fGlow)" opacity=".95"/>
+            <path id="curMid"   fill="none" stroke="#F9A24A" stroke-width="3" stroke-linecap="round"/>
+            <path id="curCore"  fill="none" stroke="#FFF6EA" stroke-width="1.5" stroke-linecap="round"/>
+
+            <!-- 8 · utrull carry → total -->
+            <path id="rollCase" fill="none" stroke="#000" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+            <path id="rollPath" fill="none" stroke="#FFD9A8" stroke-opacity=".74" stroke-width="1.6"
+                  stroke-dasharray="2.4 3" stroke-linecap="round"/>
+
+            <!-- 9 · Δ-målebøyle + markører -->
+            <g id="gBracket" class="fadein"></g>
+            <g id="gMarks"></g>
+
+            <!-- 10 · treffnoden -->
+            <circle cx="179" cy="234" r="9" fill="#FFF0DC" filter="url(#fTee)" opacity=".9"/>
+            <circle cx="179" cy="234" r="6" fill="#000" fill-opacity=".55"/>
+            <circle cx="179" cy="234" r="4.4" fill="#FFF3E2"/>
+            <circle cx="179" cy="234" r="1.8" fill="#F75105"/>
+          </g>
+        </svg>
+
+        <!-- Tekstlaget: kun mørke scrim-kapsler. Ingen bar tekst på gradienten. -->
+        <div class="ov" id="ov">
+          <div class="chip dlt" id="chipDelta" style="left:50px;top:4px">
+            <span>Δ side</span> <b>5.9 m mot L</b>
+          </div>
+
+          <div class="chip tick" style="right:8px;top:6px">Sideskala 5×</div>
+          <div class="chip tick" style="left:186px;top:26px">Mållinje · 0</div>
+
+          <div class="chip now" style="left:194px;top:48px;width:152px">
+            <div class="legend"><span class="gl n"></span><div>
+              <span class="k">Nå · Club Path +5.0°</span>
+              <span class="v">Side 15.7 m L</span>
+              <span class="v sm">Carry 173.5 m · Total 180.3 m</span>
+            </div></div>
+          </div>
+
+          <div class="chip" style="left:194px;top:100px;width:152px">
+            <div class="legend"><span class="gl r"></span><div>
+              <span class="k">Ref · Club Path +2.0°</span>
+              <span class="v" style="color:var(--dim)">Side 9.8 m L</span>
+              <span class="v sm">Carry 171.9 m · Curve 10.4 m L</span>
+            </div></div>
+          </div>
+
+          <div class="chip" style="left:194px;top:152px;width:152px">
+            <div class="legend"><span class="gl d"></span><div>
+              <span class="k">Δ-flate</span>
+              <span class="v sm">Arealet banen feide over</span>
+            </div></div>
+          </div>
+
+          <div class="chip tick" style="left:194px;top:190px">Launch dir +0.32° R</div>
+
+          <div class="chip tick" style="left:18px;top:52px">150 m</div>
+          <div class="chip tick" style="left:18px;top:111px">100 m</div>
+          <div class="chip tick" style="left:18px;top:169px">50 m</div>
+
+          <div class="chip tick" style="left:8px;top:214px">Impact · 0 m</div>
+          <div class="chip tick" style="left:50px;top:240px">20 L</div>
+          <div class="chip tick" style="left:109px;top:240px">10 L</div>
+          <div class="chip tick" style="left:227px;top:240px">10 R</div>
+          <div class="chip tick" style="left:285px;top:240px">20 R</div>
+        </div>
+      </div>
+
+      <!-- ── Δ-slab ── -->
+      <div class="dslab">
+        <div class="dtop">
+          <span class="lbl">Δ siden referanse</span>
+          <span class="path">Club Path <em>+2.0°</em> → +5.0°</span>
+          <button class="replay" id="replay" type="button">↺ Δ</button>
+        </div>
+        <div class="dgrid">
+          <div class="dcell"><span class="k">Side</span>
+            <span class="row"><span class="from">9.8 L</span><span class="ar">→</span><span class="to">15.7 m L</span></span>
+            <span class="dd">+5.9 m mot venstre</span></div>
+          <div class="dcell"><span class="k">Curve</span>
+            <span class="row"><span class="from">10.4 L</span><span class="ar">→</span><span class="to">16.7 m L</span></span>
+            <span class="dd">+6.3 m mot venstre</span></div>
+          <div class="dcell"><span class="k">Carry</span>
+            <span class="row"><span class="from">171.9</span><span class="ar">→</span><span class="to">173.5 m</span></span>
+            <span class="dd">+1.6 m lengre</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LEVERING ═══════════════════════════════════════════════ -->
+    <section class="sect">
+      <h2>Levering <i>5 input</i></h2>
+
+      <div class="active" role="slider" tabindex="0" aria-label="Club Path"
+           aria-valuemin="-15" aria-valuemax="15" aria-valuenow="5"
+           aria-valuetext="pluss 5,0 grader. Referansen var pluss 2,0 grader.">
+        <div class="arow">
+          <span class="k">Club Path</span><span class="tag">Aktiv</span><span class="v">+5.0°</span>
+        </div>
+        <div class="atrack">
+          <span class="zero"></span>
+          <span class="aband" style="left:56.67%;right:33.33%"></span>
+          <span class="aref" style="left:56.67%"></span>
+          <span class="athumb" style="left:66.67%"></span>
+        </div>
+        <div class="ascale"><span>−15°</span><span class="mid">0</span>
+          <span class="rt">Ref +2.0° · Δ +3.0° mot R</span></div>
+      </div>
+
+      <div class="mini">
+        <div class="mcell"><span class="k">Club Speed</span><span class="v">90<small> mph</small></span>
+          <span class="mtrack"><span class="p" style="left:50%"></span></span></div>
+        <div class="mcell"><span class="k">Club Face</span><span class="v">−1.0<small>°</small></span>
+          <span class="mtrack"><span class="z" style="left:50%"></span><span class="p" style="left:46.7%"></span></span></div>
+        <div class="mcell"><span class="k">Attack</span><span class="v">+5.0<small>°</small></span>
+          <span class="mtrack"><span class="z" style="left:50%"></span><span class="p" style="left:66.7%"></span></span></div>
+        <div class="mcell"><span class="k">Dyn Loft</span><span class="v">24.0<small>°</small></span>
+          <span class="mtrack"><span class="p" style="left:48%"></span></span></div>
+      </div>
+    </section>
+
+    <!-- ══ UTFALL ═════════════════════════════════════════════════ -->
+    <section class="sect">
+      <h2>Utfall <i>13</i></h2>
+
+      <div class="grp">
+        <h3>Direction <em>4</em></h3>
+        <div class="vals g4">
+          <div class="o"><div class="k">Launch Dir</div><div class="v">+0.32°&nbsp;<b>R</b></div>
+            <div class="bar"><span class="z"></span><span class="f" style="left:50%;width:2.7%"></span></div>
+            <div class="scl">±6°</div></div>
+          <div class="o"><div class="k">Spin Axis</div><div class="v">−16.26°&nbsp;<b>L</b></div>
+            <div class="bar"><span class="z"></span><span class="f" style="left:22.9%;width:27.1%"></span></div>
+            <div class="scl">±30°</div></div>
+          <div class="o"><div class="k">Curve</div><div class="v">16.7&nbsp;<small>m</small>&nbsp;<b>L</b></div>
+            <div class="bar"><span class="z"></span><span class="fd" style="left:22.2%;width:10.5%"></span>
+              <span class="f" style="left:32.7%;width:17.3%"></span></div>
+            <div class="scl">±30 m · ref 10.4 L</div></div>
+          <div class="o"><div class="k">Side</div><div class="v">15.7&nbsp;<small>m</small>&nbsp;<b>L</b></div>
+            <div class="bar"><span class="z"></span><span class="fd" style="left:23.8%;width:9.8%"></span>
+              <span class="f" style="left:33.7%;width:16.3%"></span></div>
+            <div class="scl">±30 m · ref 9.8 L</div></div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h3>Launch &amp; spin <em>4</em></h3>
+        <div class="vals g4">
+          <div class="o"><div class="k">Launch</div><div class="v">14.5<small>°</small></div></div>
+          <div class="o"><div class="k">Spin Loft</div><div class="v">19.9<small>°</small></div></div>
+          <div class="o"><div class="k">Backspin</div><div class="v">3173<small> rpm</small></div></div>
+          <div class="o"><div class="k">Landing</div><div class="v">45.5<small>°</small></div></div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h3>Distance <em>5</em></h3>
+        <div class="vals g5">
+          <div class="o"><div class="k">Smash</div><div class="v">1.451</div></div>
+          <div class="o"><div class="k">Ball Speed</div><div class="v">130.6<small> mph</small></div></div>
+          <div class="o hero"><div class="k">Carry</div><div class="v">173.5<small> m</small></div></div>
+          <div class="o"><div class="k">Total</div><div class="v">180.3<small> m</small></div></div>
+          <div class="o"><div class="k">Apex</div><div class="v">29.4<small> m</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="hbar"></div>
+  </div>
+</div>
+</div>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ═══ Skjermtilpasning ═══════════════════════════════════════════════ */
+  var stage = document.getElementById('stage');
+  function fit() { stage.style.zoom = Math.min(1, (window.innerWidth - 18) / 390); }
+  fit();
+  window.addEventListener('resize', fit);
+
+  /* ═══ Skjermkoordinater ══════════════════════════════════════════════
+     Lengdeskala  KY = 1.168 px/m   (0–190 m fordelt på 222 px)
+     Sideskala    KX = 5.842 px/m   = 5 × lengdeskala — oppgitt i skjermen
+     Nullpunkt    (179, 234)        = treffet
+     Anisotropien er nødvendig, ikke kosmetisk: deltakilen er 5,9 m bred mot
+     173 m lang. I 1:1 blir hele grepet en hårstrek. Faktoren står derfor
+     som en merkelapp i baneområdet i stedet for å skjules.
+     ════════════════════════════════════════════════════════════════════ */
+  var X0 = 179, Y0 = 234, KY = 222 / 190, KX = 5 * (222 / 190);
+  var sx = function (m) { return X0 + m * KX; };
+  var sy = function (d) { return Y0 - d * KY; };
+
+  /* ═══ Verifiserte utfall — motorens fixture ══════════════════════════
+     NÅ   Club Path +5.0° : Carry 173.5 m · Total 180.3 m · Curve 16.7 m L
+                            Side 15.7 m L · Launch Dir +0.32° R
+     REF  Club Path +2.0° : Carry 171.9 m · Curve 10.4 m L · Side 9.8 m L
+
+     Identiteten som binder geometrien til tallene:
+        side = launch-offset ved carry + curve
+     NÅ  : 173.5·tan(0.32°) − 16.7 = 0.969 − 16.7 = −15.73  ⇒ 15.7 m L  ✓
+     REF : −9.8 = offset − 10.4                             ⇒ offset +0.60 m
+     Alle koordinater under er utledet av disse tallene, ikke tegnet på frihånd.
+     ════════════════════════════════════════════════════════════════════ */
+  var NOW = { carry: 173.5, total: 180.3, curve: -16.7, off: 173.5 * Math.tan(0.32 * Math.PI / 180) };
+  var REF = { carry: 171.9, total: 171.9, curve: -10.4, off: 0.60 };
+
+  /* Baneform. Sideakselerasjonen fra spinnaksen er tilnærmet konstant, så
+     avdriften fra launch-linja går som kvadratet av flytida. Lengden per
+     tidsenhet avtar med farten (1.35u − 0.35u²). Begge endepunkter treffer
+     de verifiserte tallene eksakt. */
+  function at(sh, u) {
+    var dr  = sh.carry * (1.35 * u - 0.35 * u * u);
+    var lat = dr * (sh.off / sh.carry) + sh.curve * u * u;
+    return [sx(lat), sy(dr)];
+  }
+  function uAtD(sh, dm) {
+    var A = 0.35 * sh.carry, B = -1.35 * sh.carry;
+    return (-B - Math.sqrt(B * B - 4 * A * dm)) / (2 * A);
+  }
+  function pts(sh, n) { var a = [], i; for (i = 0; i <= n; i++) a.push(at(sh, i / n)); return a; }
+  function dOf(a) {
+    var s = 'M', i;
+    for (i = 0; i < a.length; i++) s += (i ? 'L' : '') + a[i][0].toFixed(2) + ' ' + a[i][1].toFixed(2);
+    return s;
+  }
+  function rollEnd(sh) {
+    var slope = (sh.carry * 0.65 * (sh.off / sh.carry) + 2 * sh.curve) / (sh.carry * 0.65);
+    var lat = (sh.off + sh.curve) + slope * (sh.total - sh.carry);
+    return [sx(lat), sy(sh.total)];
+  }
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+  function mixSh(t) {
+    return {
+      carry: lerp(REF.carry, NOW.carry, t), total: lerp(REF.carry, NOW.total, t),
+      curve: lerp(REF.curve, NOW.curve, t), off: lerp(REF.off, NOW.off, t)
+    };
+  }
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, a) { var n = document.createElementNS(NS, tag), k; for (k in a) n.setAttribute(k, a[k]); return n; }
+
+  /* Kontrastløsningen: hvert merke tegnes to ganger — svart casing, lys kjerne. */
+  function cased(p, attrs, caseW, caseOp, stroke, w, dash) {
+    var a = {}, b = {}, k;
+    for (k in attrs) { a[k] = attrs[k]; b[k] = attrs[k]; }
+    a.fill = 'none'; a.stroke = '#000'; a['stroke-opacity'] = caseOp; a['stroke-width'] = caseW;
+    b.fill = 'none'; b.stroke = stroke; b['stroke-width'] = w;
+    if (dash) b['stroke-dasharray'] = dash;
+    p.appendChild(el('line', a)); p.appendChild(el('line', b));
+  }
+
+  /* ═══ Rutenett ═══════════════════════════════════════════════════════ */
+  var gGrid = document.getElementById('gGrid');
+  [50, 100, 150].forEach(function (d) {
+    var y = sy(d);
+    cased(gGrid, { x1: 14, y1: y, x2: 344, y2: y }, 3, .42, 'rgba(255,255,255,0.20)', 1, '3 5');
+  });
+  [-20, -10, 10, 20].forEach(function (m) {
+    var x = sx(m);
+    cased(gGrid, { x1: x, y1: sy(190), x2: x, y2: Y0 }, 3, .30, 'rgba(255,255,255,0.085)', 1, '2 7');
+    cased(gGrid, { x1: x, y1: Y0 - 5, x2: x, y2: Y0 + 5 }, 3.6, .5, 'rgba(255,235,214,0.88)', 1.3);
+  });
+
+  /* ═══ Mållinje + launch-linje ════════════════════════════════════════ */
+  var gLines = document.getElementById('gLines');
+  cased(gLines, { x1: X0, y1: 14, x2: X0, y2: Y0 }, 4.6, .6, 'rgba(255,255,255,0.60)', 1.35, '7 5');
+  cased(gLines, { x1: X0, y1: Y0, x2: sx(190 * (NOW.off / NOW.carry)), y2: sy(190) },
+        4.2, .55, 'rgba(247,142,33,0.82)', 1.2, '1.6 3.4');
+  cased(gLines, { x1: 192, y1: 196, x2: 181.5, y2: 196 }, 3.4, .5, 'rgba(255,255,255,0.34)', 1);
+
+  /* ═══ Tegning ════════════════════════════════════════════════════════ */
+  var $ = function (id) { return document.getElementById(id); };
+  var refPts = pts(REF, 60), refD = dOf(refPts);
+  var gRungs = $('gRungs'), gMarks = $('gMarks'), gBracket = $('gBracket');
+  $('refCase').setAttribute('d', refD);
+  $('refPath').setAttribute('d', refD);
+
+  function draw(t) {
+    var sh = mixSh(t), cur = pts(sh, 60), curD = dOf(cur), i;
+
+    ['curCase', 'curBloom', 'curMid', 'curCore'].forEach(function (id) { $(id).setAttribute('d', curD); });
+
+    /* DELTAFLATEN — nåværende bane fram, referansebanen tilbake, lukket. */
+    var poly = curD;
+    for (i = refPts.length - 1; i >= 0; i--) poly += 'L' + refPts[i][0].toFixed(2) + ' ' + refPts[i][1].toFixed(2);
+    poly += 'Z';
+    $('deltaFill').setAttribute('d', poly);
+    $('deltaBloom').setAttribute('d', poly);
+
+    /* Tverrbånd ved fast nedslagslengde. Gjør flata lesbar som feid areal. */
+    while (gRungs.firstChild) gRungs.removeChild(gRungs.firstChild);
+    [40, 80, 120, 160].forEach(function (d) {
+      if (d > sh.carry - 1 || d > REF.carry - 1) return;
+      var a = at(sh, uAtD(sh, d)), b = at(REF, uAtD(REF, d));
+      gRungs.appendChild(el('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1] }));
+    });
+
+    var land = cur[cur.length - 1], re = rollEnd(sh), rl = refPts[refPts.length - 1];
+    var rd = 'M' + land[0].toFixed(2) + ' ' + land[1].toFixed(2) + 'L' + re[0].toFixed(2) + ' ' + re[1].toFixed(2);
+    $('rollCase').setAttribute('d', rd);
+    $('rollPath').setAttribute('d', rd);
+
+    /* Markører */
+    while (gMarks.firstChild) gMarks.removeChild(gMarks.firstChild);
+    gMarks.appendChild(el('circle', { cx: rl[0], cy: rl[1], r: 6.2, fill: '#000', 'fill-opacity': '.5' }));
+    gMarks.appendChild(el('circle', { cx: rl[0], cy: rl[1], r: 4.8, fill: 'none', stroke: '#D2D3D4',
+      'stroke-opacity': '.82', 'stroke-width': '1.4', 'stroke-dasharray': '2.6 2.2' }));
+    gMarks.appendChild(el('circle', { cx: re[0], cy: re[1], r: 3.2, fill: '#000', 'fill-opacity': '.5' }));
+    gMarks.appendChild(el('circle', { cx: re[0], cy: re[1], r: 2, fill: '#FFD9A8', 'fill-opacity': '.85' }));
+    gMarks.appendChild(el('circle', { cx: land[0], cy: land[1], r: 9, fill: '#F75105',
+      'fill-opacity': '.55', filter: 'url(#fGlow)' }));
+    gMarks.appendChild(el('circle', { cx: land[0], cy: land[1], r: 6.8, fill: '#000', 'fill-opacity': '.6' }));
+    gMarks.appendChild(el('circle', { cx: land[0], cy: land[1], r: 5.2, fill: '#F78E21' }));
+    gMarks.appendChild(el('circle', { cx: land[0], cy: land[1], r: 1.9, fill: '#FFF6EA' }));
+
+    /* Δ-målebøyle mellom de to nedslagspunktene — måler 5,9 m sideforskjell. */
+    while (gBracket.firstChild) gBracket.removeChild(gBracket.firstChild);
+    var by = Math.min(land[1], rl[1]) - 9;
+    [[land[0], land[1] - 7, land[0], by], [rl[0], rl[1] - 6, rl[0], by], [land[0], by, rl[0], by],
+     [land[0], by - 3, land[0], by + 3], [rl[0], by - 3, rl[0], by + 3]].forEach(function (c) {
+      gBracket.appendChild(el('line', { x1: c[0], y1: c[1], x2: c[2], y2: c[3],
+        stroke: '#000', 'stroke-opacity': '.5', 'stroke-width': '3.4' }));
+      gBracket.appendChild(el('line', { x1: c[0], y1: c[1], x2: c[2], y2: c[3],
+        stroke: '#FFE7C6', 'stroke-opacity': '.75', 'stroke-width': '1' }));
+    });
+  }
+
+  /* ═══ Δ-avspilling ═══════════════════════════════════════════════════
+     Alle 13 tall står ferdige fra første frame — 02-BALL-FLIGHT krav 5:
+     «Resultater skal oppdatere i samme frame som input; forklarende motion
+     kan følge etter uten å forsinke tallet.» Bevegelsen viser bare hvordan
+     flata mellom de to verifiserte tilstandene fylles. Ved reduced-motion
+     står sluttbildet der fra start — samme informasjon, ingen animasjon.
+     ════════════════════════════════════════════════════════════════════ */
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var chipD = document.getElementById('chipDelta');
+  var raf = 0;
+
+  function settle() { draw(1); gBracket.classList.add('on'); chipD.style.opacity = 1; }
+
+  function play() {
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    if (reduce.matches) { settle(); return; }
+    gBracket.classList.remove('on');
+    chipD.style.transition = 'opacity .3s ease';
+    chipD.style.opacity = 0;
+    var t0 = performance.now(), D = 880;
+    (function step(now) {
+      var p = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - p, 3);
+      draw(e);
+      if (p > 0.62) { gBracket.classList.add('on'); chipD.style.opacity = 1; }
+      if (p < 1) raf = requestAnimationFrame(step); else { raf = 0; settle(); }
+    })(t0);
+  }
+
+  settle();
+  document.getElementById('replay').addEventListener('click', play);
+  if (!reduce.matches) requestAnimationFrame(play);
+})();
+</script>

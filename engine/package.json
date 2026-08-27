@@ -1,0 +1,14 @@
+{
+  "name": "flightglass-engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Flightglass ballflukt- og treffgeometrimotor. Baseline-reproduksjon av kilde-commit 410a365d47de5c7a1542edc71d0336cd5b7d1b56.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "//scripts.test": "Oppgaven ba om 'node --test test/'. Det feiler pa Node 24.14.1: en positional mappe tolkes som glob, matcher mappen selv, og runneren prover a laste den som modul (MODULE_NOT_FOUND). Glob-formen under er samme intensjon og gir exit 0 bade med og uten testfiler. Ikke 'fiks' den tilbake.",
+  "scripts": {
+    "test": "node --test test/**/*.test.js"
+  }
+}

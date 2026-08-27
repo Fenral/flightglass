@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flight Glass — Ball Flight (skeleton)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="nav.css">
+</head>
+<body data-screen="ball-flight">
+<!--
+  SKJELETT. Denne skjermen bygges ekte i del 2. Her demonstreres kun
+  navigasjonsgrammatikken: sirkel = modulnivå, pill = tilstandsnivå.
+  Ingen tall vises fordi ingen tall skal finnes på uten motoren.
+-->
+<a class="home-circle t-label" href="./index.html" aria-label="Home">HOME</a>
+
+<div class="module">
+  <div class="module-top">
+    <div class="lens-switch" role="group" aria-label="Lens">
+      <button class="lens-pill t-label" aria-pressed="true">DIRECTION</button>
+      <button class="lens-pill t-label" aria-pressed="false">HEIGHT</button>
+    </div>
+  </div>
+
+  <div class="scene">
+    <span class="t-caption zone-name">scene</span>
+  </div>
+
+  <div class="zone"><span class="t-label zone-name">readouts</span></div>
+  <div class="zone"><span class="t-label zone-name">input</span></div>
+
+  <p class="t-caption skeleton-note">Skeleton — Ball Flight is built in Part 2.</p>
+</div>
+<script type="module" src="nav.js"></script>
+</body>
+</html>

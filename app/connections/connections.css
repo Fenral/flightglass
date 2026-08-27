@@ -1,0 +1,272 @@
+/*
+ * connections.css — Connections-modulen, DESIGN.md v3 (mockenes språk).
+ * Valg som ikke er låst i DECISIONS.md er listet i HANDOVER/C-BESLUTNINGER.md.
+ *
+ * Kartets fargespråk i v3: kantene er kald struktur — `muted` i mockens
+ * tre-styrke-grammatikk (full / 55 % / 30 %). `primary` er reservert for
+ * det aktive: fokusert node (chip-active-mønsteret) og dens kanter.
+ * Ingen tall finnes i modulen, så IBM Plex Mono er ubrukt her.
+ *
+ * Typografi: de delte .t-*-rollene i nav.css (v3-migrert av strøm A).
+ * Caps bæres av komponentene under, ikke av typografiklassene.
+ */
+
+/* Modulens lerret: mockens dusk-rampe over nav.css sin flate neutral */
+html, body {
+  background: var(--scene-bg), var(--neutral);
+  background-color: var(--neutral);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+
+/* Fokusringen (2 px ink, D94) arves fra delt nav.css — ingen lokal regel. */
+
+/* Caps-ansvaret ligger på komponentene (delte .t-* har ingen transform) */
+.cx-title, .cx-card-name, .cx-chip, .cx-metric, .metric-pill, .cx-action,
+.cx-card-close, .cx-top-label, .cx-group-label, .cx-band-label,
+.cx-card-section, .cx-card-role {
+  text-transform: uppercase;
+}
+
+/* ── modulskall ──────────────────────────────────────────────────────── */
+.cx {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.cx-view[hidden] { display: none; }
+
+/* ══ Hviletilstanden: metrikkvelgeren (D68) ═══════════════════════════ */
+
+.cx-selector {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: var(--sp-xxl) var(--sp-lg);
+  padding-top: max(76px, calc(env(safe-area-inset-top) + 60px));
+}
+.cx-title { color: var(--ink); margin-bottom: var(--sp-sm); }
+.cx-sub   { color: var(--muted); margin-bottom: var(--sp-xl); }
+.cx-group-label {
+  display: block;
+  color: var(--muted);
+  margin: var(--sp-xl) 0 var(--sp-sm);
+}
+.cx-group-label:first-of-type { margin-top: 0; }
+.cx-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-sm);
+}
+.cx-metric {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--sp-md) var(--sp-lg);
+  border: none;
+  border-radius: var(--r-control);
+  background: var(--plate);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), filter var(--t-fast) var(--ease);
+}
+.cx-metric:hover  { background: var(--surface); }
+.cx-metric:active { filter: brightness(0.88); }
+
+/* ══ Kjedevisningen ═══════════════════════════════════════════════════ */
+
+.cx-chain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Toppen: METRIC-etikett + pill (tilstandsgrammatikk — trykk åpner velgeren) */
+.cx-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) 60px;
+  padding-top: max(var(--sp-sm), env(safe-area-inset-top));
+  min-height: 60px;
+}
+.cx-top-label { color: var(--muted); }
+.metric-pill {
+  min-height: 36px;
+  min-width: 44px;
+  padding: 0 var(--sp-lg);
+  border: none;
+  border-radius: var(--r-lens);
+  background: var(--primary-soft);
+  color: var(--primary);
+  cursor: pointer;
+  position: relative;
+  transition: filter var(--t-fast) var(--ease);
+}
+.metric-pill:active { filter: brightness(0.88); }
+.metric-pill::after { content: ''; position: absolute; inset: -4px 0; }
+
+/* ── Diagrammet ── */
+.cx-diagram-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.cx-diagram {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: var(--sp-lg) var(--sp-lg) var(--sp-xl);
+}
+.cx-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.cx-rows {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* kantene tegnes i dette rommet */
+}
+.cx-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-sm);
+}
+.cx-band { display: flex; flex-direction: column; gap: var(--sp-sm); }
+.cx-band-label { color: var(--muted); text-align: center; }
+
+/* Nodebrikke: glassplate. Fokusert = chip-active-mønsteret (v3):
+   primary-soft-grunn, primary-tekst. */
+.cx-chip {
+  position: relative;
+  min-height: 36px;
+  font-size: 12px; /* D91: brikkene er primærinnhold — caption-størrelse, caps beholdt */
+  padding: var(--sp-sm) var(--sp-md);
+  border: none;
+  border-radius: var(--r-control);
+  background: var(--plate);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease),
+              filter var(--t-fast) var(--ease);
+}
+.cx-chip::after { content: ''; position: absolute; inset: -4px; }
+.cx-chip:hover  { background: var(--surface); }
+.cx-chip:active { filter: brightness(0.88); }
+.cx-chip.is-focused {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-chip, .cx-metric, .metric-pill, .home-circle { transition: none; }
+}
+
+/* Kantene: styrke = tykkelse + mockens tre-styrke-luminans (full/55/30 av
+   muted, satt i JS). Type = mønster. Fokus løfter berørte kanter til primary. */
+.cx-edge.is-hot { stroke: var(--primary) !important; stroke-opacity: 1 !important; }
+
+/* Ordet på den koblede kanten */
+.cx-svg .cx-tie-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  fill: var(--muted);
+}
+
+/* Nøkkelinjen: de to ordene som vises av begrepsapparatet */
+.cx-key {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--sp-lg);
+  color: var(--muted);
+  margin-top: var(--sp-xl);
+}
+.cx-key svg { display: block; }
+
+/* ── Nodekortet: glassplate i egen bunnsone — deler aldri piksler ────── */
+.cx-card {
+  flex-shrink: 0;
+  background: var(--plate-glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 var(--glass-edge);
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  padding: var(--sp-lg);
+  padding-bottom: max(var(--sp-lg), env(safe-area-inset-bottom));
+  max-height: 45dvh;
+  overflow-y: auto;
+}
+.cx-card[hidden] { display: none; }
+
+.cx-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+.cx-card-name { color: var(--ink); }
+.cx-card-close {
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 32px;
+  position: relative;
+  text-align: right;
+}
+.cx-card-close::after { content: ''; position: absolute; inset: -6px 0; }
+.cx-card-close:hover { color: var(--ink); }
+.cx-card-role { color: var(--muted); margin-top: 2px; }
+.cx-card-expl { color: var(--muted); margin-top: var(--sp-sm); }
+.cx-card-section { color: var(--muted); margin-top: var(--sp-md); margin-bottom: var(--sp-xs); }
+.cx-cause-list { list-style: none; }
+.cx-cause-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  padding: 3px 0;
+  color: var(--ink);
+}
+.cx-cause-note { color: var(--muted); white-space: nowrap; }
+.cx-card-shapes { color: var(--muted); margin-top: var(--sp-sm); }
+.cx-card-free { color: var(--muted); margin-top: var(--sp-xs); }
+
+.cx-card-actions {
+  display: flex;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-md);
+  flex-wrap: wrap;
+}
+.cx-action {
+  min-height: 36px;
+  min-width: 44px;
+  padding: 0 var(--sp-lg);
+  border: none;
+  border-radius: var(--r-control);
+  background: var(--plate);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  color: var(--ink);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--t-fast) var(--ease), filter var(--t-fast) var(--ease);
+}
+.cx-action::after { content: ''; position: absolute; inset: -4px 0; }
+.cx-action:hover  { background: var(--surface); }
+.cx-action:active { filter: brightness(0.88); }

@@ -1,0 +1,1285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flight Glass — Studio-splitten: portrett primær, landskap valgfritt (D109)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<!--
+  BESLUTNINGSHJELP, IKKE PRODUKTKODE (mønster: app/onboarding/splash-demo.html).
+  Ikke koblet inn noe sted. Den ekte flaten er app/studio/index.html og er urørt.
+
+  Svarer på fire spørsmål samtidig:
+    G-b  — modusbytte med STRIKE-orb (A) mot pille (B)
+    G-a  — fire geometrichips i begge modi, LIE ut av DELIVERY og inn i
+           STRIKE som kontekst (eierens retning)
+    D111 — hva en bunnstripe på 60/80 px gjør med høyden
+    NYTT — PORTRETT SOM STANDARD, landskap som valgfri rotasjon (eierens
+           presisering): fungerer leveringsscenen i portrett, per modus, og
+           kan begge orienteringer leve samtidig?
+
+  Alle tall er ekte: `engine/src/studioSolve.js` gjennom `adapter/src/`.
+  Ingen fysikk og ingen trigonometri i denne fila — buepunkter, plan og
+  kamera kommer fra adapteren, formatering fra displayStudio/format.
+
+  Scenen er SKJEMATISK: ekte geometri, men uten mockens materialplater,
+  glødpass (D88), sprites og footprints. Den avgjør komposisjon, lesbarhet
+  og bytte — ikke render.
+-->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--neutral);color:var(--ink);font:400 15px/1.55 var(--font-ui);
+       padding:var(--sp-xl);-webkit-font-smoothing:antialiased}
+  h1{font:700 34px/1.05 var(--font-display);letter-spacing:-.01em;margin-bottom:var(--sp-sm)}
+  h2{font:500 22px/1.1 var(--font-display);margin-bottom:var(--sp-xs)}
+  h3{font:700 10px/1.3 var(--font-ui);letter-spacing:.1em;color:var(--muted);margin-bottom:var(--sp-sm)}
+  .lede{color:var(--muted);max-width:80ch;margin-bottom:var(--sp-lg)}
+  .lede b{color:var(--ink);font-weight:500}
+  .note{color:var(--muted);font-size:12px;line-height:1.55;max-width:74ch}
+  .note b{color:var(--ink);font-weight:500}
+  .note code{font-family:var(--font-data);color:var(--ink)}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:var(--sp-xl);align-items:flex-end;
+           padding:var(--sp-md) var(--sp-lg);margin-bottom:var(--sp-xl);
+           border-radius:var(--r-card);background:var(--surface);
+           box-shadow:inset 0 0 0 1px var(--glass-edge);position:sticky;top:0;z-index:20}
+  .tgroup{display:flex;flex-direction:column;gap:var(--sp-sm)}
+  .seg{display:flex;gap:var(--sp-xs)}
+  .seg button{min-height:36px;padding:0 var(--sp-md);border:0;border-radius:var(--r-control);
+    background:var(--plate);color:var(--muted);font:700 10px/1.3 var(--font-ui);
+    letter-spacing:.1em;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--primary-soft);color:var(--primary)}
+  .seg button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  section{margin-bottom:var(--sp-xxl)}
+  .row{display:flex;flex-wrap:wrap;gap:var(--sp-xxl);align-items:flex-start}
+  .col{flex:0 0 auto;max-width:100%}
+
+  /* ---------- telefonrammen ---------- */
+  .frame{position:relative;border-radius:18px;overflow:hidden;
+         background:var(--neutral);box-shadow:0 24px 60px -30px #000, inset 0 0 0 1px var(--glass-edge);
+         display:flex;flex-direction:column;transition:width var(--t-slow) var(--ease),height var(--t-slow) var(--ease)}
+  /* Rotasjonen animeres for brukeren, men MÅ stå stille mens matrisen måles:
+     en pågående bredde-transisjon gjør at getBoundingClientRect leser den
+     gamle størrelsen, og hele tabellen blir usann. Funnet ved verifisering. */
+  .frame.measuring{transition:none!important}
+  .frame .top{display:flex;gap:8px;align-items:stretch;padding:5px 10px;flex:0 0 auto}
+  .home{flex:0 0 44px;display:flex;align-items:center;justify-content:center;
+        border-radius:var(--r-pill);background:var(--plate);color:var(--ink);
+        font:700 10px/1.3 var(--font-ui);letter-spacing:.08em}
+  .card{flex:1 1 0;min-width:0;border-radius:12px;background:var(--surface);
+        display:flex;align-items:center;justify-content:center;gap:8px;
+        border:1px solid var(--card-line,var(--line-soft));position:relative;
+        transition:opacity var(--t-slow) var(--ease)}
+  .card .col2{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+  .card .lab{font:700 9px/1.3 var(--font-ui);letter-spacing:.05em;color:var(--muted);
+             display:flex;align-items:center;gap:5px;white-space:nowrap}
+  .card .dot{width:6px;height:6px;border-radius:var(--r-pill);flex:0 0 6px;
+             background:var(--card-hue,var(--ink))}
+  .card .val{font:600 15px/1.2 var(--font-data);font-variant-numeric:tabular-nums;color:var(--ink)}
+  .card.attack{--card-hue:var(--attack);--card-line:color-mix(in srgb,var(--attack) 22%,transparent)}
+  .card.path{--card-hue:var(--path);--card-line:color-mix(in srgb,var(--path) 22%,transparent)}
+  /* Ikke-effekten (G-a): når ARC HEIGHT leder i DELIVERY, trer svarene tilbake.
+     Bæreren er at sifrene ikke flytter seg; dempingen forsterker (D10). */
+  .card.held{opacity:.42}
+  .resetb{flex:0 0 auto;padding:0 10px;display:flex;align-items:center;border-radius:12px;
+          background:var(--plate);color:var(--muted);font:700 10px/1.3 var(--font-ui);letter-spacing:.1em}
+
+  .scard{flex:1 1 0;min-width:0;border-radius:12px;background:var(--surface);
+         border:1px solid color-mix(in srgb,var(--strike) 26%,transparent);
+         display:flex;flex-direction:column;justify-content:center;padding:0 10px;gap:1px;overflow:hidden}
+  .scard .l1{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+  .scard .band{font:800 14px/1.2 var(--font-ui);letter-spacing:.04em}
+  .scard .mm{font:600 13px/1.2 var(--font-data);font-variant-numeric:tabular-nums;color:var(--ink)}
+  .scard .ctx{font:400 10px/1.35 var(--font-ui);color:var(--muted);
+              display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}
+  .scard .ctx .mmv{font-family:var(--font-data);font-weight:500}
+  /* G-a form A: LIE er KONTEKST, ikke input-chip. Ordet ER kontrollen. */
+  .lieword{position:relative;color:var(--ink);font-weight:500;border:0;background:none;padding:0 2px;
+           font:500 10px/1.35 var(--font-ui);cursor:pointer;white-space:nowrap;
+           border-bottom:1px dashed color-mix(in srgb,var(--ghost) 60%,transparent)}
+  /* 44 px berøringsflate (DESIGN.md / spec 03 akk. 9) rundt et ord i en
+     caption-rad på 15 px. Kortet har ingen annen kontroll, så sonen er fri. */
+  .lieword::before{content:"";position:absolute;left:-8px;right:-8px;
+                   top:50%;height:44px;transform:translateY(-50%)}
+  .lieword[aria-pressed="true"]{border-bottom-style:solid;border-bottom-color:var(--ink)}
+  .lieword:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .prov{font:700 8px/1.3 var(--font-ui);letter-spacing:.08em;color:var(--muted);
+        border:1px solid var(--line);border-radius:4px;padding:0 3px}
+
+  /* ---------- stage ---------- */
+  .stage{position:relative;flex:1 1 auto;min-height:0;margin:0 10px;border-radius:14px;
+         overflow:hidden;border:1px solid var(--line-soft);background:var(--dusk-scene-bg)}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  .rail{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
+  .frame[data-rail="row"] .rail{flex-direction:row}
+  /* Portrett: orbene flytter UT av scenen (eierens retning) — perspektiv og
+     kølle er «hva ser jeg på», og hører over «hva endrer jeg», ikke oppå
+     motivet. Scenen blir ren, som er hele D109-motivet. */
+  /* D128: raden under canvasen. Bærer kun køllevalget — bortsett fra
+     variant 3, som legger den stille konteksten til høyre i den. */
+  .orbrow{flex:0 0 auto;display:flex;align-items:center;gap:10px;
+          padding:8px 10px 0;min-height:60px}
+  .clubseg{display:flex;gap:4px;flex:1 1 auto;min-width:0}
+  .clubseg[data-variant="3"]{flex:0 0 auto}
+  .clubcell{flex:1 1 0;min-width:0;min-height:44px;border-radius:12px;
+    background:var(--surface);border:1px solid var(--line-soft);cursor:pointer;
+    color:var(--muted);font:700 10px/1.3 var(--font-ui);letter-spacing:.06em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+  .clubcell[data-on="true"]{background:var(--primary-soft);color:var(--primary);
+    border-color:color-mix(in srgb,var(--primary) 45%,transparent)}
+  .clubcell:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .rowctx{display:none;align-items:baseline;gap:5px;flex:1 1 auto;min-width:0;
+    justify-content:flex-end;color:var(--muted);font:400 10px/1.35 var(--font-ui);
+    white-space:nowrap;overflow:hidden}
+  .rowctx .sep{opacity:.6}
+  .rowctx .rowlie{font-family:var(--font-data);font-weight:500;color:var(--ink)}
+  /* variant 2: kølla som kontekst-celle i kontrollraden — nøytral, ikke en
+     parameterkulør (D95-logikken: kølla er kontekst, ikke leveringsparameter) */
+  .chip--ctx{--chip-hue:var(--ink)}
+  .chip--ctx .cl{color:var(--ghost)}
+  .orb{width:52px;min-height:46px;border-radius:12px;border:1px solid var(--line);
+       background:var(--plate-glass);backdrop-filter:blur(8px);color:var(--ink);
+       display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+       font:700 9px/1.2 var(--font-ui);letter-spacing:.05em;cursor:pointer;padding:4px 2px}
+  .orb .glyph{width:22px;height:15px;display:block}
+  .orb[data-hot="true"]{background:var(--primary-soft);
+    border-color:color-mix(in srgb,var(--primary) 45%,transparent);color:var(--primary)}
+  .orb:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .pill{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:6;
+        display:flex;gap:2px;padding:3px;border-radius:var(--r-pill);
+        background:var(--plate-glass);backdrop-filter:blur(8px);
+        box-shadow:inset 0 0 0 1px var(--glass-edge)}
+  .pill button{position:relative;min-height:32px;padding:0 13px;border:0;
+    border-radius:var(--r-pill);background:transparent;color:var(--muted);
+    font:700 10px/1.3 var(--font-ui);letter-spacing:.1em;cursor:pointer}
+  /* D128 setter pillen INNE i canvasen, og der må den være visuelt lett —
+     32 px er riktig vekt over en scene. Men 44 px berøringsflate er et krav
+     (DESIGN.md · spec 03 akk. 9). Samme løsning som D129 låste for lie-ordet:
+     usynlig utvidet treffsone. Målt: treff registreres ±22 px fra midten. */
+  .pill button::before{content:"";position:absolute;left:0;right:0;
+    top:50%;height:44px;transform:translateY(-50%)}
+  .pill button[aria-pressed="true"]{background:var(--primary-soft);color:var(--primary)}
+  .pill button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ---------- kontroller ---------- */
+  .controls{flex:0 0 auto;padding:2px 10px;display:flex;flex-direction:column;gap:4px}
+  .chips{display:flex;gap:8px}
+  .chip{flex:1 1 0;min-width:0;min-height:44px;border-radius:12px;background:var(--surface);
+        border:1px solid var(--line-soft);display:flex;flex-direction:column;
+        align-items:center;justify-content:center;gap:2px;cursor:pointer;
+        font-family:inherit;color:var(--muted);padding:0 4px}
+  .chip .cl{font:700 10px/1.2 var(--font-ui);letter-spacing:.03em;white-space:nowrap;
+            overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .chip .cv{font:500 11px/1.2 var(--font-data);font-variant-numeric:tabular-nums;color:var(--ghost)}
+  .chip.active{background:var(--primary-soft);color:var(--chip-hue,var(--primary));
+    border-color:color-mix(in srgb,var(--chip-hue,var(--primary)) 45%,transparent)}
+  .chip.active .cv{color:var(--ink)}
+  .chip[data-p="plane"]{--chip-hue:var(--plane)}
+  .chip[data-p="dir"]{--chip-hue:var(--path)}
+  .chip[data-p="low"]{--chip-hue:var(--primary)}
+  .chip[data-p="arc"]{--chip-hue:var(--depth)}
+  .chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  /* Portrett: fire chips på én rad gir 87 px ved 390 og bryter
+     `SWING DIRECTION` (95 px), som D64 forbyr uforkortet. Portrett har
+     høyden — raden brytes i to. Landskap trenger det ikke. */
+  .frame[data-portrait="true"] .chips{flex-wrap:wrap}
+  .frame[data-portrait="true"] .chip{flex:1 1 calc(50% - 4px)}
+  .sliderZone{position:relative;flex:0 0 44px;height:44px;display:flex;align-items:center}
+  .track{position:absolute;left:13px;right:13px;height:3px;border-radius:2px;background:var(--line)}
+  .fill{position:absolute;height:3px;border-radius:2px;background:var(--slider-hue,var(--primary))}
+  .notch{position:absolute;width:2px;height:11px;background:var(--ghost);opacity:.5}
+  .sliderZone input{position:absolute;inset:0;width:100%;height:44px;appearance:none;
+    -webkit-appearance:none;background:transparent;margin:0}
+  .sliderZone input:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:12px}
+  .sliderZone input::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;
+    border-radius:var(--r-pill);background:var(--slider-hue,var(--primary));
+    border:2px solid var(--neutral);cursor:pointer}
+  .sliderZone input::-moz-range-thumb{width:22px;height:22px;border:2px solid var(--neutral);
+    border-radius:var(--r-pill);background:var(--slider-hue,var(--primary));cursor:pointer}
+
+  /* `overflow:hidden` + `min-height:0` gjør at frifeltet KRYMPER framfor å
+     dytte: ved 520 px scene og 80 px meny fløt rammen 16 px over uten det. */
+  .freezone{flex:1 1 auto;min-height:0;overflow:hidden;margin:8px 10px 0;border-radius:var(--r-card);
+    border:1px dashed color-mix(in srgb,var(--secondary) 45%,transparent);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    color:var(--muted);text-align:center;padding:var(--sp-sm)}
+  .freezone .big{font:600 18px/1.2 var(--font-data);color:var(--secondary)}
+  .freezone .sm{font:400 11px/1.4 var(--font-ui);max-width:32ch;min-height:0}
+  /* Safe-area: rammene er rene div-er, så 844 er BRUTTO CSS-px — hele
+     enhetshøyden, inkludert der insettene bor. Den ekte flaten trekker dem
+     fra (body får env(safe-area-inset-top), .controls får bottom). Uten
+     simulering her produserer demoen bruttotall som noen må huske å
+     korrigere; det gikk galt én gang, og derfor er det en bryter.
+     390×844-klassen: topp 47 pt, bunn 34 pt. */
+  .frame[data-safe="true"]{padding-top:47px}
+  .frame[data-safe="true"] .sa-bottom{padding-bottom:34px}
+  /* menystripen har fast høyde satt i JS (stripe + inset), så padding her
+     ville telt insettet to ganger — kun kontrollraden får padding. */
+  .frame[data-safe="true"] .menubar.sa-bottom{padding-bottom:0}
+  .menubar{flex:0 0 auto;height:0;background:var(--surface);overflow:hidden;
+    box-shadow:inset 0 1px 0 var(--glass-edge);display:flex;align-items:center;
+    justify-content:center;color:var(--muted);font:700 10px/1.3 var(--font-ui);letter-spacing:.1em}
+
+  table{border-collapse:collapse;font-size:12px;margin-top:var(--sp-md)}
+  th,td{text-align:left;padding:4px 14px 4px 0;border-bottom:1px solid var(--line-soft);color:var(--muted)}
+  th{color:var(--ink);font-weight:500}
+  td.num{font-family:var(--font-data);font-variant-numeric:tabular-nums;color:var(--ink)}
+  td.ok{color:var(--good)}
+  td.no{color:var(--bad)}
+  .verdict{margin-top:var(--sp-md);padding:var(--sp-md) var(--sp-lg);border-radius:var(--r-card);
+    background:var(--surface);box-shadow:inset 0 0 0 1px var(--glass-edge);max-width:80ch}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<h1>Studio-splitten — portrett primær, landskap valgfritt</h1>
+<p class="lede">
+  Begge rammene under er <b>alternativ 1 (MODUS)</b> med identisk innhold. Det
+  eneste som skiller dem er <b>hvordan man bytter modus</b>: A bruker
+  <b>STRIKE-orben</b>, B bruker en <b>pille</b> (G-b). Etter eierens presisering
+  står de i <b>portrett som standard</b>; rotasjonen til landskap er en
+  <b>mulighet</b>, ikke et krav — bytt orientering i verktøylinjen og se at
+  begge lever av samme tilstand. Tallene er ekte, gjennom adapteren. Scenen er
+  skjematisk: den avgjør komposisjon, lesbarhet og bytte, ikke render.
+</p>
+
+<div class="toolbar">
+  <div class="tgroup">
+    <h3>Orientering</h3>
+    <div class="seg" id="segOrient">
+      <button data-o="portrait" aria-pressed="true">PORTRETT (standard)</button>
+      <button data-o="landscape" aria-pressed="false">LANDSKAP (valgfritt)</button>
+    </div>
+  </div>
+  <div class="tgroup">
+    <h3>Størrelse</h3>
+    <div class="seg" id="segSize"></div>
+  </div>
+  <div class="tgroup">
+    <h3>Visning i DELIVERY</h3>
+    <div class="seg" id="segView">
+      <button data-v="face" aria-pressed="true">FACE ON</button>
+      <button data-v="dtl" aria-pressed="false">DTL</button>
+    </div>
+  </div>
+  <div class="tgroup">
+    <h3>LIE-formen (G-a)</h3>
+    <div class="seg" id="segLie">
+      <button data-lie="word" aria-pressed="true">Kontekstord</button>
+      <button data-lie="chip" aria-pressed="false">Kontekst-chip</button>
+    </div>
+  </div>
+  <div class="tgroup">
+    <h3>Scenehøyde i portrett</h3>
+    <div class="seg" id="segStage">
+      <button data-h="115" aria-pressed="false">115 px</button>
+      <button data-h="260" aria-pressed="false">260 px</button>
+      <button data-h="380" aria-pressed="true">380 px</button>
+      <button data-h="520" aria-pressed="false">520 px</button>
+    </div>
+  </div>
+  <div class="tgroup">
+    <h3>Vertikal forsterkning av buen</h3>
+    <div class="seg" id="segGain">
+      <button data-g="1.7" aria-pressed="true">1.7× (mocken)</button>
+      <button data-g="3" aria-pressed="false">3×</button>
+      <button data-g="5" aria-pressed="false">5×</button>
+      <button data-g="8" aria-pressed="false">8×</button>
+    </div>
+  </div>
+  <div class="tgroup">
+    <h3>Safe-area (390×844-klassen)</h3>
+    <div class="seg" id="segSafe">
+      <button data-s="0" aria-pressed="true">av (brutto)</button>
+      <button data-s="1" aria-pressed="false">47 / 34 pt</button>
+    </div>
+  </div>
+  <div class="tgroup">
+    <h3>Bunnmeny (D111)</h3>
+    <div class="seg" id="segMenu">
+      <button data-menu="0" aria-pressed="true">0</button>
+      <button data-menu="60" aria-pressed="false">60 px</button>
+      <button data-menu="80" aria-pressed="false">80 px</button>
+    </div>
+  </div>
+</div>
+
+<section>
+  <h2>Køllevalgets plass — tre varianter (D128)</h2>
+  <p class="lede" style="margin-bottom:var(--sp-lg)">
+    Hovedvalget er tatt: <b>alternativ 1 MODUS</b>, og bryteren er
+    <b>pillen inne i canvasen</b> (D128). Raden under canvasen er dermed
+    frigjort og skal bære <b>kun køllevalget</b>. Under står tre bruk av den,
+    side om side og med samme tilstand. Alt annet er likt.
+  </p>
+  <div class="row">
+    <div class="col">
+      <h3>1 &middot; Segmentrad</h3>
+      <p class="note" style="margin-bottom:var(--sp-md);min-height:72px;max-width:34ch">
+        Alle tre køllene synlige, ett trykk, ingen sykling. Koster hele radens
+        bredde &mdash; men du ser hva du kan velge uten å trykke deg gjennom.
+      </p>
+      <div id="frame1"></div>
+    </div>
+    <div class="col">
+      <h3>2 &middot; Raden utgår</h3>
+      <p class="note" style="margin-bottom:var(--sp-md);min-height:72px;max-width:34ch">
+        Radens 60 px gis til scenen; kølla blir en femte celle i
+        kontrollraden, nøytral fordi den er kontekst og ikke en
+        leveringsparameter. Størst scene &mdash; men parameterraden får en
+        gjest.
+      </p>
+      <div id="frame2"></div>
+    </div>
+    <div class="col">
+      <h3>3 &middot; Kølle + kontekst</h3>
+      <p class="note" style="margin-bottom:var(--sp-md);min-height:72px;max-width:34ch">
+        Kølla til venstre, stille avlesning til høyre: dynamisk loft med
+        <code>ASSUMED</code> og lie-navnet. Da bor D65/D3b-konteksten HER, og
+        strike-kortet bærer bare svaret &mdash; ett svar per panel.
+      </p>
+      <div id="frame3"></div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:var(--sp-lg);align-items:flex-start">
+    <div class="col" style="flex:0 0 320px">
+      <h3>Målt nå, i variant 1</h3>
+      <table id="liveTable"></table>
+    </div>
+    <div class="col" style="flex:1 1 420px;min-width:300px">
+  <p class="note" style="max-width:92ch">
+    <b>Prøv i alle tre:</b> velg ARC HEIGHT og dra &mdash; buen flytter seg,
+    attack og club path rører seg ikke. Bytt så til STRIKE med pillen og dra
+    den samme slideren. Trykk på <b>lie-ordet</b> for D93s sju steg (D129).
+    <br><br>
+    <b>DTL-kontrollen er et FORSLAG, ikke vedtatt:</b> den blir stående på
+    scenen, i motsatt hjørne av pillen. Begrunnelsen er Mobbin-presedensen H
+    fant (perspektivkontroller sitter på det de endrer perspektiv på), og at
+    raden under nå er reservert køllevalget. Alternativet &mdash; kamera
+    sammen med kølla i raden &mdash; ville blandet «hva ser jeg på» med «hva
+    spiller jeg med».
+  </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Fungerer leveringsscenen i portrett? Målt per modus</h2>
+  <div class="verdict" id="verdict"></div>
+  <p class="note" style="margin-top:var(--sp-lg)">
+    <b>Hvorfor spørsmålet i det hele tatt kan stilles:</b> det horisontale
+    verdensvinduet i Face On er en <b>verdenskonstant</b> (0,82 m under 700 px
+    bredde). En smalere skjerm <b>beskjærer ikke</b> scenen &mdash; den senker
+    oppløsningen. Og alt som krever mm-oppløsning &mdash; kontaktblush,
+    slagflaten med treffpunktet, strike-hakket, mm-braketten, ENTRY/EXIT
+    &mdash; er nøyaktig det D109 flytter til STRIKE, som har et <b>adaptivt</b>
+    vindu satt av kontaktsonen og ikke av skjermen.
+    <b>Splitten er det som gjør portrett mulig.</b>
+  </p>
+</section>
+
+<script type="module">
+import { studioSolve } from '../../engine/src/studioSolve.js';
+import { CLUB_GEOMETRY, LIE_PRESETS } from '../../engine/src/contactModel.js';
+import { faceOnArcPoints, arcWorldPoint, tangentWorld, planePoint, pinholeCamera, projectPoint }
+  from '../../adapter/src/studioShape.js';
+import { formatLongitudinalCm, formatHeightCm, formatFaceOffsetMm, formatLieMm }
+  from '../../adapter/src/displayStudio.js';
+import { formatAngle } from '../../adapter/src/format.js';
+
+const CSSv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const DPR = Math.min(devicePixelRatio || 1, 2);
+
+/* Presentasjonskonstanter fra mocken (ikke fysikk): hybrid vertikal gain.
+   Kontaktbåndet står 1:1 i mm (PED_Z0), armene forsterkes K ganger.
+   MÅLT: buen stiger 12 px uansett scenehøyde, fordi den vertikale skalaen
+   henger på scenens BREDDE (scale = W/winM) — mer høyde flytter bare
+   bakkelinjen ned og gir tom himmel. Det er K som gjør buen lesbar; høyden
+   er det som gir K rom. Derfor er K et valg her, ikke en konstant. */
+const PED_Z0 = 0.055;
+const pedFk = (z, K) => K * z - (K - 1) * PED_Z0 * Math.tanh(z / PED_Z0);
+
+/* ── MATERIALPLATENE ──────────────────────────────────────────────────────
+ * Samme åtte platene som den ekte flaten, lastet med samme mønster
+ * (`index.html` ~750). Demoen ligger i app/studio/, så stiene er identiske —
+ * ingen kopier. Uten dem undervurderer demoen hvor tett en liten scene blir,
+ * og det er nettopp det portrettspørsmålet står på. */
+const ASSETS = {
+  skyFace:'./assets/sky-face.png', bgDtl:'./assets/bg-dtl.png',
+  turf:'./assets/turf.png', ball:'./assets/ball.png', tee:'./assets/tee.png',
+  ironHead:'./assets/iron-head.png', driverHead:'./assets/driver-head.png',
+};
+const IMG = {};
+const ready = k => IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0;
+let onAssetLoad = () => {};
+for (const k in ASSETS) {
+  const im = new Image();
+  im.onload = () => onAssetLoad();
+  im.src = ASSETS[k];
+  IMG[k] = im;
+}
+
+/* Tokenfarge som rgba — mockens `tint()`, uendret. */
+const RGBC = {};
+const rgbOf = t => { if (!RGBC[t]) { const h = CSSv(t).replace('#','');
+  RGBC[t] = parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16); }
+  return RGBC[t]; };
+const tint = (t,a) => 'rgba(' + rgbOf(t) + ',' + a + ')';
+
+const SIZES = {
+  /* D118: portrettgulvet er 390 × 844; SE-klassen er utenfor garantien.
+     Listen starter derfor PÅ gulvet — en matrise som måler mot en flate
+     eieren har lagt utenfor, rapporterer feil som ikke er feil. */
+  portrait:  [[390,844,'390 × 844 (gulv)'],[402,874,'402 × 874'],[430,932,'430 × 932']],
+  landscape: [[568,320,'568 × 320'],[812,375,'812 × 375'],[932,430,'932 × 430']],
+};
+
+/* headMm/img/lean er mockens egne køllekonstanter (D65/B2-c), uendret. */
+const CLUBS = [
+  { key:'driver', label:'DRIVER',   geom:CLUB_GEOMETRY.driver,    loft:12.5, plane:50,
+    headMm:96,  img:'driverHead', lean:0 },
+  { key:'wood',   label:'3-WOOD',   geom:CLUB_GEOMETRY.threeWood, loft:15.0, plane:55,
+    headMm:68,  img:'driverHead', lean:2 * Math.PI / 180 },
+  { key:'iron',   label:'MID-IRON', geom:CLUB_GEOMETRY.midIron,   loft:31.0, plane:60,
+    headMm:102, img:'ironHead',   lean:6 * Math.PI / 180 },
+];
+const TEE_LIES = new Set(['tee','teeHigh']);
+
+/* Ghost club-ankeret, mockens regel: kølla står ved turf ENTRY når bakken
+   nås før ballen, ellers ved treffet (`index.html` ~477). */
+function ghostAnchor(solved) {
+  const t0 = solved.groundCrossingTheta0;
+  if (t0 !== null) {
+    const entry = arcWorldPoint(solved, -t0);
+    if (entry.x < -0.001) return entry;
+  }
+  return { x:0, y:0, z:solved.clubHeightM };
+}
+/* Etikettene er den ekte flatens egne (`index.html` ~437) — ord er eierens
+   (00-FELLES), ikke noe demoen får generere. En avledning fra nøkkelen ga
+   «TEE HIGH» der flaten sier «HIGH TEE». */
+const LIE_LABEL = { hardpan:'HARDPAN', tight:'TIGHT', fairway:'FAIRWAY',
+  lightRough:'LIGHT ROUGH', rough:'ROUGH', tee:'TEE', teeHigh:'HIGH TEE' };
+const LIES = Object.keys(LIE_PRESETS).map(k => ({
+  key:k, mm:LIE_PRESETS[k], label:LIE_LABEL[k] }));
+
+/* D89: tre trinn. Ordet bærer, fargen forsterker (D10). Både ordene og
+   nivåene er flatens egne tabeller (`index.html` ~470) — `OffFace` skal leses
+   «OFF FACE», ikke som en toUpperCase av nøkkelen. */
+const BAND_TEXT = { Duff:'DUFF', Fat:'FAT', Pure:'PURE', Thin:'THIN', Whiff:'WHIFF',
+  OffFace:'OFF FACE', Low:'LOW', Centre:'CENTRE', High:'HIGH' };
+const BAND_TOKEN = { Pure:'--good', Centre:'--good', Thin:'--strike', Fat:'--strike',
+  High:'--strike', Low:'--strike', Duff:'--bad', Whiff:'--bad', OffFace:'--bad' };
+
+/* G-a: fire geometrichips i BEGGE modi. LIE er ikke blant dem. */
+const PARAMS = {
+  plane:{ min:30, max:80, step:0.5, def:60, label:'SWING PLANE',     hue:'var(--plane)',
+          bipolar:false, fmt:v=>formatAngle(v) },
+  dir:  { min:-12, max:12, step:0.1, def:0, label:'SWING DIRECTION', hue:'var(--path)',
+          bipolar:true,  fmt:v=>formatAngle(v,{signed:true}) },
+  low:  { min:-20, max:20, step:0.1, def:0, label:'BALL POSITION',   hue:'var(--primary)',
+          bipolar:true,  fmt:formatLongitudinalCm },
+  arc:  { min:-5,  max:5,  step:0.1, def:0, label:'ARC HEIGHT',      hue:'var(--depth)',
+          bipolar:true,  fmt:formatHeightCm },
+};
+const ORDER = ['plane','dir','low','arc'];
+/* Målt over 186 caser: denne flytter BARE treffet. */
+const STRIKE_ONLY = new Set(['arc']);
+
+const el = (t,c,x) => { const n=document.createElement(t);
+  if(c) n.className=c; if(x!=null) n.textContent=x; return n; };
+const glyph = inner => { const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('viewBox','0 0 22 15'); s.setAttribute('class','glyph');
+  s.setAttribute('aria-hidden','true'); s.innerHTML=inner; return s; };
+
+/* ═════════════════════════════════════════════════════ RAMMEFABRIKK ═══ */
+function makeFrame({ clubRow }) {
+  const st = { mode:'delivery', view:'face', sel:'low', club:2, lie:0, lieActive:false,
+               plane:60, dir:0, low:0, arc:0,
+               orient:'portrait', w:375, h:812, menu:0, lieForm:'word',
+               stageH:380, gain:1.7, safe:false, clubRow };
+
+  const root = el('div','frame');
+
+  const top = el('div','top');
+  const cAttack = el('div','card attack'), cPath = el('div','card path');
+  const mk = (node,label) => { const c=el('div','col2');
+    const l=el('div','lab'); l.appendChild(el('span','dot')); l.appendChild(el('span',null,label));
+    const v=el('div','val','0.0°'); c.append(l,v); node.appendChild(c); return v; };
+  const vAttack = mk(cAttack,'ATTACK ANGLE'), vPath = mk(cPath,'CLUB PATH');
+
+  const sCard = el('div','scard');
+  const sL1 = el('div','l1');
+  const sBand = el('span','band','PURE'), sMm = el('span','mm','1.0 mm low');
+  sL1.append(sBand,sMm);
+  const sCtx = el('div','ctx');
+  const ctxClub = el('span',null,'MID-IRON'), sep1 = el('span',null,'·');
+  const lieBtn = el('button','lieword','HARDPAN'); lieBtn.type='button';
+  lieBtn.setAttribute('aria-pressed','false');
+  const ctxLieMm = el('span','mmv','0 mm'), sep2 = el('span',null,'·');
+  const ctxLoft = el('span',null,'DYNAMIC LOFT 31.0°'), prov = el('span','prov','ASSUMED');
+  sCtx.append(ctxClub, sep1, lieBtn, ctxLieMm, sep2, ctxLoft, prov);
+  sCard.append(sL1, sCtx);
+  const homeEl = el('div','home','HOME');
+  top.append(homeEl, cAttack, cPath, sCard, el('div','resetb','RESET'));
+
+  const stage = el('div','stage');
+  const cv = document.createElement('canvas'); stage.appendChild(cv);
+  const ctx = cv.getContext('2d');
+
+  /* D128: bryteren er PILLEN INNE I CANVASEN. STRIKE-orben er ute. */
+  const pill = el('div','pill');
+  const pDel = el('button',null,'DELIVERY'), pStr = el('button',null,'STRIKE');
+  pDel.type='button'; pStr.type='button'; pill.append(pDel,pStr);
+  stage.appendChild(pill);
+
+  /* FORSLAG (ikke vedtatt): kameraet blir stående PÅ scenen, motsatt hjørne
+     av pillen. Mobbin-presedensen (H T1-c) er at perspektivkontroller sitter
+     på det de endrer perspektiv på — og raden under canvasen er nå reservert
+     køllevalget (D128), så kameraet har ikke noe der å gjøre. */
+  const rail = el('div','rail');
+  const orbCam = el('button','orb'); orbCam.type='button';
+  const orbCamCap = el('span',null,'DTL');
+  orbCam.append(glyph('<circle cx="11" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.1" stroke-dasharray="2.5 3"/><circle cx="11" cy="13" r="2.2" fill="currentColor"/>'), orbCamCap);
+  rail.append(orbCam);
+  stage.appendChild(rail);
+
+  /* ── D128: raden under canvasen bærer KUN køllevalget. Tre varianter. ──
+     1 SEGMENTRAD   alle tre køllene synlige, ett trykk, ingen sykling
+     2 RADEN UTGÅR  høyden gis til scenen; kølla blir en femte celle i
+                    kontrollraden, visuelt skilt som kontekst (D95-logikken)
+     3 VENSTRE + KONTEKST  kølla til venstre, stille avlesning til høyre:
+                    loft med ASSUMED og lie-navnet — D65/D3b-konteksten bor
+                    da HER, og strike-kortet bærer bare svaret */
+  const orbRow = el('div','orbrow');
+  const clubSeg = el('div','clubseg');
+  const clubBtns = CLUBS.map((c,i) => { const b=el('button','clubcell',c.label);
+    b.type='button'; b.dataset.i=String(i); clubSeg.appendChild(b); return b; });
+  const rowCtx = el('div','rowctx');
+  const rowLoft = el('span',null,'DYNAMIC LOFT 31.0°');
+  const rowProv = el('span','prov','ASSUMED');
+  const rowLie = el('span','rowlie','HARDPAN 0 mm');
+  rowCtx.append(rowLoft, rowProv, el('span','sep','·'), rowLie);
+  orbRow.append(clubSeg, rowCtx);
+
+  /* variant 2: kølla som femte celle i kontrollraden */
+  const clubChip = el('button','chip chip--ctx'); clubChip.type='button';
+  const clubChipV = el('span','cv','MID-IRON');
+  clubChip.append(el('span','cl','CLUB'), clubChipV);
+  const controls = el('div','controls');
+  const chips = el('div','chips');
+  const chipEls = {};
+  for (const k of ORDER) {
+    const b = el('button','chip'); b.type='button'; b.dataset.p = k;
+    const v = el('span','cv','');
+    b.append(el('span','cl',PARAMS[k].label), v);
+    chips.appendChild(b); chipEls[k] = { b, v };
+  }
+  const lieChip = el('button','chip'); lieChip.type='button'; lieChip.dataset.p='lie';
+  const lieChipV = el('span','cv','HARDPAN');
+  lieChip.append(el('span','cl','LIE'), lieChipV);
+
+  const zone = el('div','sliderZone');
+  const track = el('div','track'), fill = el('div','fill'), notch = el('div','notch');
+  const range = document.createElement('input'); range.type='range';
+  zone.append(track, fill, notch, range);
+  controls.append(chips, zone);
+
+  const freezone = el('div','freezone');
+  const fzBig = el('div','big','—');
+  freezone.append(fzBig, el('div','sm',
+    'Ledig i portrett. Kandidater: H sin meny som permanent krom (D111), en høyere '
+    + 'scene, eller ingenting. IKKE dashboardet — det bor på Home (D110/H1). Ikke fylt her.'));
+  const menubar = el('div','menubar','BUNNMENY (H)');
+
+  root.append(top, stage, orbRow, controls, freezone, menubar);
+
+  /* ═══════════════════════════════════════════════════════ TILSTAND ═══ */
+  let solved = null;
+  const solve = () => {
+    const c = CLUBS[st.club];
+    solved = studioSolve({ swingPlane:st.plane, swingDirection:st.dir,
+      ballPositionCm:st.low, arcHeightCm:st.arc, lieHeightMm:LIES[st.lie].mm,
+      club:c.geom, dynamicLoftDeg:c.loft });
+  };
+
+  function syncChrome() {
+    const strike = st.mode === 'strike', portrait = st.orient === 'portrait';
+    root.style.width = st.w + 'px'; root.style.height = st.h + 'px';
+    root.dataset.portrait = String(portrait);
+    /* Railen legger seg på rad når stagen er lav og bred — samme regel som
+       den ekte flaten bruker ved 568 × 320. */
+    root.dataset.rail = (!portrait && st.h <= 375) ? 'row' : 'col';
+
+    cAttack.style.display = strike ? 'none' : '';
+    cPath.style.display   = strike ? 'none' : '';
+    sCard.style.display   = strike ? '' : 'none';
+    /* D113: kriteriene gjelder per modus — kamera hører til DELIVERY. */
+    orbCam.style.display  = strike ? 'none' : '';
+    orbCamCap.textContent = st.view === 'face' ? 'DTL' : 'FO';
+    pDel.setAttribute('aria-pressed', String(!strike));
+    pStr.setAttribute('aria-pressed', String(strike));
+
+    const wantChip = strike && st.lieForm === 'chip';
+    if (wantChip && !lieChip.isConnected) chips.appendChild(lieChip);
+    if (!wantChip && lieChip.isConnected) lieChip.remove();
+    const wantWord = strike && st.lieForm === 'word';
+    for (const n of [lieBtn, ctxLieMm, sep1]) n.style.display = wantWord ? '' : 'none';
+    if (!strike) st.lieActive = false;
+    lieBtn.setAttribute('aria-pressed', String(st.lieActive));
+    lieChip.classList.toggle('active', st.lieActive);
+
+    /* Ikke-effekten (G-a): ARC HEIGHT flytter ikke attack/path. Målt. */
+    const inert = !strike && STRIKE_ONLY.has(st.sel);
+    cAttack.classList.toggle('held', inert);
+    cPath.classList.toggle('held', inert);
+    for (const k of ORDER)
+      chipEls[k].b.classList.toggle('active', !st.lieActive && st.sel === k);
+
+    root.dataset.safe = String(st.safe);
+    /* Bunninsettet bæres av det NEDERSTE kromet — menyen når den finnes,
+       ellers kontrollraden. Aldri begge: det ville telt insettet to ganger.
+       Og det LEGGES TIL stripen, det spises ikke av den: H sitt poeng er at
+       en 56 px meny okkuperer 90 px på 390×844-klassen. Første versjon her
+       satte padding inni en fast høyde, som gjorde det motsatte. */
+    const bottomChrome = st.menu > 0 ? menubar : controls;
+    for (const n of [menubar, controls]) n.classList.toggle('sa-bottom', n === bottomChrome);
+    const inset = st.safe && bottomChrome === menubar ? 34 : 0;
+    menubar.style.height = st.menu ? (st.menu + inset) + 'px' : '0px';
+    freezone.style.display = portrait ? '' : 'none';
+    top.style.height = '54px';
+    /* Scenehøyden i portrett er et VALG, ikke en flex-rest. Uten den blir
+       dekningsgrad og ledig bånd avledet av et uhell. 115 px viser nøyaktig
+       samme verdensutsnitt som landskap (samme himmel i meter); 260 og 380
+       kjøper himmel som en coachmark kan bo i, og betaler med ledig flate
+       under. 520 er nær taket: ved D118-gulvet 390×844 er budsjettet
+       844 − 54 topp − 148 kontroller = 642 px, altså 562 med 80 px meny.
+       Landskap beholder flex — der er høyden det knappe godet. */
+    const rowGift = st.clubRow === 2 ? 60 : 0;   // høyden raden frigjør
+    stage.style.flex = portrait ? ('0 0 ' + (st.stageH + rowGift) + 'px') : '1 1 auto';
+
+    /* Kameraet blir PÅ scenen i begge orienteringer (forslag, se over). */
+    if (rail.parentElement !== stage) stage.appendChild(rail);
+
+    /* Radvarianten. 2 fjerner raden helt og gir høyden til scenen. */
+    const v = st.clubRow;
+    orbRow.style.display = v === 2 ? 'none' : 'flex';
+    clubSeg.dataset.variant = String(v);
+    rowCtx.style.display = v === 3 ? 'flex' : 'none';
+    if (v === 2) { if (!clubChip.isConnected) chips.appendChild(clubChip); }
+    else if (clubChip.isConnected) clubChip.remove();
+    for (const [i,b] of clubBtns.entries()) b.dataset.on = String(i === st.club);
+    /* Variant 3 flytter D3b/D65-konteksten HIT, så strike-kortet bare bærer
+       svaret. De andre variantene lar kortet beholde konteksten. */
+    sCtx.style.display = (v === 3 && strike) ? 'none' : 'flex';
+
+    /* HOME ut av toppstripen i portrett: menyen bærer modulnivået der
+       (eierens retning). I landskap finnes ingen bunnmeny (H §5), så
+       HOME-sirkelen blir stående — der ER den veien ut. */
+    homeEl.style.display = portrait ? 'none' : '';
+
+    /* Himmelplatene bak scenen, med dusk-vasken over — `applyStageBg()` i den
+       ekte flaten. STRIKE arver Face On-platen: kontaktsonen er en zoom av
+       samme visning. */
+    const plate = (!strike && st.view === 'dtl') ? 'bgDtl' : 'skyFace';
+    stage.style.background = ready(plate)
+      ? 'linear-gradient(180deg, rgba(14,10,24,.9) 0%, rgba(36,21,54,.5) 55%,'
+        + ' rgba(15,11,28,.92) 100%), url(' + ASSETS[plate] + ') center/cover'
+        + ' no-repeat var(--neutral)'
+      : 'var(--dusk-scene-bg)';
+  }
+
+  function syncValues() {
+    vAttack.textContent = formatAngle(solved.attackAngle,{signed:true});
+    vPath.textContent   = formatAngle(solved.clubPath,{signed:true});
+    const lead = solved.strikeLead;
+    sBand.textContent = BAND_TEXT[lead] || String(lead).toUpperCase();
+    sBand.style.color = `var(${BAND_TOKEN[lead] || '--ink'})`;
+    sMm.textContent = formatFaceOffsetMm(solved.faceCentreOffsetMm);
+    const c = CLUBS[st.club];
+    ctxClub.textContent = c.label; clubChipV.textContent = c.label;
+    rowLoft.textContent = 'DYNAMIC LOFT ' + formatAngle(c.loft);
+    rowLie.textContent = LIES[st.lie].label + ' ' + formatLieMm(LIES[st.lie].mm);
+    ctxLoft.textContent = 'DYNAMIC LOFT ' + formatAngle(c.loft);
+    lieBtn.textContent = LIES[st.lie].label;
+    ctxLieMm.textContent = formatLieMm(LIES[st.lie].mm);
+    lieChipV.textContent = LIES[st.lie].label;
+    for (const k of ORDER) chipEls[k].v.textContent = PARAMS[k].fmt(st[k]);
+    const fz = Math.round(freezone.getBoundingClientRect().height);
+    fzBig.textContent = (st.orient === 'portrait' && fz > 0) ? fz + ' px ledig' : '—';
+  }
+
+  function syncSlider() {
+    if (st.lieActive) {
+      range.min=0; range.max=LIES.length-1; range.step=1; range.value=st.lie;
+      zone.style.setProperty('--slider-hue','var(--ink)');
+      range.setAttribute('aria-label','Lie');
+    } else {
+      const p = PARAMS[st.sel];
+      range.min=p.min; range.max=p.max; range.step=p.step; range.value=st[st.sel];
+      zone.style.setProperty('--slider-hue', p.hue);
+      range.setAttribute('aria-label', p.label);
+    }
+    const zw = zone.getBoundingClientRect().width; if (!zw) return;
+    const inner = zw - 26, lo=Number(range.min), hi=Number(range.max), v=Number(range.value);
+    const px = x => 13 + ((x-lo)/(hi-lo))*inner;
+    const bip = !st.lieActive && PARAMS[st.sel].bipolar;
+    notch.style.display = bip ? 'block' : 'none';
+    if (bip) {
+      notch.style.left = (px(0)-1)+'px';
+      const a=px(Math.min(0,v)), b=px(Math.max(0,v));
+      fill.style.left=a+'px'; fill.style.width=Math.max(2,b-a)+'px';
+    } else { fill.style.left='13px'; fill.style.width=Math.max(2,px(v)-13)+'px'; }
+  }
+
+  /* ═══════════════════════════════════════════════════════ TEGNING ═══ */
+  let W=0, H=0;
+  function resize() {
+    const r = cv.getBoundingClientRect();
+    W = Math.round(r.width); H = Math.round(r.height);
+    if (W<=0 || H<=0) return false;
+    cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+    return true;
+  }
+  const poly = (pts, col, wd, a=1) => { if(pts.length<2) return;
+    ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=col; ctx.lineWidth=wd;
+    ctx.lineJoin='round'; ctx.lineCap='round'; ctx.beginPath();
+    pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    ctx.stroke(); ctx.restore(); };
+  const text = (t,x,y,col,size,align='left',mono=false,a=1) => {
+    ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=col; ctx.textAlign=align;
+    ctx.font = (mono?`500 ${size}px IBM Plex Mono, monospace`:`700 ${size}px Geist, sans-serif`);
+    ctx.fillText(t,x,y); ctx.restore(); };
+  const dot = (x,y,r,col,a=1) => { ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=col;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.restore(); };
+  const ring = (x,y,r,col,wd,a=1) => { ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=col;
+    ctx.lineWidth=wd; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke(); ctx.restore(); };
+  /* Bakken: turf-platen når den er lastet, ellers mockens gradientfallback.
+     Gress/jord er scenemateriale uten token — samme unntak den ekte flaten fører. */
+  /* Portert i sin helhet fra den ekte flaten (`index.html` ~1293). Første
+     versjon her returnerte etter turf-platen og hoppet over gressbåndet, den
+     lyse bakkelinja og stråene — altså nettopp det som gjør at ballen LESES
+     som liggende på gress. Mocken var dermed dårligere enn produktet på det
+     ene punktet eieren spurte om. */
+  const ground = gy => {
+    if (ready('turf')) {
+      ctx.drawImage(IMG.turf, 0, 0, IMG.turf.naturalWidth, IMG.turf.naturalHeight,
+                    0, gy-2, W, (H-gy)+2);
+      ctx.fillStyle = 'rgba(7,6,12,.4)';        // setter platen ned i dusk-scenen
+      ctx.fillRect(0, gy-2, W, (H-gy)+2);
+    }
+    const soil = ctx.createLinearGradient(0, gy, 0, H);
+    const sa = ready('turf') ? 0.25 : 1, sb = ready('turf') ? 0.3 : 1;
+    soil.addColorStop(0, 'rgba(61,43,26,'+sa+')');
+    soil.addColorStop(0.5, 'rgba(42,29,18,'+sa+')');
+    soil.addColorStop(1, 'rgba(26,18,12,'+sb+')');
+    ctx.fillStyle = soil; ctx.fillRect(0, gy, W, H-gy);
+    const gr = ctx.createLinearGradient(0, gy, 0, gy+8);
+    gr.addColorStop(0,'#3f6b2e'); gr.addColorStop(1,'#2a4a22');
+    ctx.fillStyle = gr; ctx.fillRect(0, gy, W, 8);
+    ctx.strokeStyle = 'rgba(200,225,150,.55)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    ctx.strokeStyle = 'rgba(130,185,85,.7)'; ctx.lineWidth = 1.5;
+    for (let x = 8; x < W; x += 15){
+      ctx.beginPath(); ctx.moveTo(x, gy);
+      ctx.lineTo(x + ((x % 30) ? 2 : -2), gy - 5); ctx.stroke();
+    }
+  };
+
+  /* Køllehodet som referanseflate. Størrelsen er køllas egen mm-geometri
+     skalert av ballradien, som i den ekte flaten. Returnerer px-høyden så
+     målematrisen kan rapportere den. */
+  function clubHead(c2d, sc, X, Y, alpha) {
+    const c = CLUBS[st.club];
+    const brPx = solved.ballRadiusM * sc;
+    const hPx = c.headMm * (brPx / (solved.ballRadiusM * 1000));
+    if (!ready(c.img)) return hPx;
+    const im = IMG[c.img];
+    const wPx = hPx * (im.naturalWidth / im.naturalHeight);
+    const g = ghostAnchor(solved);
+    c2d.save(); c2d.globalAlpha = alpha;
+    c2d.translate(X(g.x) - brPx * 0.92, Y(g.z));
+    c2d.rotate(c.lean);
+    c2d.drawImage(im, -wPx, -hPx, wPx, hPx);
+    c2d.restore();
+    return hPx;
+  }
+
+  /* Ballen med sin hvile-halo (D88) og underlaget den hviler på: pigg for
+     TEE/HIGH TEE, strå ellers (D66/D93 — lie er ikke pigg). */
+  function ballOn(c2d, bx, by, br, gy, heroScale) {
+    const lift = LIES[st.lie].mm / 1000;
+    if (lift > 0) {
+      const tTop = by + br*0.9, tH = gy - tTop;
+      if (TEE_LIES.has(LIES[st.lie].key) && ready('tee') && tH > 4) {
+        const tW = tH * (IMG.tee.naturalWidth / IMG.tee.naturalHeight);
+        c2d.drawImage(IMG.tee, bx - tW/2, tTop, tW, tH);
+      } else if (TEE_LIES.has(LIES[st.lie].key)) {
+        c2d.save(); c2d.strokeStyle='rgba(210,205,225,.62)'; c2d.lineCap='round';
+        c2d.lineWidth=2.6; c2d.beginPath(); c2d.moveTo(bx,gy); c2d.lineTo(bx,tTop);
+        c2d.stroke(); c2d.restore();
+      } else {
+        c2d.save(); c2d.strokeStyle='rgba(130,185,85,.8)'; c2d.lineWidth=1.5; c2d.lineCap='round';
+        for (const o of [-5,-2,2,6]) { c2d.beginPath(); c2d.moveTo(bx+o,gy);
+          c2d.lineTo(bx+o*0.6, by+br*0.82); c2d.stroke(); }
+        c2d.restore();
+      }
+    }
+    const gr = br * heroScale;
+    const halo = c2d.createRadialGradient(bx,by,br*0.4,bx,by,gr);
+    halo.addColorStop(0, tint('--strike', heroScale > 2.4 ? 0.5 : 0.32));
+    halo.addColorStop(0.5, tint('--primary', heroScale > 2.4 ? 0.28 : 0.15));
+    halo.addColorStop(1, tint('--primary', 0));
+    c2d.beginPath(); c2d.arc(bx,by,gr,0,Math.PI*2); c2d.fillStyle=halo; c2d.fill();
+    if (ready('ball')) {
+      c2d.drawImage(IMG.ball, bx-br-2, by-br-2, (br+2)*2, (br+2)*2);
+    } else {
+      const g = c2d.createRadialGradient(bx-br*0.35, by-br*0.4, br*0.15, bx, by, br);
+      g.addColorStop(0,'rgba(255,255,255,.92)'); g.addColorStop(1,'rgba(210,203,224,.55)');
+      c2d.beginPath(); c2d.arc(bx,by,br,0,Math.PI*2); c2d.fillStyle=g; c2d.fill();
+    }
+  }
+
+  /* Dekningsgrad: hvor stor andel av scenen platene faktisk dekker.
+     Gjør tettheten målbar i stedet for synsbar — det er den portrett-
+     spørsmålet står på. Ren skjermgeometri: px² delt på px². */
+  function coveragePct(ballR, headPx, w, h) {
+    const c = CLUBS[st.club];
+    const im = IMG[c.img];
+    const headW = ready(c.img) ? headPx * (im.naturalWidth / im.naturalHeight) : 0;
+    const area = Math.PI * ballR * ballR + headW * headPx;
+    return Math.round(1000 * area / (w * h)) / 10;
+  }
+
+  /* Målepunkter som rapporteres opp til tabellen: fungerer scenen? */
+  let probe = {};
+
+  function drawFaceOn() {
+    const winM = W>=700 ? 0.90 : 0.82, scale = W/winM, bx = W*0.57, gy = H*0.71;
+    const X = xm => bx + xm*scale, Y = zm => gy - pedFk(zm, st.gain)*scale;
+    const A = { attack:CSSv('--attack'), depth:CSSv('--depth'), ink:CSSv('--ink'),
+                muted:CSSv('--muted'), plane:CSSv('--plane'), primary:CSSv('--primary') };
+    ground(gy);
+    const soil = H - gy;
+    for (const [xm,name] of [[-0.14,'BACK'],[0,'MID'],[0.14,'FWD']]) {
+      const tx = X(xm);
+      poly([[tx,gy+8],[tx,gy+13]], A.muted, 1.4, .7);
+      if (soil >= 30) text(name, tx, gy+24, A.muted, 9, 'center', false, .8);
+    }
+    ctx.save(); ctx.globalAlpha = (st.sel==='plane'||st.sel==='dir') ? .20 : .10;
+    ctx.fillStyle = A.plane; ctx.beginPath();
+    ctx.moveTo(X(-0.42),Y(0)); ctx.lineTo(X(0.30),Y(0));
+    ctx.lineTo(X(0.30),Y(0.11)); ctx.lineTo(X(-0.42),Y(0.19));
+    ctx.closePath(); ctx.fill(); ctx.restore();
+
+    /* køllehodet FØR buen, som i den ekte flaten — buen skal ligge over */
+    const headPx = clubHead(ctx, scale, X, Y, 0.45);
+
+    /* buens glødpass (D88): hero når ARC HEIGHT leder, ellers glød + kjerne */
+    const arc = faceOnArcPoints(solved,120,0.5).map(([xm,zm])=>[X(xm),Y(zm)]);
+    if (st.sel === 'arc') {
+      poly(arc, tint('--plane',0.14), 18); poly(arc, 'rgba(255,255,255,.30)', 6);
+    }
+    poly(arc, 'rgba(255,255,255,.16)', 9);
+    poly(arc, 'rgba(255,255,255,.92)', 3);
+
+    if (st.sel === 'arc') {
+      const lp = solved.lowPointWorld, x = X(lp.x), yA = Y(0), yB = Y(lp.z);
+      poly([[x,yA],[x,yB]], A.depth, 2.2);
+      poly([[x-6,yA],[x+6,yA]], A.depth, 1.8);
+      poly([[x-6,yB],[x+6,yB]], A.depth, 1.8);
+      text('ARC '+formatHeightCm(st.arc), x-10, (yA+yB)/2-4, A.depth, 10, 'right', true);
+    }
+    const lp = solved.lowPointWorld, lx = X(lp.x), ly = Y(lp.z);
+    ring(lx, ly, 5.5, A.attack, 2); dot(lx, ly, 1.6, A.attack, .55);
+
+    const ballR = Math.max(3, solved.ballRadiusM*scale);
+    const by = Y(LIES[st.lie].mm/1000) - ballR;
+    ballOn(ctx, X(0), by, ballR, gy, st.sel==='low' ? 2.8 : 2.1);
+
+    probe = { scalePxPerM:Math.round(scale), ballPx:Math.round(2*ballR),
+      headPx: Math.round(headPx),
+      coverage: coveragePct(ballR, headPx, W, H),
+      lowPointInFrame: lx>4 && lx<W-4 && ly>4 && ly<H-4,
+      stanceLabels: soil >= 30,
+      arcVisiblePts: arc.filter(p=>p[0]>0&&p[0]<W&&p[1]>0&&p[1]<H).length };
+  }
+
+  function drawDtl() {
+    /* Mockens kamera, med dens egen tallStage-gren for lave/høye stager. */
+    const tall = W/Math.max(H,1) < 2;
+    const cam = pinholeCamera({ pos:{x:-2.2,y:-0.9,z:1.0}, look:{x:2.3,y:0.25,z:0.14},
+      fovDeg: tall ? 44 : (H<240 ? 37 : 34), xStretch: tall ? 0.92 : 1.02,
+      screenX: W*(tall ? 0.05 : 0.075) }, W, H);
+    const P = p => projectPoint(p, cam);
+    const A = { path:CSSv('--path'), attack:CSSv('--attack'), plane:CSSv('--plane'),
+                ink:CSSv('--ink'), muted:CSSv('--muted'), primary:CSSv('--primary') };
+    const inFrame = q => !!q && q.x>0 && q.x<W && q.y>0 && q.y<H;
+
+    /* bakkeplan + rutenett */
+    const hz = P({x:60,y:0,z:0});
+    if (hz) { ctx.fillStyle='rgba(20,14,10,.55)'; ctx.fillRect(0, hz.y, W, H-hz.y); }
+    for (let d=0; d<=3; d+=0.5) {
+      const a=P({x:d,y:-0.9,z:0}), b=P({x:d,y:0.9,z:0});
+      if (a&&b) poly([[a.x,a.y],[b.x,b.y]], A.muted, 1, .12);
+    }
+    /* target line */
+    const t0=P({x:0,y:0,z:0}), t1=P({x:14,y:0,z:0});
+    if (t0&&t1) poly([[t0.x,t0.y],[t1.x,t1.y]], A.ink, 1.2, .5);
+    const tl = P({x:5,y:0,z:0});
+    if (inFrame(tl)) text('TARGET', tl.x, tl.y-9, A.ink, 10, 'center', false, .7);
+
+    /* swing plane-glass som quad i planet */
+    const quad = [planePoint(solved,-0.55,0), planePoint(solved,0.45,0),
+                  planePoint(solved,0.45,0.62), planePoint(solved,-0.55,0.62)].map(P);
+    if (quad.every(Boolean)) {
+      ctx.save(); ctx.globalAlpha = (st.sel==='plane'||st.sel==='dir') ? .22 : .11;
+      ctx.fillStyle = A.plane; ctx.beginPath();
+      quad.forEach((q,i)=>i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y));
+      ctx.closePath(); ctx.fill(); ctx.restore();
+      poly(quad.map(q=>[q.x,q.y]).concat([[quad[0].x,quad[0].y]]), A.plane, 1, .3);
+    }
+    /* buen i perspektiv */
+    const pts=[];
+    for (let i=0;i<=96;i++){ const th=-0.55+(1.10*i)/96;
+      const q=P(arcWorldPoint(solved,th)); if(q) pts.push([q.x,q.y]); }
+    poly(pts, A.ink, 1.6, .9);
+
+    /* low point + ball. DTL bruker gradientball og INGEN kølle — mockens
+       eget valg (`index.html` ~1764); perspektivet bærer plan og path her. */
+    const lpq = P(solved.lowPointWorld);
+    if (lpq) { ring(lpq.x,lpq.y,5,A.attack,1.8); dot(lpq.x,lpq.y,1.5,A.attack,.6); }
+    const lift = LIES[st.lie].mm/1000;
+    const bq = P({x:0,y:0,z:lift + solved.ballRadiusM});
+    const gq = P({x:0,y:0,z:0}), bbq = P({x:0,y:0,z:lift});
+    let ballPx = 0;
+    if (bq && gq && bbq) {
+      if (lift > 0) poly([[gq.x,gq.y],[bbq.x,bbq.y]],
+        TEE_LIES.has(LIES[st.lie].key) ? 'rgba(210,205,225,.6)' : 'rgba(130,185,85,.7)', 2.5);
+      const r = Math.max(6, (gq.y - bq.y) * 0.55);
+      ballPx = 2*r;
+      if (st.sel === 'low') {
+        const gr = r*3, halo = ctx.createRadialGradient(bq.x,bq.y,r*0.4,bq.x,bq.y,gr);
+        halo.addColorStop(0, tint('--strike',0.4)); halo.addColorStop(0.5, tint('--primary',0.2));
+        halo.addColorStop(1, tint('--primary',0));
+        ctx.beginPath(); ctx.arc(bq.x,bq.y,gr,0,Math.PI*2); ctx.fillStyle=halo; ctx.fill();
+      }
+      const g = ctx.createRadialGradient(bq.x-r*0.3, bq.y-r*0.35, r*0.15, bq.x, bq.y, r);
+      g.addColorStop(0,'#ffffff'); g.addColorStop(1,'#b9b2c4');
+      ctx.beginPath(); ctx.arc(bq.x,bq.y,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    }
+
+    /* club path: tangenten ved treffpunktet, hentet fra adapteren (all
+       trigonometri bor der — fysikklinten kat. 2). */
+    const ip = solved.impactPoint, tg = tangentWorld(solved, solved.thetaAtImpact);
+    const k = 0.42;
+    const a0 = P(ip), a1 = P({ x:ip.x + tg.x*k, y:ip.y + tg.y*k, z:ip.z + tg.z*k });
+    if (a0 && a1) poly([[a0.x,a0.y],[a1.x,a1.y]], A.path, 2, .85);
+
+    probe = { camFov: tall?44:(H<240?37:34), tallBranch: tall,
+      targetVisible: inFrame(tl), planeVisible: quad.every(q=>inFrame(q)),
+      lowPointInFrame: inFrame(lpq), ballInFrame: inFrame(bq),
+      ballPx: Math.round(ballPx),
+      coverage: Math.round(1000*(Math.PI*(ballPx/2)*(ballPx/2))/(W*H))/10,
+      arcVisiblePts: pts.filter(p=>p[0]>0&&p[0]<W&&p[1]>0&&p[1]<H).length };
+  }
+
+  function drawStrike() {
+    const t0 = solved.groundCrossingTheta0;
+    let x0=-0.08, x1=0.24;
+    if (t0 !== null) { x0=Math.min(x0, arcWorldPoint(solved,-t0).x-0.04);
+                       x1=Math.max(x1, arcWorldPoint(solved, t0).x+0.05); }
+    const mid=(x0+x1)/2, half=Math.max(0.27,(x1-x0)*0.62);
+    x0=mid-half; x1=mid+half;
+    const sc = W/(x1-x0), gy = H*0.62, EXAG=6, CAP=0.035;
+    const X = xm => (xm-x0)*sc;
+    const Y = zm => gy - (zm>=0 ? zm : -CAP*Math.tanh(-zm*EXAG/CAP))*sc;
+    const GOLD=CSSv('--strike'), LOWC=CSSv('--attack'), WARM=CSSv('--primary'), MUT=CSSv('--muted');
+    ground(gy);
+    /* Køllehodet er referanseflaten treffpunktet leses MOT — den er ikke
+       dekor her, den er halve avlesningen (D24). */
+    const headPx = clubHead(ctx, sc, X, Y, 0.5);
+    const arc = faceOnArcPoints(solved,120,0.5).map(([xm,zm])=>[X(xm),Y(zm)])
+      .filter(p=>p[0]>-40&&p[0]<W+40);
+    poly(arc, GOLD, 6, .16);                     // glødpass (D88)
+    poly(arc, GOLD, 2, .95);
+    const tick = (xm,name) => { const px=X(xm); if(px<6||px>W-6) return false;
+      poly([[px,gy-7],[px,gy+7]], GOLD, 1.4, .85);
+      text(name, px, gy+19, GOLD, 9, 'center', false, .9); return true; };
+    const entryOK = solved.groundEntry ? tick(solved.groundEntry.x,'ENTRY') : null;
+    const lowOK = tick(solved.lowPointWorld.x,'LOW');
+    const exitOK = solved.groundExit ? tick(solved.groundExit.x,'EXIT') : null;
+    if (!solved.hasTurfContact) text('NO TURF CONTACT', 10, 18, MUT, 10, 'left', false, .9);
+    const br = Math.max(4, solved.ballRadiusM*sc), bxp = X(0);
+    const byp = Y(LIES[st.lie].mm/1000) - br;
+    ballOn(ctx, bxp, byp, br, gy, 1.9);
+    const sweetY = Y(solved.clubHeightM);
+    poly([[bxp-br-26,sweetY],[bxp-br-6,sweetY]], GOLD, 1.6, .9);
+    poly([[bxp-br-16,sweetY],[bxp-br-16,byp]], GOLD, 1.2, .55);
+    text(formatFaceOffsetMm(solved.faceCentreOffsetMm), bxp-br-30, sweetY+3, GOLD, 10, 'right', true);
+    ring(X(solved.lowPointWorld.x), Y(solved.lowPointWorld.z), 4, LOWC, 1.6, .8);
+    probe = { windowM:+(x1-x0).toFixed(3), scalePxPerM:Math.round(sc),
+      pxPerMm:+(sc/1000).toFixed(2), ballPx:Math.round(2*br),
+      headPx: Math.round(headPx), coverage: coveragePct(br, headPx, W, H),
+      lowPointInFrame: !!lowOK, entryTick:entryOK, exitTick:exitOK,
+      mmBracketInFrame: (bxp-br-30) > 0 };
+  }
+
+  function draw() {
+    if (!resize()) return;
+    ctx.clearRect(0,0,W,H);
+    if (st.mode === 'strike') drawStrike();
+    else if (st.view === 'dtl') drawDtl();
+    else drawFaceOn();
+  }
+
+  const render = () => { solve(); syncChrome(); syncValues(); syncSlider(); draw(); };
+
+  /* ═════════════════════════════════════════════════════ HENDELSER ═══ */
+  const setMode = m => { st.mode=m; if(m!=='strike') st.lieActive=false; render(); onChange(); };
+  pDel.addEventListener('click', ()=>setMode('delivery'));
+  pStr.addEventListener('click', ()=>setMode('strike'));
+  orbCam.addEventListener('click', ()=>{ st.view = st.view==='face'?'dtl':'face'; render(); onChange(); });
+  const pickClub = i => { st.club=i; st.plane=CLUBS[i].plane; render(); onChange(); };
+  clubBtns.forEach((b,i)=>b.addEventListener('click', ()=>pickClub(i)));
+  clubChip.addEventListener('click', ()=>pickClub((st.club+1)%CLUBS.length));
+  for (const k of ORDER) chipEls[k].b.addEventListener('click', ()=>{
+    st.sel=k; st.lieActive=false; render(); onChange(); });
+  lieBtn.addEventListener('click', ()=>{ st.lieActive=!st.lieActive; render(); onChange(); });
+  lieChip.addEventListener('click', ()=>{ st.lieActive=!st.lieActive; render(); onChange(); });
+  range.addEventListener('input', ()=>{ const v=Number(range.value);
+    if (st.lieActive) st.lie=Math.round(v); else st[st.sel]=v; render(); onChange(); });
+
+  let onChange = () => {};
+  return {
+    root, st,
+    render,
+    onChange(fn){ onChange = fn; },
+    set(patch){ Object.assign(st, patch); render(); },
+    /** Målingene tabellen leser. */
+    report(){
+      const labelsFit = [...root.querySelectorAll('.chip .cl')]
+        .every(e => e.scrollWidth <= e.clientWidth + 1);
+      const targets = [...root.querySelectorAll('button')].filter(b=>b.offsetParent);
+      const smallest = targets.reduce((m,b)=>{
+        const r=b.getBoundingClientRect();
+        /* lieword (D129) og pille-knappene (D128) har utvidet treffsone via
+           ::before — den måles ikke av getBoundingClientRect, men er
+           verifisert med elementFromPoint. */
+        const extended = b.classList.contains('lieword') || b.closest('.pill');
+        const pseudo = extended ? 44 : r.height;
+        return Math.min(m, pseudo);
+      }, 999);
+      const cardLabels = [...root.querySelectorAll('.card .lab span:last-child, .scard .l1')]
+        .every(e => e.scrollWidth <= e.clientWidth + 1);
+      const stg = stage.getBoundingClientRect();
+      return { mode:st.mode, view:st.view, orient:st.orient, size:st.w+'×'+st.h,
+        stage:Math.round(stg.width)+'×'+Math.round(stg.height),
+        labelsFit, cardLabels, minTarget:Math.round(smallest),
+        overflow: Math.round(root.scrollHeight - root.clientHeight), probe };
+    },
+  };
+}
+
+/* ═══════════════════════════════════════════════════════ MONTERING ═══ */
+const A = makeFrame({ clubRow:1 });
+const B = makeFrame({ clubRow:2 });
+const C = makeFrame({ clubRow:3 });
+document.getElementById('frame1').appendChild(A.root);
+document.getElementById('frame2').appendChild(B.root);
+document.getElementById('frame3').appendChild(C.root);
+const FR = [A,B,C];
+
+let orient = 'portrait', sizeIx = 1;
+function applySize() {
+  const [w,h] = SIZES[orient][sizeIx];
+  FR.forEach(f => f.set({ orient, w, h }));
+  refresh();
+}
+function buildSizeSeg() {
+  const box = document.getElementById('segSize');
+  box.innerHTML = '';
+  SIZES[orient].forEach(([w,h,label],i)=>{
+    const b = el('button',null,label); b.type='button';
+    b.setAttribute('aria-pressed', String(i===sizeIx));
+    b.addEventListener('click', ()=>{ sizeIx=i;
+      [...box.children].forEach((c,j)=>c.setAttribute('aria-pressed',String(j===i)));
+      applySize(); });
+    box.appendChild(b);
+  });
+}
+
+const TABLE = document.getElementById('liveTable');
+const VERDICT = document.getElementById('verdict');
+function refresh() {
+  const r = A.report();
+  const yn = v => v===true ? '<td class="ok">ja</td>' : v===false ? '<td class="no">nei</td>'
+    : `<td class="num">${v==null?'—':v}</td>`;
+  const rows = [
+    ['Orientering / mål', `<td class="num">${r.orient} · ${r.size}</td>`],
+    ['Stage', `<td class="num">${r.stage}</td>`],
+    ['Modus / visning', `<td class="num">${r.mode}${r.mode==='delivery'?' · '+r.view:''}</td>`],
+    ['Chip-etiketter uforkortet (D64)', yn(r.labelsFit)],
+    ['Avlesninger uten avkutting', yn(r.cardLabels)],
+    ['Minste treffflate', `<td class="num">${r.minTarget} px</td>`],
+    ['Rammeoverflyt', `<td class="num">${r.overflow} px</td>`],
+  ];
+  const p = r.probe || {};
+  if (p.scalePxPerM != null) rows.push(['Sceneoppløsning', `<td class="num">${p.scalePxPerM} px/m</td>`]);
+  if (p.pxPerMm != null) rows.push(['Kontaktsone', `<td class="num">${p.pxPerMm} px/mm · vindu ${p.windowM} m</td>`]);
+  if (p.ballPx != null) rows.push(['Ball', `<td class="num">${p.ballPx} px</td>`]);
+  if (p.headPx != null) rows.push(['Køllehode', `<td class="num">${p.headPx} px høyt</td>`]);
+  if (p.coverage != null) rows.push(['Platedekning av scenen', `<td class="num">${p.coverage} %</td>`]);
+  if (p.lowPointInFrame != null) rows.push(['Low point i ramma', yn(p.lowPointInFrame)]);
+  if (p.stanceLabels != null) rows.push(['Stance-etiketter får plass', yn(p.stanceLabels)]);
+  if (p.targetVisible != null) rows.push(['DTL: target-linje synlig', yn(p.targetVisible)]);
+  if (p.planeVisible != null) rows.push(['DTL: hele planglasset i ramma', yn(p.planeVisible)]);
+  if (p.camFov != null) rows.push(['DTL: kamera', `<td class="num">fov ${p.camFov}${p.tallBranch?' (tallStage)':''}</td>`]);
+  if (p.entryTick !== undefined) rows.push(['STRIKE: ENTRY/EXIT-hakk', yn(p.entryTick===null?'ingen kryssing':p.entryTick)]);
+  if (p.arcVisiblePts != null) rows.push(['Buepunkter i ramma', `<td class="num">${p.arcVisiblePts}</td>`]);
+  TABLE.innerHTML = rows.map(([k,v])=>`<tr><th>${k}</th>${v}</tr>`).join('');
+  buildVerdict();
+}
+
+/* Kjører hele matrisen og skriver dommen — måling, ikke påstand. */
+function buildVerdict() {
+  const saveO = orient, saveIx = sizeIx;
+  /* Matrisen tramper gjennom alle tilstandene i ramma, så DENS egen tilstand
+     må settes tilbake HEL — ikke felt for felt. To runder med punktvis
+     lagring mistet først `mode` (ramma falt ut av STRIKE) og så `lieActive`
+     (lie-kontrollen slo seg av). Et fullt øyeblikksbilde kan ikke miste noe. */
+  const save = { ...A.st };
+  const out = [];
+  A.root.classList.add('measuring');
+  for (const o of ['portrait','landscape']) {
+    for (let i=0;i<SIZES[o].length;i++) {
+      const [w,h,label] = SIZES[o][i];
+      for (const cfg of [{mode:'delivery',view:'face'},{mode:'delivery',view:'dtl'},{mode:'strike',view:'face'}]) {
+        A.set({ orient:o, w, h, ...cfg });
+        /* to runder: første setter bredden, andre tegner mot den nye. */
+        A.render();
+        const r = A.report(), p = r.probe||{};
+        out.push({ o, label, cfg:cfg.mode==='strike'?'STRIKE':'DELIVERY · '+cfg.view.toUpperCase(),
+          labels:r.labelsFit, cards:r.cardLabels, target:r.minTarget, over:r.overflow,
+          low:p.lowPointInFrame, res:p.scalePxPerM, ball:p.ballPx, head:p.headPx,
+          cover:p.coverage,
+          plane:p.planeVisible, target2:p.targetVisible, stance:p.stanceLabels, mm:p.pxPerMm });
+      }
+    }
+  }
+  A.set(save);
+  A.render();
+  A.root.classList.remove('measuring');
+  const cell = v => v===true?'<td class="ok">ja</td>':v===false?'<td class="no">nei</td>'
+    :`<td class="num">${v==null?'—':v}</td>`;
+  const head = '<tr><th>Orient.</th><th>Mål</th><th>Tilstand</th><th>Etiketter</th>'
+    + '<th>Avlesn.</th><th>Treff</th><th>Low point</th><th>Oppl.</th><th>Ball</th>'
+    + '<th>Køllehode</th><th>Dekning</th><th>Plan</th><th>Stance</th></tr>';
+  const body = out.map(r=>`<tr><td>${r.o==='portrait'?'portrett':'landskap'}</td>`
+    + `<td class="num">${r.label}</td><td>${r.cfg}</td>`
+    + cell(r.labels) + cell(r.cards) + `<td class="num">${r.target} px</td>`
+    + cell(r.low) + `<td class="num">${r.res?r.res+' px/m':(r.mm?r.mm+' px/mm':'—')}</td>`
+    + `<td class="num">${r.ball?r.ball+' px':'—'}</td>`
+    + `<td class="num">${r.head?r.head+' px':'—'}</td>`
+    + `<td class="num">${r.cover!=null?r.cover+' %':'—'}</td>`
+    + cell(r.plane) + cell(r.stance) + '</tr>').join('');
+  const fails = out.filter(r=>r.labels===false||r.cards===false||r.low===false||r.target<44||r.over>0);
+  VERDICT.innerHTML = `<table>${head}${body}</table>`
+    + `<p class="note" style="margin-top:12px">${fails.length===0
+      ? '<b>Alle atten tilstandene passerer</b> de mekaniske portene: uforkortede etiketter (D64), '
+        + 'ingen avkuttede avlesninger, 44 px treffflater (spec 03 akk. 9), low point i ramma '
+        + '(D113) og ingen overflyt. <b>Dekning</b> er andelen av scenen platene faktisk okkuperer. '
+        + 'Merk at den er LAVERE i portrett (1,8 %) enn i landskap (4,4 %) ved samme modus: '
+        + 'portrettscenen er høyere, så platene fyller mindre. Risikoen i portrett er altså '
+        + 'tomhet, ikke trengsel. Prisen står i «Oppl.», «Ball» og «Køllehode» — absolutt '
+        + 'lesbarhet, ikke tetthet, og den dommen må fortsatt tas på den ekte renderen.'
+      : '<b>' + fails.length + ' tilstand(er) faller</b>: '
+        + fails.map(f=>`${f.label} ${f.cfg}`).join(' · ')}</p>`;
+}
+
+FR.forEach(f => f.onChange(refresh));
+document.getElementById('segOrient').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  orient = b.dataset.o; sizeIx = 1; buildSizeSeg(); applySize();
+});
+document.getElementById('segView').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  FR.forEach(f=>f.set({ view:b.dataset.v, mode:'delivery' })); refresh();
+});
+document.getElementById('segLie').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  FR.forEach(f=>f.set({ lieForm:b.dataset.lie })); refresh();
+});
+document.getElementById('segSafe').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  FR.forEach(f=>f.set({ safe:b.dataset.s==='1' })); refresh();
+});
+document.getElementById('segGain').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  FR.forEach(f=>f.set({ gain:+b.dataset.g })); refresh();
+});
+document.getElementById('segStage').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  FR.forEach(f=>f.set({ stageH:+b.dataset.h })); refresh();
+});
+document.getElementById('segMenu').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+  FR.forEach(f=>f.set({ menu:+b.dataset.menu })); refresh();
+});
+
+/* Hver plate som lander utløser en ny opptegning — ellers står scenen med
+   fallbackene til noe annet tilfeldigvis trigger den. Matrisen kjøres på nytt
+   når den siste er inne, så dekningsgraden er sann. */
+let assetsPending = Object.keys(ASSETS).length;
+onAssetLoad = () => {
+  assetsPending -= 1;
+  FR.forEach(f => f.render());
+  if (assetsPending <= 0) refresh();
+};
+
+buildSizeSeg();
+applySize();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ FR.forEach(f=>f.render()); refresh(); });
+addEventListener('resize', ()=>{ FR.forEach(f=>f.render()); });
+</script>
+
+<section>
+  <h2>Hva demoen svarer på, og hva den ikke gjør</h2>
+  <p class="note" style="max-width:84ch">
+    <b>Svarer på:</b> hvordan modusbyttet kjennes i de to formene (G-b); hvordan
+    G-a ser ut i praksis; hvordan ikke-effekten leses når ARC HEIGHT dras; hva
+    en bunnmeny gjør med høyden (D111); og &mdash; mekanisk målt over atten
+    tilstander &mdash; om leveringsscenen og kontaktsonen <b>fungerer</b> i
+    portrett, per modus, med landskap som rotasjonsmulighet på samme tilstand.
+    <br><br>
+    Materialplatene er nå portert &mdash; turf, ball, pigg, begge køllehodene og
+    himmelplatene er den ekte flatens egne filer, og buens glødpass (D88) er med.
+    Køllehodet er ikke dekor i STRIKE: det er referanseflaten treffpunktet leses
+    mot (D24).
+    <br><br>
+    <b>Gjør ikke:</b> den er fortsatt ikke render. Glimtet, footprints,
+    hysterese-layouten (D18), haptikken og DTL-ribbonens fulle fire pass er ikke
+    med &mdash; de er uendret i den ekte flaten og endrer ikke tettheten
+    nevneverdig. Coachmark-plasseringen (D107) er ikke tegnet: den venter på G-e
+    og hovedvalget. Og hysterese-layouten er den som avgjør om etiketter
+    kolliderer <i>mens</i> slideren dras, så den endelige portrettdommen hører
+    fortsatt hjemme på den ekte flaten etter at splitten er bygget.
+  </p>
+</section>
+
+</body>
+</html>

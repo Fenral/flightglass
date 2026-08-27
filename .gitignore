@@ -1,0 +1,8 @@
+# byggeartefakter
+swift/.build/
+node_modules/
+*.log
+.DS_Store
+# midlertidige forhaandsvisninger
+app/_artifact-preview.html
+app/_mock-preview.html

@@ -1,0 +1,508 @@
+/* ══ D82/D83/D84-JUSTERT KOPI ═══════════════════════════════════════════════
+   Original: _source/mocks/shared/sa-p3.css (fasit, D77-skrivebeskyttet).
+   KUN tre vedtatte endringer er gjort her:
+     D83  Inter -> Geist for UI-rollen (Space Grotesk og IBM Plex Mono bestaar)
+     D84  gul-opprydding: --warn pensjonert (feiltilstander -> --bad);
+          gull er KUN --strike; progresjon/XP baerer --secondary
+     +    --trace-live #FFE3D0 (v3-datavis: levende bane er varm hvit)
+   Alt annet er bit-likt originalen.
+   ══════════════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
+
+/* ══════════════════════════════════════════════════════════════════════════
+   sa-p3.css — Flightglass P3 "Ultraviolet Ember" — SHARED COHESION SOURCE
+   ---------------------------------------------------------------------------
+   The single stylesheet every screen imports (relative: `./sa-p3.css`).
+   Ships three things the cohesion pass depends on:
+     1. The P3 token set (docs/palette-proposals.md §P3 + docs/front-page-spec.md
+        §1.1) as CSS custom properties — repaint a destination by importing this.
+     2. The shared app-shell chrome contract: `.sa-strip` (40px top strip) +
+        `.sa-strip__home` (Flightglass micro-mark home button, 30px visual /
+        44px hit, `view-transition-name:sa-logo`).
+     3. Cross-cutting primitives: the backdrop-proof double focus ring, the
+        `.sa-plate` pattern (photo-contrast surface), and the reduced-motion kill.
+
+   THE THREE COLOUR LAWS (spatial form of the palette laws — enforce in markup):
+     • --accent ember #FF8A4D  = the live ball + live data ONLY (tracer, resume stat).
+     • --celebrate #FF5CE1 + --gold #D9B36A = XP / badges / progression ONLY;
+       --warn #FFD056 = status verdicts ONLY (order §1.2 split, 2026-07-11).
+     • everything else is the cold ultraviolet world (--secondary violet chrome,
+       --ink, --muted, plates).
+   Two codified ember exceptions beyond live-ball / live-data (SYS-08 budget):
+     (1) the wordmark / home-button ball dot — the ball in the logo *is* the ball;
+     (2) the HOME promotion prefix "START HERE ·" / "CONTINUE ·" — the first-run
+         pull is intentional and the screen carries no other heat at rest.
+
+   HOME-BUTTON MARKUP CONTRACT (place in each destination's existing strip/header,
+   far left, never inside an instrument canvas):
+
+     <a class="sa-strip__home" href="../home/index.html" aria-label="Home">
+       <img src="./assets/flightglass-mark-micro.svg" alt="">
+     </a>
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ══ TYPE ROLES (SYS-01) — self-hosted woff2, font-display:swap, sys fallbacks ═
+   ui = Inter (labels/eyebrows/buttons/captions) · display = Space Grotesk
+   (hero numerals ≥28px + wordmark) · mono = IBM Plex Mono (data values ONLY,
+   always tabular-nums + U+2212). Tokens: --font-ui / --font-display / --font-mono */
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('./vendor/fonts/Inter-Regular.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('./vendor/fonts/Inter-Medium.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('./vendor/fonts/Inter-SemiBold.woff2') format('woff2');}
+@font-face{font-family:'Inter';font-style:normal;font-weight:700;font-display:swap;src:url('./vendor/fonts/Inter-Bold.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:500;font-display:swap;src:url('./vendor/fonts/SpaceGrotesk-Medium.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:600;font-display:swap;src:url('./vendor/fonts/SpaceGrotesk-SemiBold.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:700;font-display:swap;src:url('./vendor/fonts/SpaceGrotesk-Bold.woff2') format('woff2');}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('./vendor/fonts/IBMPlexMono-Regular.woff2') format('woff2');}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url('./vendor/fonts/IBMPlexMono-Medium.woff2') format('woff2');}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:600;font-display:swap;src:url('./vendor/fonts/IBMPlexMono-SemiBold.woff2') format('woff2');}
+
+:root{
+  /* ── identity / surface ──────────────────────────────────────────────── */
+  --bg:#07060C;
+  --surface:#110D1C;
+  --plate:rgba(8,5,14,.86);
+  --ink:#F5F2FF;
+  --muted:#A79FC7;
+  --muted-2:#8E85A8;   /* third grey — dimmer telemetry labels; ≥4.5:1 on the violet-black ramp (SYS-04 / aca-10) */
+
+  /* ── ember accent — live ball / live data ONLY ───────────────────────── */
+  --accent:#FF8A4D;
+  --accent-soft:rgba(255,138,77,.16);
+  --accent-line:rgba(255,138,77,.55);
+  --accent-line-strong:rgba(255,138,77,.8);   /* crisp promotion top hairline */
+  --trace-live:#FFE3D0;   /* v3-datavis: den levende ballbanen — varm hvit, haartynn */
+
+  /* ── violet secondary — chrome, glyphs, labels ───────────────────────── */
+  --secondary:#9D8BFF;
+  --secondary-soft:rgba(157,139,255,.14);
+  --secondary-line:rgba(157,139,255,.45);
+
+  /* ── reward — XP / badges ONLY (render celebrate as gradient + spark) ─── */
+  --celebrate:#FF5CE1;
+
+  /* ── status ──────────────────────────────────────────────────────────── */
+  --good:#58E6A8;
+  /* D84: --warn er pensjonert — feiltilstander bruker --bad */
+  --bad:#FF7B8A;
+
+  /* ── data params (labelled chips/traces only; never bare status dots) ─── */
+  /* tokens: geometry-palett (2026-07-17) — mock design/mocks/geometry.html is
+     normative for the VALUES (ordre §2); minted as oklch() from the mock hex
+     (in-gamut → no sRGB clipping). Contrast re-measured on the clipped render:
+     vs --plate-solid #0D0A18 / --bg #07060C. */
+  --face:#FF5C6B;
+  --path:oklch(78.68% 0.1179 228.25);    /* mock #5bc8f5 — 10.27:1 / 10.60:1 */
+  --attack:oklch(72.34% 0.1793 348.62);  /* mock #f470b8 —  7.32:1 /  7.55:1 (pink, owner override 2026-07-11 holds) */
+  --loft:#B9A0FF;
+  /* strike quality/height (gold) — NEW quantity token (geometry P1). Takes the
+     mock gold per flagg 1-beslutningen (eier 2026-07-17): strike claims
+     #e3b05c; --launch re-tunes away in its own commit. */
+  --strike:oklch(78.73% 0.1178 78.12);   /* mock #e3b05c —  9.90:1 / 10.22:1 */
+  /* warm focal (geometry P1) — contact-tick/glow ONLY, exactly ONE occurrence
+     per screen, never decorative. Same warm family as --accent (mock #ff8a4c
+     is 1 RGB step from ember #FF8A4D) but a separate named intent. */
+  --focal-warm:oklch(75.14% 0.1610 46.76); /* mock #ff8a4c — 8.37:1 / 8.64:1 */
+  /* pure-zone UI fill (geometry P1) — the tickstrip zone band, rendered at
+     18% opacity. UI token only; the motor's internal verdict hexes untouched. */
+  --zone-pure:oklch(77.99% 0.1648 157.13); /* mock #3fd68c — 10.44:1 / 10.77:1 */
+
+  /* ── lines / geometry / motion ───────────────────────────────────────── */
+  --line:rgba(255,255,255,.10);
+  --line-strong:rgba(255,255,255,.30);
+  --radius-card:16px;
+  --radius-pill:999px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+
+  /* scene: violet-shifted grade over range-13 (matches the horizon glow) */
+  --scene-bg:radial-gradient(130% 120% at 50% -10%, #140E24, #07060C);
+
+  /* ── type roles (SYS-01) ─────────────────────────────────────────────── */
+  --font-ui:'Geist','Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; /* D83 */
+  --font-display:'Space Grotesk','Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+  --font-data:var(--font-mono);
+
+  /* ── launch param (SYS-02 / out-03) — RE-TUNED 2026-07-17 (flagg 1, eier):
+       strike claimed the gold family (#e3b05c, H≈78°), so launch leaves gold
+       for citron (H 105° — ΔH 27° vs --strike, 17° vs --warn, 22° vs --gold).
+       Contrast re-measured on the sRGB render (#c7c274): 10.61:1 on the lens
+       bg #0D0A18, 10.95:1 on --bg — still clearly duller/greener than --warn. */
+  --launch:oklch(80% 0.10 105);
+
+  /* ── ghost reference-trace grey (SYS-04 / out-17) — violet-leaning neutral,
+       replaces the teal-era #9FB2C8. Reserved for reference TRACE STROKES only,
+       never control chrome. */
+  --ghost:#A7A0C4;
+
+  /* ── surface + spacing tiers (SYS-07) ────────────────────────────────────
+       radii: 12 = controls · 16 = plates/cards · 20 = lenses · 999 = pills.
+       plate fills: blur (on-scene, = --plate) · solid (lens/panel). */
+  --radius-control:12px;
+  --radius-lens:20px;
+  --plate-solid:#0D0A18;
+
+  /* ── ONE HUE · ONE MEANING — param-quantity dictionary (SYS-11) ──────────
+       Each param hue binds to EXACTLY ONE physical quantity app-wide. Screens
+       consume the semantic --q-* alias (the quantity), never the raw hue, so a
+       hue can never drift to a second meaning. The full 1:1 table + geometry
+       rewire map live in the SYS-11 law block below. Two NEW hues give the
+       geometry quantities that had no honest home: plane was stealing --loft,
+       depth was stealing --face/coral — both now leave those hues. */
+  --plane:oklch(70.06% 0.1494 288.55); /* periwinkle — swing plane; mock #9c8df5 (tokens: geometry-palett) — 7.02:1 / 7.25:1 */
+  --depth:#C98AE6;   /* orchid     — strike depth (MUST leave coral --face) ≥7.4:1 */
+  --q-face:var(--face);       /* face angle                                    */
+  --q-path:var(--path);       /* club-path direction (== geometry swing dir)   */
+  --q-attack:var(--attack);   /* attack angle (== geometry low-point locus)    */
+  --q-loft:var(--loft);       /* dynamic loft                                  */
+  --q-launch:var(--launch);   /* launch angle                                  */
+  --q-plane:var(--plane);     /* swing plane                                   */
+  --q-depth:var(--depth);     /* strike depth                                  */
+  --q-strike:var(--strike);   /* strike quality/height on the face (geometry)  */
+  --q-ball:var(--ink);        /* ball marker — neutral, NOT a param hue        */
+
+  /* ── measure-label amber (docs/systemkontrakt.md §1.6 / A10) — Impact-
+       kamera annotation layer (impact-annotate.js). Own role, distinct from
+       --launch (a parameter hue): dimension lines/angle-arc labels only. */
+  --measure:#EEC07A;
+  --q-measure:var(--measure);
+
+  /* ── flight-scene dusk (normativ kilde: design/mocks/impact-kamera.html
+       :root + body-background + drawGrid-fog). Egen rolle — ikke gjenbruk
+       av --scene-bg, som eies av de andre skjermene. ─────────────────── */
+  --dusk-horizon:#3B2A55;
+  --dusk-sky-0:#0E0A18;
+  --dusk-sky-1:#120D1E;
+  --dusk-sky-2:#241536;
+  --dusk-sky-3:#17102A;
+  --dusk-sky-4:#0F0B1C;
+  --dusk-fog:#604C86;
+  --grid-lav:#A89CD6;
+  --dusk-scene-bg:
+    radial-gradient(120% 55% at 50% 58%, var(--dusk-horizon) 0%, transparent 60%),
+    linear-gradient(180deg, var(--dusk-sky-0) 0%, var(--dusk-sky-1) 34%,
+      var(--dusk-sky-2) 58%, var(--dusk-sky-3) 74%, var(--dusk-sky-4) 100%);
+
+  /* ── WARM-LIGHT GOLD (order §1.2, 2026-07-11) — annotations, targets, XP,
+       progression. A duller, warmer gold than --warn so "reward/progression"
+       and "caution status" never share a hex again. --warn #FFD056 is now
+       STATUS-ONLY (instrument band verdicts). */
+  /* D84: --gold pensjonert — gull er KUN --strike */
+
+  /* ── REWARD GOLD alias (SYS-15) — remapped to --gold (order §1.2). ──────
+       Reward usage (XP / badges / mastery) references --reward-gold and now
+       resolves to the warm-light gold; --warn's *status* usage (instrument
+       band verdicts) keeps referencing --warn. Two named intents, two hexes. */
+  --reward-gold:var(--secondary); /* D84: progresjon baerer secondary */
+}
+
+/* ── PLATE PATTERN ──────────────────────────────────────────────────────────
+   The photo-contrast surface. Everything texty on the scene sits on this so
+   every P3 token clears AA (composite ≈ #0B0913 → all tokens ≥6.4:1). */
+.sa-plate{
+  background:var(--plate);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  border-radius:var(--radius-card);
+}
+
+/* ── DOUBLE FOCUS RING ───────────────────────────────────────────────────────
+   Backdrop-proof: dark 1px under a 3px ink-white inset ring. Ink-white (not
+   ember — scarcity law; not violet — 3:1 risk over floodlight bloom) passes
+   everywhere on the scene. Apply to any focusable shell element. */
+.sa-focus:focus-visible,
+.sa-strip__home:focus-visible{
+  outline:none;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.85), inset 0 0 0 3px var(--ink);
+}
+/* No web focus ring on touch/pointer focus (order §1.1): only :focus-visible
+   may draw a ring. Programmatically-focused [tabindex="-1"] landings (route
+   headings etc.) never show a ring at all. */
+:focus:not(:focus-visible){outline:none}
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible{outline:none;box-shadow:none}
+
+/* ══ SHARED APP-SHELL STRIP ═════════════════════════════════════════════════
+   Applied to every destination. 40px top strip; left cluster = home button +
+   screen title; right + centre stay screen-specific. Notch-safe via padding.
+   Zero pixels stolen from instruments — this lives in the strip/header row that
+   already exists on each screen. */
+.sa-strip{
+  position:absolute;
+  z-index:20;
+  top:0; left:0; right:0;
+  box-sizing:content-box;
+  height:40px;
+  padding-top:env(safe-area-inset-top);
+  padding-left:max(12px, env(safe-area-inset-left));
+  padding-right:max(12px, env(safe-area-inset-right));
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(17,13,28,.66), rgba(7,6,12,.20));
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+}
+.sa-strip__spacer{flex:1 1 auto;}
+
+/* ── HOME BUTTON — arc-mark, 30px visual / 44px hit ──────────────────────── */
+.sa-strip__home{
+  position:relative;
+  flex:0 0 auto;
+  width:30px; height:30px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--secondary);
+  text-decoration:none;
+  -webkit-tap-highlight-color:transparent;
+  view-transition-name:sa-logo;   /* morph target — matches the home wordmark */
+}
+.sa-strip__home::after{           /* invisible 44px hit pad */
+  content:"";
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  width:44px; height:44px;
+}
+.sa-strip__home img{width:30px; height:30px; display:block;}
+.sa-strip__home:hover img{opacity:.88;}
+
+/* ── SCREEN TITLE in the strip (11px uppercase) ──────────────────────────── */
+.sa-strip__title{
+  font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ══ PASS-B SYSTEM LAWS (SYS-11…15) ═════════════════════════════════════════
+   Additive tokens + helper classes + written laws so every screen can comply
+   by grep. Nothing above this block is renamed or removed. */
+
+/* ── [SYS-11] ONE HUE · ONE MEANING — the param-colour dictionary ───────────
+   A param hue teaches ONE physics quantity, app-wide. Re-using a hue for an
+   unrelated meaning (coral=face on the instruments, coral=depth on geometry)
+   makes the colour language contradict itself: the Academy teaches "coral is
+   the face" while the geometry screen teaches "coral is depth". Fix: consume
+   the semantic --q-<quantity> alias; each hue binds 1:1 below.
+
+     HUE (token)             → PHYSICAL QUANTITY (its one meaning)
+     ────────────────────────────────────────────────────────────────────────
+     --face   #FF5C6B coral    Face angle
+     --path   #5BC8F5 blue     Club-path direction  (geometry "swing dir" = same quantity ✓ documented reuse; value → mock, tokens: geometry-palett)
+     --attack #F470B8 pink     Attack angle         (geometry "low point"  = the attack locus  ✓ documented reuse; value → mock)
+     --loft   #B9A0FF lav.     Dynamic loft
+     --launch (see token)      Launch angle         (re-tuned AWAY from strike gold — flagg 1, own commit)
+     --strike #E3B05C gold     Strike quality/height (NEW — claims the mock gold per flagg 1, eier 2026-07-17)
+     --plane  #9C8DF5 peri.    Swing plane          (NEW — was illegally sharing --loft; value → mock)
+     --depth  #C98AE6 orchid   Strike depth         (NEW — MUST leave coral --face)
+     (ball marker)             Ball position → --ink (neutral; a ball is not a param)
+
+   GEOMETRY REWIRE (apply in geometry-window-mock.html — token swap only):
+     --c-plane: var(--q-plane);   (was var(--loft))
+     --c-dir:   var(--q-path);    (documented reuse — swing direction)
+     --c-lpx:   var(--q-attack);  (documented reuse — low point)
+     --c-depth: var(--q-depth);   (was var(--face) — the coral collision)
+     --c-ball:  var(--q-ball);    (was #E6ECF4 — now codified --ink)
+   Acceptance: this 1:1 table exists; no screen binds a listed hue to a 2nd quantity. */
+
+/* ── [SYS-12] NO EMOJI · NO FONT DINGBATS — drawn SVG glyphs only ───────────
+   Emoji render differently per OS and carry uncontrolled colour — fatal to an
+   instrument voice. Iconography = SVG strokes on the home-glyph grid (1.6
+   weight, round caps/joins), inheriting currentColor. Banned codepoints that
+   MUST NOT appear in UI markup/templates:
+     ⌂ (U+2302)  ⛳ (U+26F3)  🔒 (U+1F512)  📱 (U+1F4F1)  ✦ (U+2726)
+     ⟳ (U+27F3)  ◎ (U+25CE)  ★ (U+2605)  ⌖ (U+2316)  ✷ (U+2737)
+   Use the .sa-glyph primitive (or any inline <svg>) instead. Acceptance: grep
+   finds no emoji/dingbat codepoints in markup; the icon inventory is SVG-only. */
+.sa-glyph{
+  width:1em; height:1em;
+  display:inline-block; flex:0 0 auto;
+  vertical-align:middle;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;               /* home-glyph grid weight */
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* ── [SYS-13] OPAQUE STICKY CHROME (extends SYS-10 from scene-plates to chrome)
+   Any position:sticky/fixed bar OVER SCROLLING CONTENT (Academy topbar, jump
+   rail, path header) must be an opaque plate: composite ≥.95, P3 hex fill, a
+   hairline --line bottom. Gradient-to-half-alpha chrome (read-through under
+   ~.92) is banned — scrolled cards must never be legible through the bar.
+   (The .sa-strip contract is deliberately out of scope: it floats over a
+   NON-scrolling instrument canvas, not a scroll surface.) Apply .sa-chrome to
+   scroll-surface chrome. Acceptance: no underlying content legible within
+   chrome bounds at any scroll position, both viewports. */
+.sa-chrome{
+  background:var(--plate-solid);  /* #0D0A18 — fully opaque, ≥.95 composite */
+  border-bottom:1px solid var(--line);
+}
+
+/* ── [SYS-14] COPY-VOICE LAW ────────────────────────────────────────────────
+   (1) NO caps-for-emphasis in running/body copy — emphasise with weight
+       (.sa-em) or an ink shift (.sa-em--ink), never by shouting a word.
+   (2) NO implementation vocabulary in user copy. Banned list (verbatim):
+       { vertical slice, engine solve, display-layer, gate, slice engine,
+         ENGINE-LIVE (as a compound) }.
+   (3) PRECISION CLAUSE — real golf/physics terms are KEPT and TAUGHT, not
+       dumbed out: attack angle, spin loft, COR, Magnus, flyer, etc. stay, each
+       with a first-use explanation (Academy bottom-sheets are their home).
+   Acronym allowlist for rule (1) (these MAY stay upper-case): EST, XP, RPM,
+   PGA, LPGA, COR, USGA. Acceptance: greps for the banned list = 0; no 3+ letter
+   all-caps emphasis word inside a sentence-case run. */
+.sa-em{font-weight:600;}          /* emphasis without caps */
+.sa-em--ink{color:var(--ink);}    /* …or via an ink shift  */
+
+/* ── [SYS-15] REWARD-COLOUR ENFORCEMENT ─────────────────────────────────────
+   Gold #FFD056-family (--warn / --reward-gold) and --celebrate #FF5CE1 are
+   spent on REWARD ONLY. Allowlist for computed #FFD056 as reward:
+     • XP numerals   — always --font-mono, tabular-nums, via .sa-xp
+     • level / badge / mastery surfaces — badges wear --celebrate (.sa-badge)
+     • celebrate stamps on the completion card
+   Nothing else may wear gold-as-reward: not locks, footnotes, "not-quite"
+   quiz headers, active toggles, or a "you-are-here" map dot.
+   DUAL-ROLE NOTE (do not miscount): the SAME hex #FFD056 is also --warn's
+   STATUS role — the caution band verdict on the instruments (e.g. Fat = gold).
+   That is a status signal, NOT a reward, and is exempt from this ledger.
+   One XP colour everywhere → one gold, via .sa-xp. Acceptance: the app-wide
+   computed-#FFD056 census matches this allowlist. */
+.sa-xp{
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--reward-gold);
+}
+.sa-badge{color:var(--celebrate);}   /* badge glyphs wear celebrate, never gold */
+
+/* ══ REDUCED-MOTION KILL ════════════════════════════════════════════════════
+   Everything present at full value — no stagger, no count-ups, no breathing,
+   and cross-document View Transitions disabled (instant swap). */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*){animation:none !important;}
+}
+
+/* ══ DEPTH & LIGHT (adopted 2026-07-11 after owner critique «mørk men flatt») ═══
+   Dark ≠ flat: top-lit plate gradients with a baked-in 1px edge-light, ambient
+   violet skylight + faint teal floor-glow, film grain, ember/gold value bloom.
+   OPT-IN per page via <body class="sa-depth"> — the raw tokens stay untouched
+   because some consumers use them where a gradient is illegal (SVG fill,
+   box-shadow color). Proven on academy-lesson-v2-mock; contrast: lightest plate
+   body #120E20 keeps --muted ≥7:1 (AA holds everywhere text sits). */
+body.sa-depth{
+  --plate: linear-gradient(180deg, rgba(245,242,255,.065) 0, rgba(245,242,255,.065) 1px,
+           rgba(16,12,28,.90) 1px, rgba(8,5,14,.86) 100%);
+  --plate-solid: linear-gradient(180deg, rgba(245,242,255,.07) 0, rgba(245,242,255,.07) 1px,
+           #120E20 1px, #0C0916 100%);
+  background:
+    radial-gradient(130% 75% at 50% -14%, rgba(157,139,255,.085), transparent 60%),
+    radial-gradient(90% 55% at 50% 110%, rgba(77,232,210,.04), transparent 55%),
+    var(--bg);
+}
+body.sa-depth::after{           /* film grain: kills banding, adds material. Static — RM-safe */
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:2147483647; opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.sa-bloom-ember{ text-shadow:0 0 26px rgba(255,138,77,.30), 0 0 64px rgba(255,138,77,.12); }
+.sa-bloom-gold{  text-shadow:0 0 26px rgba(255,208,86,.28); }
+
+/* ══ STRIKE-WINDOW PATTERN PRIMITIVES (økt 2a — FABLE-ORDRE §2.1) ═══════════
+   PinnedCanvas + OutcomeChips + ControlSheet, extracted from the Strike Window
+   relayout for reuse by the Academy lesson template (del B, order §2.5).
+   Grammar (order §1.2): inputs = solid border + filled colour dot; outcomes =
+   dashed border. Eyebrows: INPUT · CONTROL (violet) / OUTCOME · READ (gold). */
+:root{
+  /* spring-feel pop — ONE small overshoot beat on the app ease family (not the
+     mock's cubic). Used by detail cards / promoted chips. RM-killed above. */
+  --ease-spring:cubic-bezier(.34,1.3,.44,1);
+}
+
+.sa-eyebrow{font-family:var(--font-ui);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;line-height:1}
+.sa-eyebrow--in{color:var(--secondary)}
+.sa-eyebrow--out{color:var(--strike)} /* D84: gull kun via strike-tokenet */
+
+/* pinned canvas — the model owns the screen (~55–60% height; never scrolls,
+   never clips). The host gives it flex:1/height; children position over it. */
+.sa-pinned-canvas{
+  position:relative;overflow:hidden;min-height:0;
+  background:var(--plate-solid);
+  border:1px solid var(--line);border-radius:var(--radius-lens);
+}
+
+/* chip base — mono value voice, ≥44px touch target */
+.sa-chip{
+  appearance:none;cursor:pointer;flex:0 0 auto;position:relative;
+  display:flex;align-items:center;gap:8px;padding:0 12px;min-height:44px;
+  border-radius:var(--radius-control);border:1px solid var(--line-strong);
+  background:var(--plate);color:var(--ink);text-align:left;white-space:nowrap;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .15s var(--ease),background .15s var(--ease),transform .08s var(--ease);
+}
+.sa-chip:active{transform:scale(.97)}
+.sa-chip__dot{width:8px;height:8px;border-radius:50%;background:var(--pc,var(--secondary));flex:0 0 auto}
+.sa-chip__k{font-family:var(--font-ui);font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.sa-chip--outcome{border-style:dashed}
+.sa-chip--input.is-active,
+.sa-chip--input[aria-pressed="true"]{border-color:var(--pc,var(--secondary));background:rgba(255,255,255,.06)}
+
+/* outcome row anchored in the canvas bottom (eyebrow + scrollable chip rail) */
+.sa-outrow{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  display:flex;flex-direction:column;gap:6px;padding:18px 10px 10px;
+  background:linear-gradient(180deg,transparent,rgba(7,6,12,.72) 58%);
+}
+.sa-outrow__rail{display:flex;align-items:stretch;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.sa-outrow__rail::-webkit-scrollbar{display:none}
+
+/* detail card over the canvas — backdrop-blur scrim, spring pop, tap-outside closes */
+.sa-scrim{
+  position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  background:rgba(7,6,12,.48);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  animation:sa-fade .16s var(--ease) both;
+}
+.sa-scrim[hidden]{display:none}
+.sa-detailcard{
+  width:min(320px,86%);max-height:92%;overflow-y:auto;outline:none;
+  border-radius:var(--radius-card);padding:16px 16px 14px;
+  background:var(--plate-solid);border:1px solid var(--line-strong);
+  box-shadow:0 24px 60px rgba(0,0,0,.55);
+  animation:sa-pop .32s var(--ease-spring) both;
+}
+@keyframes sa-fade{from{opacity:0}}
+@keyframes sa-pop{from{transform:scale(.92) translateY(8px);opacity:0}}
+
+/* control sheet — input chips + ONE active slider (tap a chip to switch) */
+.sa-controlsheet{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sa-controlsheet__rail{display:flex;gap:8px;align-items:stretch;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.sa-controlsheet__rail::-webkit-scrollbar{display:none}
+.sa-controlsheet input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;min-width:0;height:44px;cursor:pointer;background:transparent;
+}
+.sa-controlsheet input[type=range]::-webkit-slider-runnable-track{
+  height:4px;border-radius:999px;
+  background:linear-gradient(90deg,var(--pc,var(--secondary)) var(--fill,50%),rgba(255,255,255,.20) var(--fill,50%));
+}
+.sa-controlsheet input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;margin-top:-7px;
+  background:var(--ink);border:2px solid var(--pc,var(--secondary));box-shadow:0 1px 3px rgba(0,0,0,.5);
+}
+.sa-controlsheet input[type=range]::-moz-range-track{height:4px;border-radius:999px;background:rgba(255,255,255,.20)}
+.sa-controlsheet input[type=range]::-moz-range-progress{height:4px;border-radius:999px;background:var(--pc,var(--secondary))}
+.sa-controlsheet input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--ink);border:2px solid var(--pc,var(--secondary))}
+.sa-controlsheet__minmax{
+  display:flex;justify-content:space-between;gap:8px;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:10px;font-weight:500;color:var(--muted);
+}

@@ -1,0 +1,145 @@
+{
+  "deadline": "2026-08-25T08:58:00",
+  "startedAt": "2026-08-25T01:27:00",
+  "currentPhase": 1,
+  "phases": {
+    "1": {
+      "name": "Kollegeometri",
+      "state": "done",
+      "gate": "PORT 1 gronn — hver rad har enten hentbar URL eller eksplisitt antagelsesmerking",
+      "attempts": 0,
+      "notes": "57 agenter, 48 kildekontroller (11 bekreftet, 5 avvist). 43% sitert. F11: jernets sweetspot ER ballradiusen — verifisert 1.42e-14 mm over 1250 caser."
+    },
+    "2": {
+      "name": "Realismetabell",
+      "state": "done",
+      "gate": "PORT 2 gronn — tools/d0-realisme.mjs kjorer og produserer tabellen",
+      "attempts": 0,
+      "notes": "442 siterte tall, 0 gjettede. 7124 rpm dobbeltbekreftet. Referanseutgave last: Trackman 2023. BLOKKERING: amatorband finnes ikke publisert (9 tall totalt). AMATOR: 613 siterte tall, men 0 av de 9 metrikkene. Maaleproblem, ikke sokeproblem. Carry enhetsblokkert (alt er total)."
+    },
+    "3": {
+      "name": "Opprydding baseline",
+      "state": "mostly-done",
+      "gate": null,
+      "attempts": 0,
+      "notes": "[16] flightOptions fjernet. [12] NaN-vakt. [19] lost som differensialtest (6741 komb, bit-identisk) + omdopt til aero-reference.js. Gjenstar: [15] RangeError, [17] Studio-validering, [20] presentasjonskonstanter, [21] spinMagnitude, driver-band-test."
+    },
+    "4": {
+      "name": "D1b: spinnrekalibrering forst, RK4 ma bevise seg",
+      "state": "analysed-blocked",
+      "gate": null,
+      "attempts": 0,
+      "notes": "D0-porten bygget med deklarert loftantagelse (D39) + fornuftssjekk (D38). PORT ROD: launch 6/12, spinn 7/12, carry 12/12. F12: motoren er kalibrert rundt korte jern; selvkonsistens 0.1 grader ved 9-jern mot 6.0 ved hybrid. Driver og hybrid kan aldri na tourens carry. F13: LAUNCH-modellen er den odelagte, ikke spinn. Folsomhet 0.167 grader per grad loft i driveromraadet mot reelle 0.75. Vendepunkt 7.04 grader gir bakvendt fysikk under det."
+    },
+    "5": {
+      "name": "Kontaktmodell",
+      "state": "done",
+      "gate": "PORT 5 GRONN: offset overskrider aldri halve flaten (2500 caser) OG en klassifiserer OG driver-fra-bakken uttrykkbar OG attack/path bit-uendret fra v1. D4 gear effect gjenstar som EGEN blokkering paa data.",
+      "attempts": 0,
+      "notes": "contactModel.js + strikeBand.js v2. D3, D5, D17b, D24, F6, F11 lukket. Turf-regelen reproduserer 1239/1250 = 99.12% av jerncasene paa tre akser (koellehoyde, effectiveLowPoint, theta). Whiff-terskel = 1.4 x ballradius, utledet. Restfeil 11 caser pinnet i test. D4 halvert: vertikal kan lukkes, horisontal blokkert paa truth-data."
+    }
+  },
+  "log": [
+    {
+      "t": "02:13",
+      "e": "fase 1+2 workflows startet, fase 3 begynt direkte",
+      "tOpprinnelig": "02:13"
+    },
+    {
+      "t": "02:30",
+      "e": "fase 3: tre storste funn lukket, 424 tester gronne",
+      "tOpprinnelig": "02:30"
+    },
+    {
+      "t": "02:40",
+      "e": "D27-D31 last: enheter=brukervalg+innstillinger, desimaler=forslag, retning=bokstav/fortegn, sprak=engelsk. Ny flate: Innstillinger.",
+      "tOpprinnelig": "02:40"
+    },
+    {
+      "t": "03:00",
+      "e": "Fase 2 FERDIG. Korreksjon: spinn er systematisk +11-14% for hoyt paa BEGGE koller, ikke bare driver. Tidligere diagnose blandet to Trackman-utgaver.",
+      "tOpprinnelig": "03:00"
+    },
+    {
+      "t": "03:15",
+      "e": "D32-D35 last. D1 avvist paa maledata. Spinnmodellen har feil funksjonsform.",
+      "tOpprinnelig": "03:15"
+    },
+    {
+      "t": "03:30",
+      "e": "Fase 1 FERDIG. F11 verifisert: jernets faceCentreOffsetMm har aldri vaert et treffpunkt.",
+      "tOpprinnelig": "03:30"
+    },
+    {
+      "t": "03:40",
+      "e": "D40-D44: to linser (DIRECTION/HEIGHT), utfall fordelt paa plan, Connections rent generelt og motoruavhengig.",
+      "tOpprinnelig": "03:50"
+    },
+    {
+      "t": "03:45",
+      "e": "F12: tre uavhengige malinger viser samme kalibreringssenter (kort jern). Hardt carry-tak pa driver.",
+      "tOpprinnelig": "04:10"
+    },
+    {
+      "t": "03:50",
+      "e": "Fase 5 delvis: contactModel.js med lie og kollegeometri separert. Tre tidligere umulige tilstander na uttrykkbare.",
+      "tOpprinnelig": "04:35"
+    },
+    {
+      "t": "03:52",
+      "e": "D5 lukket: en klassifiserer, kollekorrekt vokabular. 438 tester.",
+      "tOpprinnelig": "04:45"
+    },
+    {
+      "t": "03:54",
+      "e": "DESIGN.md: interaksjonstilstander, fem tilstander utenfor normalen, bevegelsestokens. Lint 0/0. Designsystem ~85%.",
+      "tOpprinnelig": "05:05"
+    },
+    {
+      "t": "03:56",
+      "e": "DESIGN.md komplett: datavisualisering, responsivitet, ikonografi, appikon. Alle 12 designhull lukket. Lint 0/0.",
+      "tOpprinnelig": "05:20"
+    },
+    {
+      "t": "03:57",
+      "e": "Klassifiserer rettet: fant fortegnsfeil i min egen v2 (320 Whiff->Pure). Spec 8.5 bruker TRE akser. Na 99.12%.",
+      "tOpprinnelig": "06:05"
+    },
+    {
+      "t": "06:15",
+      "e": "D7-DIFF.md skrevet. 67.1% uendret, alle 822 endringer forklarlige. Diffen fanget fortegnsfeil mine egne tester ikke kunne se."
+    },
+    {
+      "t": "03:57",
+      "e": "KORREKSJON: tidsstempler 04:10-06:16 i loggen var anslag, ikke maalinger. Rettet mot faktisk klokke."
+    },
+    {
+      "t": "04:05",
+      "e": "F13 + D45: launch-modellen omprioritert som kritisk sti. F12 bekreftet fjerde gang."
+    },
+    {
+      "t": "04:12",
+      "e": "Fase 5 FERDIG bortsett fra D4. studioSolve integrasjonstestet mot 2500 caser. All kjent gjeld fra uttrekket lukket."
+    },
+    {
+      "t": "04:40",
+      "e": "F14+F15: amatorballflukt finnes ikke publisert. Persepsjonsgap 17-22 yd maalt — korrekt tall vil oppleves for kort."
+    },
+    {
+      "t": "08:12",
+      "e": "Begge workflows landet. F14, F15, F16, F17 dokumentert. D48-D51 last. Loop avsluttes."
+    },
+    {
+      "t": "2026-08-26",
+      "e": "D82-D85: designsystem v3 (mockenes sprak). DESIGN.md omskrevet, lint 0/0, tokens regenerert (45), Claude Design re-synket, KORREKSJON-V3 til A/B/C. v2 parkert."
+    }
+  ],
+  "newScope": [
+    "Innstillinger-flate (D31)",
+    "Onboarding enhetssteg (D27)",
+    "05-ASK 28 sporsmal ma oversettes til engelsk (D30)",
+    "Connections blir statisk graf — INGEN motoravhengighet (D44), betydelig billigere"
+  ],
+  "timeNote": "Tidsstempler skal maales med date, aldri anslaas. Feil oppdaget 03:57.",
+  "finalState": "Fase 1,2,5 ferdige. Fase 3 delvis (resten foreldet). Fase 4 analysert og blokkert paa maaledata."
+}

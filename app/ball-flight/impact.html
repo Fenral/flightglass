@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#07060C" />
+<meta name="robots" content="noindex" />
+<script src="../shared/sa-view-transition-guard.js"></script>
+<title>See the Shot — Live Outcome, Side and Top</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2052%2052'%20fill='none'%3E%3Cpath%20d='M11%2045%20C%2016%2026,%2024%2018,%2035%2015%20M21%2039%20L%2030%2024%20L%2043%2045'%20stroke='%239D8BFF'%20stroke-width='4.2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3Ccircle%20cx='37'%20cy='15'%20r='5.2'%20fill='%23FF8A4D'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="../shared/sa-p3.css" />
+<link rel="stylesheet" href="./sa.css" />
+<link rel="stylesheet" href="../shared/sa-paywall.css" />
+<link rel="stylesheet" href="../onboarding/onboarding.css" />
+<style>
+  /* ══ IMPACT · KAMERA (Økt B) ══════════════════════════════════════
+     Én scene, tre kamerastasjoner (design/orders/impact-kamera.md).
+     Erstatter DUAL-LENS-layouten + de tre SVG-visningene — beslutning B1
+     i docs/systemkontrakt.md §9. Identity-tokens konsumeres fra sa-p3.css;
+     null hardkodede fargeverdier her (K4): alt går via tokens/color-mix. */
+  :root{
+    --panel:color-mix(in srgb, var(--surface) 82%, transparent);
+    /* anatomy colours — bound to the ONE HUE · ONE MEANING dictionary */
+    --c-face:var(--q-face); --c-path:var(--q-path); --c-loft:var(--q-loft);
+    --c-attack:var(--q-attack); --c-launch:var(--q-launch);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body{
+    background:var(--dusk-scene-bg);
+    color:var(--ink);
+    font-family:var(--font-ui);
+  }
+  /* sa-depth setter sin egen body-bakgrunn med høyere spesifisitet enn body{}
+     — denne siden eier dusk-scenen (mock-normativ), så den vinner her.
+     Grain-laget (body.sa-depth::after) beholdes: det dreper banding i gradienten. */
+  body.sa-depth{
+    background:var(--dusk-scene-bg);
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;-webkit-user-select:none;
+  }
+  .app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+  /* ══ TOP STRIP — quiet app chrome; the instrument lives in the dock. ══ */
+  .topstrip{
+    flex:0 0 auto;position:relative;display:flex;align-items:center;gap:10px;
+    box-sizing:border-box;min-height:calc(48px + env(safe-area-inset-top));
+    padding:env(safe-area-inset-top) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, color-mix(in srgb, var(--surface) 66%, transparent), transparent);
+  }
+  body.sa-shell-ready .topstrip{min-height:max(8px,env(safe-area-inset-top));padding-top:env(safe-area-inset-top);border-bottom-color:color-mix(in srgb,var(--line) 45%,transparent)}
+  /* D64/N-b + v3 home-circle: 44px pille i plate, ordet i label-typografi. */
+  .ts-back{-webkit-tap-highlight-color:transparent;text-decoration:none;flex:0 0 auto;
+    width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;
+    color:var(--ink);border:1px solid var(--line);border-radius:var(--radius-pill);
+    background:var(--plate-solid);
+    font:700 10px/1.3 var(--font-ui);letter-spacing:.1em;
+    view-transition-name:sa-nav;transition:transform .15s,border-color .2s}
+  .ts-back:hover{border-color:var(--secondary-line)}
+  .ts-back:active{transform:scale(.93)}
+  .ts-back:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .speedctl{margin-left:auto;display:flex;align-items:center;gap:4px;padding:2px;
+    border:1px solid color-mix(in srgb,var(--secondary) 38%,transparent);border-radius:var(--radius-pill);
+    background:color-mix(in srgb,var(--surface) 62%,transparent)}
+  .speedctl[hidden]{display:none}
+  .speedctl button{appearance:none;width:44px;height:44px;border:0;border-radius:50%;cursor:pointer;
+    color:var(--secondary);background:color-mix(in srgb,var(--secondary) 12%,transparent);
+    font:700 17px/1 var(--font-ui)}
+  .speedctl button:active{background:color-mix(in srgb,var(--secondary) 26%,transparent)}
+  .speedctl button:focus-visible,.speedctl output:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .speedctl output{min-width:76px;min-height:44px;display:grid;place-items:center;border-radius:var(--radius-control);
+    color:var(--secondary);font:700 13px/1 var(--font-data);font-variant-numeric:tabular-nums}
+  body.sa-shell-ready[data-range-lens="side"] .topstrip,
+  body.sa-shell-ready[data-range-lens="top"] .topstrip{min-height:calc(48px + env(safe-area-inset-top));
+    padding-top:env(safe-area-inset-top)}
+
+  /* ══ SCENE — ett canvas, kamerastyrt ══ */
+  .scene{flex:1 1 auto;position:relative;min-height:0;overflow:hidden;isolation:isolate}
+  .scene::before{content:"";position:absolute;inset:0;z-index:-2;
+    background-image:linear-gradient(180deg,color-mix(in srgb,var(--bg) 18%,transparent),color-mix(in srgb,var(--bg) 72%,transparent)),url('./assets/range-night-3d-33.png');
+    background-position:center bottom;background-size:cover;opacity:0;
+    transform:scale(1.025);transition:opacity .34s var(--ease),transform 1.1s var(--ease)}
+  .scene::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 70%,transparent) 0%,transparent 38%),
+      linear-gradient(0deg,color-mix(in srgb,var(--bg) 76%,transparent) 0%,transparent 42%)}
+  .scene[data-lens="outcome"]::before{opacity:.48;transform:scale(1)}
+  .scene canvas{position:absolute;top:0;left:0;z-index:1;width:100%;height:var(--range-visual-height,100%);display:block;touch-action:none;cursor:grab}
+  .scene canvas:active{cursor:grabbing}
+
+
+  /* Carry is the permanent outcome anchor. It never yields its left edge to
+     the shot; secondary scene actions move around it instead. */
+  .carryHero{position:absolute;left:max(12px,env(safe-area-inset-left));top:12px;z-index:5;
+    min-width:104px;pointer-events:none;color:var(--ink);font-variant-numeric:tabular-nums}
+  .carryHero .num{display:flex;align-items:baseline;gap:3px;
+    font:600 40px/.94 var(--font-data);letter-spacing:-.03em;
+    font-variation-settings:'wdth' 125; /* DESIGN.md: display-tall kjoerer bred Archivo */
+    text-shadow:0 7px 18px color-mix(in srgb,var(--bg) 78%,transparent)}
+  .carryHero .unit{color:var(--muted);font:600 14px/1 var(--font-data);letter-spacing:0}
+  .carryHero .label{margin-top:5px;color:var(--muted-2);
+    font:600 10px/1 var(--font-data);letter-spacing:.16em}
+
+  /* A settled shot earns the canvas: one conclusion and two supporting facts. */
+
+  /* Lens switch: camera is independent of the active input. */
+  .stations{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;margin:0 0 6px;padding:2px;
+    border:1px solid color-mix(in srgb,var(--line) 72%,transparent);border-radius:var(--radius-control);
+    background:color-mix(in srgb,var(--surface) 36%,transparent)}
+  .stdiv{width:1px;height:22px;align-self:center;background:var(--line-strong)}
+  .stations button{appearance:none;border:0;background:transparent;color:var(--muted);
+    font:700 10px/1 var(--font-ui);letter-spacing:.1em;min-height:44px;
+    padding:0 10px;border-radius:var(--radius-control);cursor:pointer;position:relative;
+    transition:background .25s,color .25s}
+  .stations button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .stations button[aria-pressed="true"]{background:var(--secondary-soft);color:var(--secondary)}
+  .stations[hidden]{display:none}
+
+  /* Top actions use SVG and true 44 px targets. */
+  .pinfab{position:absolute;top:12px;z-index:6;min-width:44px;min-height:44px;
+    appearance:none;cursor:pointer;font:700 10px/1 var(--font-ui);letter-spacing:.04em;
+    color:var(--secondary);background:var(--panel);border:1px solid color-mix(in srgb, var(--secondary) 45%, transparent);
+    border-radius:var(--radius-control);padding:0 12px;display:flex;align-items:center;gap:7px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    transition:transform .15s,left .24s var(--ease),top .24s var(--ease)}
+  .pinfab{right:max(12px,env(safe-area-inset-right))}
+  .pinfab[data-side]{right:auto;left:var(--pin-x);top:var(--pin-y)}
+  .pinfab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .pinfab:active{transform:scale(.95)}
+  .pinfab:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* Compact, centred control deck — no desktop-wide 1400 px sliders. */
+  .card{position:absolute;left:50%;width:min(760px,calc(100% - 20px));z-index:6;transform:translateX(-50%);
+    /* D126: 60px + safe-area reservert under kortet til H sin modulmeny.
+       A bygger IKKE menyen — plassen holdes av til den sentralbygde. */
+    bottom:calc(60px + env(safe-area-inset-bottom) + 8px);
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    box-shadow:0 18px 46px color-mix(in srgb,var(--bg) 48%,transparent);
+    padding:6px 10px 8px;pointer-events:auto} /* V1: komprimert */
+  .scene[data-range-mode="change"][data-lens="outcome"] .card{
+    border-color:color-mix(in srgb,var(--secondary) 28%,var(--line));
+    background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 88%,transparent),color-mix(in srgb,var(--plate-solid) 94%,transparent));
+    box-shadow:0 22px 54px color-mix(in srgb,var(--bg) 58%,transparent)}
+  .panewrap{overflow:visible}
+  .panehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 3px 8px}
+  .panehead .h-title{color:var(--secondary);font:700 10px/1 var(--font-ui);letter-spacing:.18em}
+  .panehead .h-title.live{color:var(--accent)}
+  .pane{min-height:0}
+  /* D11: den ene globale modellgrense-setningen — caption i muted */
+  .modelNote{margin:8px 3px 0;color:var(--muted-2);font:400 11px/1.5 var(--font-ui)}
+  .parameterRail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin-bottom:10px}
+  .parameterRail button{--control-color:var(--secondary);appearance:none;min-width:0;min-height:52px;padding:6px 3px 5px;
+    display:grid;place-items:center;align-content:center;gap:4px;border:1px solid color-mix(in srgb,var(--control-color) 18%,transparent);
+    border-radius:var(--radius-control);color:var(--muted);background:transparent;cursor:pointer}
+  .parameterRail button[aria-pressed="true"]{color:var(--ink);background:color-mix(in srgb,var(--control-color) 16%,transparent)}
+  .parameterRail button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .paramName{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;
+    font:700 10px/1 var(--font-ui);letter-spacing:.03em;white-space:nowrap}
+  .paramName::before{content:"";width:5px;height:5px;flex:0 0 auto;border-radius:50%;background:var(--control-color)}
+  .paramValue{font:700 12px/1 var(--font-data);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .parameterRail button[aria-pressed="true"] .paramValue{color:var(--control-color)}
+  .activeControl{--control-color:var(--secondary);--value-pct:50%;--ref-pct:50%;--fill-left:50%;--fill-width:0%;--ghost-pct:50%}
+  .controlHead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 4px 4px}
+  .controlName{font:700 10px/1 var(--font-ui);letter-spacing:.13em;color:var(--muted)}
+  .controlValue{font:700 18px/1 var(--font-data);font-variant-numeric:tabular-nums;color:var(--control-color)}
+  .controlBody{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:7px}
+  .stepControl{appearance:none;width:44px;height:44px;border:1px solid var(--line);border-radius:var(--radius-control);
+    color:var(--control-color);background:color-mix(in srgb,var(--control-color) 9%,transparent);display:grid;place-items:center;cursor:pointer}
+  .stepControl svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .stepControl:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .controlMeter{position:relative;min-width:0;padding-bottom:16px}
+  .railVisual{position:absolute;left:10px;right:10px;top:21px;height:5px;border-radius:var(--radius-pill);
+    background:color-mix(in srgb,var(--muted) 22%,transparent);overflow:visible}
+  .railVisual::before{content:"";position:absolute;inset:-4px 0;
+    background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),color-mix(in srgb,var(--muted) 27%,transparent) calc(10% - 1px),color-mix(in srgb,var(--muted) 27%,transparent) 10%);
+    opacity:.5;mask:linear-gradient(transparent 0,black 35%,black 65%,transparent 100%)}
+  .railFill{position:absolute;left:var(--fill-left);width:var(--fill-width);top:0;height:100%;border-radius:inherit;background:var(--control-color)}
+  .railRef{position:absolute;left:var(--ref-pct);top:-6px;width:2px;height:17px;transform:translateX(-1px);background:var(--ink);opacity:.58}
+  .railGhost{position:absolute;left:var(--ghost-pct);top:50%;width:7px;height:7px;border:1px solid var(--muted);border-radius:50%;transform:translate(-50%,-50%);background:var(--plate-solid)}
+  .activeControl input[type="range"]{-webkit-appearance:none;appearance:none;position:relative;display:block;width:100%;height:48px;margin:0;
+    background:transparent;touch-action:none;cursor:pointer}
+  .activeControl input[type="range"]:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:var(--radius-control)}
+  .activeControl input[type="range"]::-webkit-slider-runnable-track{height:5px;background:transparent}
+  .activeControl input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;border-radius:50%;margin-top:-10.5px;
+    background:var(--plate-solid);border:3px solid var(--control-color);box-shadow:0 0 0 5px color-mix(in srgb,var(--control-color) 15%,transparent),0 6px 12px color-mix(in srgb,var(--bg) 48%,transparent)}
+  .activeControl input[type="range"]::-moz-range-track{height:5px;background:transparent}
+  .activeControl input[type="range"]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--plate-solid);border:3px solid var(--control-color)}
+  .controlScale{position:absolute;left:10px;right:10px;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+    color:var(--muted-2);font:500 10px/1 var(--font-data);font-variant-numeric:tabular-nums;pointer-events:none}
+  .controlScale span:last-child{text-align:right}
+  .controlScale #controlReference{color:var(--ink)}
+  .controlCause{min-height:13px;margin:6px 4px 0;color:var(--muted-2);font:500 10px/1.25 var(--font-ui)}
+
+  /* Restored analytical panes: two wide, truthful controls per camera. */
+  .planeSliders{display:grid;gap:11px}
+  .sl{--c:var(--secondary);--value-pct:50%;--ref-pct:50%;--fill-left:50%;--fill-width:0%}
+  .sl .head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 3px 2px}
+  .sl .name{display:flex;align-items:center;gap:7px;color:var(--muted);
+    font:700 10px/1 var(--font-ui);letter-spacing:.12em}
+  .sl .name i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+  .sl .val{color:var(--c);font:700 16px/1 var(--font-data);font-variant-numeric:tabular-nums}
+  .slMeter{position:relative;padding-bottom:12px}
+  .slMeter .railVisual{left:8px;right:8px;top:19px}
+  .sl input[type="range"]{-webkit-appearance:none;appearance:none;position:relative;display:block;width:100%;height:44px;
+    margin:0;background:transparent;touch-action:none;cursor:pointer}
+  .sl input[type="range"]:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:var(--radius-control)}
+  .sl input[type="range"]::-webkit-slider-runnable-track{height:5px;background:transparent}
+  .sl input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:26px;height:26px;
+    margin-top:-10.5px;border-radius:50%;background:var(--plate-solid);border:3px solid var(--c);
+    box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 15%,transparent),0 6px 12px color-mix(in srgb,var(--bg) 48%,transparent)}
+  .sl input[type="range"]::-moz-range-track{height:5px;background:transparent}
+  .sl input[type="range"]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--plate-solid);border:3px solid var(--c)}
+  .slScale{position:absolute;left:8px;right:8px;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;
+    color:var(--muted-2);font:500 10px/1 var(--font-data);font-variant-numeric:tabular-nums;pointer-events:none}
+  .slScale span:nth-child(2){color:var(--ink)}
+  .slScale span:last-child{text-align:right}
+
+  /* ══ READOUT-CHIPS — dashed = avlesning, ingen unntak (ordre §2) ══ */
+  .readouts{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border-radius:12px;padding:8px 11px;min-width:74px;flex:1;
+    background:color-mix(in srgb, var(--surface) 62%, transparent);
+    transition:transform .14s var(--ease),background .14s var(--ease),border-color .14s var(--ease),box-shadow .14s var(--ease)}
+  .chip.read{border:1px dashed color-mix(in srgb, var(--q-measure) 40%, transparent)}
+  .chip .k{font-size:10px;letter-spacing:.14em;color:var(--muted-2);white-space:nowrap}
+  .chip .v{font-size:15px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .chip .v em{font-style:normal;font-size:10px;font-weight:500;color:var(--muted)}
+  .chip .delta{display:block;min-height:10px;margin-top:3px;color:var(--muted);
+    font:600 10px/1 var(--font-data);font-variant-numeric:tabular-nums}
+  .chip[data-changed="true"]{transform:translateY(-2px);
+    border-color:color-mix(in srgb,var(--accent) 78%,transparent);
+    background:color-mix(in srgb,var(--accent) 13%,var(--surface));
+    box-shadow:0 8px 20px color-mix(in srgb,var(--accent) 16%,transparent)}
+  .chip[data-changed="true"] .v{color:var(--accent)}
+  /* mini-rad og utfoldet grid trenger mindre typografi enn en generisk chip
+     for å unngå avkutting ved fire-i-rad på smale skjermer (mock-presedens) */
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  /* ══ ANNOTASJONSLAGET — etiketter i DOM, geometri i canvas (§5.4/Økt D) ══
+     Måle-etiketter i ravfamilien (ordre §3, --q-measure — A10). Laget er
+     aria-hidden: #fCarryLive forblir eneste annonseringskanal (§5.4, uendret
+     kontrakt) — disse er supplerende visuell detalj, ikke ny data. */
+  .annoLabels{position:absolute;top:0;left:0;width:100%;height:var(--range-visual-height,100%);overflow:hidden;pointer-events:none;z-index:4}
+  .annoLabel{position:absolute;top:0;left:0;transform:translate(-50%,-50%);
+    padding:2px 9px;border-radius:8px;font-size:10.5px;font-weight:600;
+    white-space:nowrap;font-variant-numeric:tabular-nums;
+    background:color-mix(in srgb, var(--surface) 82%, transparent);
+    border:1px solid color-mix(in srgb, var(--q-measure) 30%, transparent);
+    color:var(--q-measure)}
+  .annoLabel.hot{font-weight:700;
+    box-shadow:0 0 8px color-mix(in srgb, var(--q-measure) 55%, transparent)}
+  .annoLabel[data-tone="launch"]{color:var(--q-launch);border-color:color-mix(in srgb,var(--q-launch) 34%,transparent)}
+  .annoLabel[data-tone="launch"].hot{box-shadow:0 0 8px color-mix(in srgb,var(--q-launch) 55%,transparent)}
+  /* D15/D81: ingen gloed paa etiketter — hot baeres av vekt (700) alene */
+  .annoLabel[hidden]{display:none}
+
+  @media (prefers-reduced-motion:reduce){
+    .stations button,.pinfab,.scene::before,.chip{transition:none}
+    .chip[data-changed="true"]{transform:none;box-shadow:none}
+  }
+  @media (min-width:780px){.card{padding-inline:16px}}
+  @media (max-width:390px){
+    .pinfab{padding-inline:10px}.pinfab span{display:none}
+    .card{padding-inline:9px}
+    .paramName{font-size:10px;letter-spacing:0}.paramValue{font-size:11px}
+    .controlCause{display:none}
+  }
+</style>
+</head>
+<body class="sa-depth">
+  <div class="app">
+
+    <!-- Quiet top chrome. The shared native shell hides this back affordance. -->
+    <div class="topstrip">
+      <!-- D64/N-b: HOME-kontrollen er ORDET i en 44px sirkel, aldri et ikon. -->
+      <a class="ts-back" data-home-exit href="../home/index.html" aria-label="Home">HOME</a>
+      <!-- Utenfor koellekonvolutten (D21/D23): binaert merke, aldri blokkering -->
+      <span class="envMark" id="envMark" hidden></span>
+      <div class="speedctl" id="sideTopSpeed" hidden aria-label="Club speed">
+        <button type="button" id="spMinus" aria-label="Decrease club speed">−</button>
+        <output id="topSpeedVal" tabindex="0" role="slider" aria-label="Club speed" aria-valuemin="30" aria-valuemax="150" aria-valuenow="90" aria-valuetext="90 mph">90 mph</output>
+        <button type="button" id="spPlus" aria-label="Increase club speed">+</button>
+      </div>
+    </div>
+
+    <!-- ══ SCENE — én scene, tre kamerastasjoner ══ -->
+    <main class="scene" id="stage">
+      <!-- Kontrakt (docs/systemkontrakt.md §5.4): scenen er aria-hidden (den
+           oppdateres hver frame); role="img"+aria-label beholdes på canvas;
+           #fCarryLive under er den ENESTE live-regionen. Etiketter hører til
+           DOM-laget (Økt D), aldri canvas. -->
+      <canvas id="scene" aria-hidden="true" role="img"
+        aria-label="Live shot outcome scene with top-down direction and side-on launch views."></canvas>
+
+      <!-- Annotasjonsetiketter (Økt D) — DOM, ikke canvas (§5.4). Samme
+           a11y-kontrakt som scenen: aria-hidden, ren visuell detalj. -->
+      <div class="annoLabels" id="annoLabels" aria-hidden="true"></div>
+
+      <div class="carryHero" id="fCarryStack" aria-hidden="true">
+        <div class="num"><span id="fCarryNum">0</span><span class="unit">m</span></div>
+        <div class="label">CARRY</div>
+      </div>
+      <div class="sr-only" id="fCarryLive" aria-live="polite" aria-atomic="true"></div>
+
+
+      <!-- Shot reads first. Change and Details are intentional depths; the
+           camera is never a second source of physics. -->
+      <div class="card" id="panel">
+        <!-- D40/D42: to linser, ikke tre. OUTCOME/FLIGHT er fjernet;
+             utfallene bor i linsene og Details. -->
+        <div class="stations" id="stseg" role="group" aria-label="Lens">
+          <button type="button" data-s="2" aria-pressed="false">DIRECTION</button>
+          <button type="button" data-s="1" aria-pressed="false">HEIGHT</button>
+        </div>
+        <div class="panewrap">
+          <div class="panehead"><span class="h-title" id="paneTitle">EDIT INPUT</span></div>
+          <!-- No-flight-svaret likesaa: tilstanden naas ved aa dra -->
+          <p class="paneNotice" id="paneNotice" hidden><b>NO FLIGHT</b> <span id="paneNoticeText"></span></p>
+          <div class="pane" id="pane"></div>
+          <!-- D11: modellgrense-setningen bor her naar Details er borte (provisorisk plassering) -->
+          <p class="modelNote">Modelled shot — not a measurement. Strike is assumed centred.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script type="module">
+import { rigAt, buildBasis, project } from './impact-camera.js';
+import { RANGE_HOME_FIT, fitZoom, gridStops, lateralStops, dollyRig } from './impact-framing.js';
+import { selectOutcome, UNIT_SYSTEM } from './impact-outcome.js';
+// D76: all avrunding/formatering per D28/D29 leveres av adapteren — ingen
+// lokale formatregler som kan drifte fra DESIGN.md-tabellen.
+import { displayValue } from '../../adapter/src/displayFlight.js';
+import { buildAnnotations, placeLabels, cometPoint, MEASURE_KEEPOUT } from './impact-annotate.js';
+import haptics from '../shared/sa-haptics.js';
+import { authorize, consume } from '../shared/sa-access.js';
+import * as saIap from '../shared/sa-iap.js';
+import { track } from '../shared/sa-analytics.js';
+
+const iapReady = saIap.init();
+const showPaywall = async moment => (await import('../shared/sa-paywall.js')).openPaywall(moment);
+
+// Home can open the same production instrument directly at its D-plane lens.
+// This is only an entry state: physics, input state and cameras remain owned by
+// this document and the existing Range modules.
+const requestedSurface = new URLSearchParams(location.search).get('surface');
+// Eiervedtak (V1): direkte inn i redigering, DIRECTION (D40/B-d)
+const rangeEntry = Object.freeze({ rangeMode: 'change', station: 2 });
+
+/* ══ state — docs/systemkontrakt.md §3.1. Parametrene er eneste input-
+   sannhet; `station` er kamera, aldri parameter (§3.4): scrub re-solver
+   aldri fysikk, parameterendring rører aldri kamera. */
+const state = {
+  face: 2.0, path: 0.0, attack: 3.0, dynLoft: 24, speed: 90,
+  station: rangeEntry.station, // kontinuerlig 1=HEIGHT · 2=DIRECTION (D40: outcome fjernet)
+  rangeMode: rangeEntry.rangeMode, // shot = read, change = one controlled edit, details = grouped telemetry
+  allMetrics: false,
+  collapsed: false,
+};
+
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const TAU = Math.PI * 2;
+let frameRequest = null;
+function queueFrame() {
+  if (frameRequest !== null) return;
+  frameRequest = requestAnimationFrame(frame);
+}
+
+/* ══ canvas ══ */
+const stage = document.getElementById('stage');
+const cv = document.getElementById('scene');
+const ctx = cv.getContext('2d');
+const editorPanel = document.getElementById('panel');
+const fCarryStack = document.getElementById('fCarryStack');
+const fCarryNum = document.getElementById('fCarryNum');
+const VISUAL_PANEL_GAP = 8;
+let W = 0, H = 0;
+let resizePending = false;
+let overlayMetricsDirty = true;
+function resize() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const stageRect = stage.getBoundingClientRect();
+  const panelRect = editorPanel.getBoundingClientRect();
+  const panelSafeHeight = Math.max(1, Math.floor(panelRect.top - stageRect.top - VISUAL_PANEL_GAP));
+  const visualHeight = stage.dataset.tracer === 'on' ? panelSafeHeight : stage.clientHeight;
+  stage.style.setProperty('--range-visual-height', `${visualHeight}px`);
+  W = cv.clientWidth; H = cv.clientHeight;
+  const bitmapWidth = Math.max(1, Math.round(W * dpr));
+  const bitmapHeight = Math.max(1, Math.round(H * dpr));
+  // Assigning either bitmap dimension clears the canvas. Avoid a late
+  // ResizeObserver callback blanking a frame whose geometry did not change.
+  if (cv.width !== bitmapWidth || cv.height !== bitmapHeight) {
+    cv.width = bitmapWidth;
+    cv.height = bitmapHeight;
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  overlayMetricsDirty = true;
+}
+function scheduleResize() { resizePending = true; queueFrame(); }
+addEventListener('resize', scheduleResize);
+if ('ResizeObserver' in window) new ResizeObserver(scheduleResize).observe(editorPanel);
+resize();
+
+/* ══ farger — kun via tokens (K4). Leses computed én gang; alpha legges
+   på programmatisk (ingen fargeverdier hardkodes her). */
+const rootStyle = getComputedStyle(document.documentElement);
+function tokenRGB(name) {
+  const v = rootStyle.getPropertyValue(name).trim();
+  let m = v.match(/^#([0-9a-f]{6})$/i);
+  if (m) {
+    const n = parseInt(m[1], 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  m = v.match(/^#([0-9a-f]{3})$/i);
+  if (m) return [...m[1]].map(c => parseInt(c + c, 16));
+  m = v.match(/rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/i);
+  if (m) return [+m[1], +m[2], +m[3]];
+  return [255, 255, 255]; // ukjent format → ink-nøytral fallback
+}
+const COL = {
+  ink: tokenRGB('--ink'),
+  trace: tokenRGB('--trace-live'),
+  ghost: tokenRGB('--ghost'),
+  accent: tokenRGB('--accent'),
+  launch: tokenRGB('--q-launch'),
+  measure: tokenRGB('--q-measure'),
+  grid: tokenRGB('--grid-lav'),
+  fog: tokenRGB('--dusk-fog'),
+};
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+// grid-referansetall tegnes i canvas (scenen er aria-hidden; DOM-poolen er
+// forbeholdt måle-etiketter med kollisjonskaskade). Font fra typetokenet.
+const GRID_FONT = `500 10px ${rootStyle.getPropertyValue('--font-display').trim() || "'Space Grotesk',sans-serif"}`;
+
+/* ══ tegneløkke ══
+   Verden er meter, Z-up: +X nedslag, +Y høyre, +Z høyde (§1.4). Alle punkter
+   går gjennom impact-camera.js sin project(); å lerpe projiserte 2D-punkter
+   er utenfor kontrakten (§5.1/A1). Tekst-etiketter hører til DOM-laget
+   (Økt D) — canvasen tegner kun geometri. */
+let basis = null;
+const P = (x, y, z) => project({ x, y, z }, basis);
+
+function line3(a, b) {
+  const pa = P(a[0], a[1], a[2]), pb = P(b[0], b[1], b[2]);
+  if (!pa || !pb) return;
+  ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+}
+
+// Avrundet rektangel-sti (canvas har ingen innebygd før roundRect bredt støttes).
+function chipPath(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// C — flat 2D distansestripe, tegnet i skjermpiksler nederst på scenen.
+// Bevisst UTENFOR 3D-projeksjonen: en lineær linjal 0→siste stopp, med en
+// prikk der ballen lander og en hul markør ved apex sin nedslagsposisjon.
+function drawDistanceStrip(stops, extent, a) {
+  const maxD = stops[stops.length - 1];
+  // Legg stripa like OVER dokken, ellers okkluderer bunnpanelet den. Dokken
+  // (#panel) er et DOM-overlegg; vi finner toppkanten relativt til scenen.
+  const panel = document.getElementById('panel');
+  let y = H - 46;
+  if (panel && typeof stage !== 'undefined') {
+    const st = stage.getBoundingClientRect(), pr = panel.getBoundingClientRect();
+    y = Math.min(y, pr.top - st.top - 34);
+  }
+  const x0 = 24, x1 = W - 24, ww = x1 - x0;
+  const px = d => x0 + (Math.max(0, Math.min(d, maxD)) / maxD) * ww;
+  ctx.font = GRID_FONT;
+  chipPath(x0 - 8, y - 16, ww + 16, 40, 10);
+  ctx.fillStyle = rgba(COL.fog, 0.5 * a);
+  ctx.fill();
+  ctx.strokeStyle = rgba(COL.grid, 0.14 * a); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const d of [0, ...stops]) {
+    const gx = px(d);
+    ctx.strokeStyle = rgba(COL.grid, 0.3 * a);
+    ctx.beginPath(); ctx.moveTo(gx, y - 4); ctx.lineTo(gx, y + 4); ctx.stroke();
+    ctx.fillStyle = rgba(COL.grid, 0.55 * a);
+    ctx.fillText(d === maxD ? d + ' m' : String(d), gx, y + 7);
+  }
+  // apex sin nedslagsposisjon (≈ halvveis) — hul markør, egen etikett.
+  const ax = px(extent / 2);
+  ctx.strokeStyle = rgba(COL.measure, 0.8 * a); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(ax, y, 3.5, 0, TAU); ctx.stroke();
+  // landing — fylt aksent-prikk + tall.
+  const lx = px(extent);
+  ctx.fillStyle = rgba(COL.accent, 0.95 * a);
+  ctx.beginPath(); ctx.arc(lx, y, 4.5, 0, TAU); ctx.fill();
+  ctx.fillStyle = rgba(COL.accent, 0.95 * a);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText(Math.round(extent) + '', lx, y - 8);
+}
+
+function drawGrid(s, extent = 200, halfWidth = 0, sideSigned = 0) {
+  const topA = clamp(s - 1, 0, 1);
+  const sideA = clamp(1 - Math.abs(s - 1), 0, 1);
+  const perspA = clamp(1 - s, 0, 1);
+  // Rutenettet følger slaget i stedet for å være låst til 50/100/150/200.
+  // `span` er hvor langt linjene på tvers må rekke, og `lat` hvilke
+  // breddeguider som trengs for å dekke utfallet.
+  const stops = gridStops(extent);
+  const lat = lateralStops(halfWidth);
+  const span = Math.max(150, Math.abs(lat[0]) + 50);
+  const reach = stops[stops.length - 1] + 25;
+  // tåkebånd langs horisonten — finnes kun i perspektiv (mock drawGrid)
+  if (perspA > 0.02) {
+    const hy = H * 0.60;
+    const g = ctx.createLinearGradient(0, hy - 46, 0, hy + 56);
+    g.addColorStop(0, rgba(COL.fog, 0));
+    g.addColorStop(0.55, rgba(COL.fog, 0.28 * perspA));
+    g.addColorStop(1, rgba(COL.fog, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, hy - 46, W, 102);
+  }
+  ctx.lineWidth = 1;
+  // nedslagslinjer på tvers (50 m-intervaller) + lengdereferanser (mock drawGrid)
+  ctx.font = GRID_FONT;
+  for (const x of stops) {
+    // In 3D Range, full-width cross-lines read as a horizon floating above the
+    // photograph. Keep only a faint depth cue there; SIDE/TOP retain the
+    // analytical measurement weight.
+    const crossAlpha = 0.025 * perspA + 0.10 * (1 - perspA) + 0.14 * topA;
+    ctx.strokeStyle = rgba(COL.grid, crossAlpha);
+    line3([x, -span, 0], [x, span, 0]);
+    // Etiketten satt like innenfor bredderammen så den følger med når scenen
+    // zoomer ut, i stedet for å bli stående på en fast 112 m-kolonne.
+    const lp = P(x, Math.min(span - 12, 112), 0);
+    if (lp) {
+      ctx.fillStyle = rgba(COL.grid, 0.35 + 0.3 * topA);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText(String(x), lp.x + 4, lp.y - 2);
+    }
+  }
+  // Sideveis-guider + breddereferanser. Disse blendet tidligere til NULL i
+  // FLIGHT (topA=0 der), så den stasjonen sto helt uten målestokk — man kunne
+  // ikke lese av hverken lengde eller bredde. Nå holder de en synlig bunn i
+  // perspektiv og forsterkes mot TOP.
+  const latA = Math.max(0.55 * perspA, topA);
+  if (latA > 0.05) {
+    for (const y of lat) {
+      ctx.strokeStyle = rgba(COL.grid, 0.09 * latA);
+      line3([0, y, 0], [reach, y, 0]);
+    }
+    // Merk bare det ytterste paret, ellers blir TOP full av tall.
+    const edge = Math.max(...lat);
+    const l = P(12, -edge, 0), r = P(12, edge, 0);
+    ctx.fillStyle = rgba(COL.grid, 0.5 * latA);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    if (l) ctx.fillText(edge + ' L', l.x, l.y);
+    if (r) ctx.fillText(edge + ' R', r.x, r.y);
+  }
+  // Lengdereferanse i FLIGHT — tre kandidater eieren skal velge mellom.
+  // Dybden komprimeres kraftig mot horisonten, så en naiv rad distansetall
+  // langs senterlinjen stables til en uleselig grøt; derfor disse tre.
+  if (perspA > 0.05) {
+    if (flightRef === 'gates') {
+      // B — distanseporter: en lav vertikal port ved hver stopp, tallet på
+      // toppen der perspektivet gir loddrett luft mellom nære og fjerne porter.
+      ctx.font = GRID_FONT;
+      for (const x of stops) {
+        ctx.strokeStyle = rgba(COL.grid, 0.16 * perspA);
+        line3([x, 0, 0], [x, 0, 16]);
+        const tp = P(x, 0, 16);
+        if (tp) {
+          ctx.fillStyle = rgba(COL.grid, 0.55 * perspA);
+          ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+          ctx.fillText(x + ' m', tp.x, tp.y - 3);
+        }
+      }
+    } else if (flightRef === 'strip') {
+      // C — flat 2D distansestripe nederst, helt utenfor 3D-perspektivet,
+      // så dybdekomprimeringen ikke rører lesbarheten.
+      drawDistanceStrip(stops, extent, perspA);
+    } else {
+      // A (standard) — ingen egen lengde-etikett inne i scenen. Lengden bor i
+      // hero-tallet øverst (281 m CARRY), og høyden leses av høydestigen.
+      // FLIGHT holdes ren: én utfallsbue, én høydeskala, ett tall.
+    }
+  }
+  // Høydeguider (20/40/60 m). Vises i SIDE, og — for variant A — også i
+  // FLIGHT, som er den lesbare aksen der: høyde går rett opp på skjermen.
+  // Dette er høydestigen; sammen med landingstallet over dekker den både
+  // høyde og lengde uten å slåss mot dybdekomprimeringen.
+  const heightA = Math.max(sideA, flightRef === 'ladder' ? 0.7 * perspA : 0);
+  if (heightA > 0.05) {
+    ctx.setLineDash([2, 5]);
+    ctx.font = GRID_FONT;
+    for (const z of [20, 40, 60]) {
+      ctx.strokeStyle = rgba(COL.grid, 0.11 * heightA);
+      line3([0, 0, z], [reach, 0, z]);
+      // Tallet festet ved det nære enden av linja (x liten), der den er
+      // lavest og lengst fra horisonten — lesbart i begge stasjoner.
+      const hp = P(4, 0, z);
+      if (hp) {
+        ctx.fillStyle = rgba(COL.grid, 0.5 * heightA);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(z + ' m', hp.x + 3, hp.y - 2);
+      }
+    }
+    ctx.setLineDash([]);
+  }
+  // target-linjen — består alltid, men strekker seg nå forbi nedslaget i
+  // stedet for å stoppe på det gamle faste ankeret x≈228.
+  ctx.setLineDash([4, 7]);
+  ctx.strokeStyle = rgba(COL.grid, 0.32);
+  line3([0, 0, 0], [reach, 0, 0]);
+  ctx.setLineDash([]);
+  // ballen
+  const ball = P(0, 0, 0);
+  if (ball) {
+    ctx.beginPath(); ctx.arc(ball.x, ball.y, 3, 0, TAU);
+    ctx.fillStyle = rgba(COL.ink, 0.9); ctx.fill();
+  }
+}
+
+/* A perspective landing contact patch. The trajectory endpoint is already a
+   truthful world-space z=0 point; this screen-space ellipse is only a depth
+   cue that makes that contact legible against the photographic fairway. */
+function drawLandingContact(outcome, station) {
+  const alpha = clamp(1 - station * 1.35, 0, 1);
+  if (alpha < 0.04) return;
+  const landing = project(outcome.path[outcome.path.length - 1], basis);
+  if (!landing) return;
+  ctx.save();
+  ctx.translate(landing.x, landing.y + 4);
+  ctx.scale(1, 0.28);
+  const shadow = ctx.createRadialGradient(0, 0, 1, 0, 0, 23);
+  shadow.addColorStop(0, rgba(COL.accent, 0.30 * alpha));
+  shadow.addColorStop(0.52, rgba(COL.accent, 0.12 * alpha));
+  shadow.addColorStop(1, rgba(COL.accent, 0));
+  ctx.fillStyle = shadow;
+  ctx.beginPath();ctx.arc(0, 0, 23, 0, TAU);ctx.fill();
+  ctx.strokeStyle = rgba(COL.accent, 0.62 * alpha);ctx.lineWidth = 1.4;
+  ctx.beginPath();ctx.ellipse(0, 0, 15, 15, 0, 0, TAU);ctx.stroke();
+  ctx.restore();
+  ctx.strokeStyle = rgba(COL.accent, 0.72 * alpha);ctx.lineWidth = 1.3;
+  ctx.beginPath();ctx.moveTo(landing.x, landing.y - 2);ctx.lineTo(landing.x, landing.y + 5);ctx.stroke();
+}
+
+function tracePath(pts) {
+  ctx.beginPath();
+  let started = false;
+  for (const p of pts) {
+    const q = project(p, basis);
+    if (!q) { started = false; continue; }
+    if (started) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); started = true; }
+  }
+}
+
+function drawTraj(outcome, mode, refAlpha = 1) {
+  /* Eiervedtak (V1): KUN gjeldende slag baerer farge. Referansen er mockens
+     graa ghost og fader ut (refAlpha). Levende bane: 1.6 px varm hvit,
+     ingen bloom (D85-scenen). */
+  const pts = outcome.path;
+  if (mode === 'ghost') {
+    tracePath(pts);
+    ctx.strokeStyle = rgba(COL.ghost, 0.55 * refAlpha);
+    ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.stroke();
+    const land = project(pts[pts.length - 1], basis);
+    if (land) {
+      ctx.beginPath(); ctx.arc(land.x, land.y, 3.2, 0, TAU);
+      ctx.fillStyle = rgba(COL.ghost, 0.8 * refAlpha); ctx.fill();
+    }
+    return;
+  }
+  tracePath(pts);
+  ctx.strokeStyle = rgba(COL.trace, 1);
+  ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.stroke();
+  const b = project(pts[pts.length - 1], basis);
+  if (b) {
+    ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, TAU);
+    ctx.fillStyle = rgba(COL.trace, 1); ctx.fill();
+  }
+}
+
+/* Deltaflaten er tatt UT av V1 sammen med pin (eiervedtak: referanse uten
+   stoey). Spesifikasjonen bestaar i DESIGN.md/GEAR-EFFECT-presedensen som
+   dokumentert vei videre — se HANDOVER/A-BESLUTNINGER.md. */
+
+/* ══ ANNOTASJONSLAGET (Økt D, ordre §3) — impact-annotate.js gjør ren
+   geometri/kaskade; her tegnes primitivene: linjer/buer/bånd i canvas,
+   etikett-tekst i DOM (§5.4, samme mønster som geo3d/lowpoint.js#placeLabel). ══ */
+/* ══ D18: tidshysterese over etikettkaskaden ═══════════════════════════════
+   Kaskaden (placeLabels) er deterministisk per frame; uten terskler kan en
+   etikett hoppe mellom kandidater hver frame mens slideren dras — altsaa
+   naar den leses. Regelen: ankerbevegelse foelges INSTANT (offset er stabil
+   naar scenen flytter baade base og pos), men et NYTT offset (slotbytte)
+   adopteres foerst etter 120 ms vedvarende avvik > 4 px, og retur til base
+   (offset ≈ 0) foerst etter 300 ms. Ingen mellomposisjoner — snapp. */
+const labelHyst = new Map();
+function stabilizeLabels(placed, now) {
+  let li = 0;
+  const seen = new Set();
+  const out = placed.map(prim => {
+    if (!prim.label || !prim.labelPos || !prim.labelBase) return prim;
+    const key = `${prim.kind}:${prim.tone}:${li++}`;
+    seen.add(key);
+    const off = { x: prim.labelPos.x - prim.labelBase.x, y: prim.labelPos.y - prim.labelBase.y };
+    let st = labelHyst.get(key);
+    if (!st) { st = { off, pendingSince: 0 }; labelHyst.set(key, st); return prim; }
+    const d = Math.hypot(off.x - st.off.x, off.y - st.off.y);
+    if (d <= 4) { st.pendingSince = 0; st.off = off; return prim; }
+    const returning = Math.hypot(off.x, off.y) < 0.5;
+    const threshold = returning ? 300 : 120;
+    if (!st.pendingSince) st.pendingSince = now;
+    if (now - st.pendingSince >= threshold) { st.off = off; st.pendingSince = 0; return prim; }
+    return { ...prim, labelPos: { x: prim.labelBase.x + st.off.x, y: prim.labelBase.y + st.off.y } };
+  });
+  for (const k of labelHyst.keys()) if (!seen.has(k)) labelHyst.delete(k);
+  return out;
+}
+
+function drawAnnotationPrimitives(prims) {
+  for (const prim of prims) {
+    const tone = prim.tone === 'launch' ? COL.launch : COL.measure;
+    switch (prim.kind) {
+      case 'band': {
+        if (prim.points.length < 3) break;
+        const pts = prim.points;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.closePath();
+        const mid = pts[Math.floor(pts.length / 2)];
+        const g = ctx.createLinearGradient(pts[0].x, pts[0].y, mid.x, mid.y);
+        g.addColorStop(0, rgba(tone, prim.alphaFrom));
+        g.addColorStop(1, rgba(tone, prim.alphaTo));
+        ctx.fillStyle = g; ctx.fill();
+        break;
+      }
+      case 'tick':
+      case 'line': {
+        const [a, b] = prim.points;
+        ctx.save();
+        if (prim.dashed) ctx.setLineDash([5, 6]);
+        ctx.strokeStyle = rgba(tone, prim.alpha);
+        ctx.lineWidth = prim.hot ? 1.6 : 1;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.restore();
+        break;
+      }
+      case 'arc': {
+        ctx.save();
+        if (prim.hot) { ctx.shadowColor = rgba(tone, 1); ctx.shadowBlur = 8; }
+        ctx.strokeStyle = rgba(tone, prim.hot ? prim.alpha * 0.85 : prim.alpha * 0.5);
+        ctx.lineWidth = prim.hot ? 1.6 : 1;
+        ctx.beginPath();
+        prim.points.forEach((q, i) => { if (i) ctx.lineTo(q.x, q.y); else ctx.moveTo(q.x, q.y); });
+        ctx.stroke();
+        if (prim.tick) {
+          ctx.beginPath(); ctx.moveTo(prim.tick[0].x, prim.tick[0].y); ctx.lineTo(prim.tick[1].x, prim.tick[1].y); ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+        ctx.restore();
+        break;
+      }
+      case 'dimline': {
+        const [a, b] = prim.points;
+        ctx.save();
+        if (prim.hot) { ctx.shadowColor = rgba(tone, 1); ctx.shadowBlur = 9; }
+        ctx.strokeStyle = rgba(tone, prim.alpha);
+        ctx.lineWidth = prim.hot ? 2 : 1.2;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        const ang = Math.atan2(b.y - a.y, b.x - a.x) + Math.PI / 2, t = 5;
+        for (const p of [a, b]) {
+          ctx.beginPath();
+          ctx.moveTo(p.x - Math.cos(ang) * t, p.y - Math.sin(ang) * t);
+          ctx.lineTo(p.x + Math.cos(ang) * t, p.y + Math.sin(ang) * t);
+          ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+        ctx.restore();
+        break;
+      }
+      case 'apex': {
+        const dot = prim.points[0];
+        ctx.beginPath(); ctx.arc(dot.x, dot.y, 3.4, 0, TAU);
+        ctx.fillStyle = rgba(tone, 1); ctx.fill();
+        break;
+      }
+      case 'label': default: break; // ren DOM-etikett, ingen canvas-geometri
+    }
+  }
+}
+
+// DOM-etikett-pool — gjenbrukte noder (unngår innerHTML-churn per frame, §5.4/K6).
+const annoLabelsEl = document.getElementById('annoLabels');
+const annoPool = [];
+function renderAnnotationLabels(placed) {
+  let n = 0;
+  for (const prim of placed) {
+    if (!prim.label || !prim.labelPos) continue;
+    let el = annoPool[n];
+    if (!el) { el = document.createElement('div'); el.className = 'annoLabel'; annoLabelsEl.appendChild(el); annoPool[n] = el; }
+    el.hidden = false;
+    el.textContent = prim.label;
+    el.style.transform = `translate(${prim.labelPos.x}px,${prim.labelPos.y}px) translate(-50%,-50%)`;
+    el.style.opacity = prim.alpha != null ? String(clamp(prim.alpha, 0, 1)) : '1';
+    el.classList.toggle('hot', !!prim.hot);
+    el.dataset.tone = prim.tone || 'measure';
+    n++;
+  }
+  for (let i = n; i < annoPool.length; i++) annoPool[i].hidden = true;
+}
+
+function drawComet(worldPt, basis) {
+  const p = project(worldPt, basis);
+  if (!p) return;
+  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 16);
+  g.addColorStop(0, rgba(COL.ink, 0.95));
+  g.addColorStop(0.35, rgba(COL.accent, 0.58));
+  g.addColorStop(1, rgba(COL.accent, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, 16, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(p.x, p.y, 2.6, 0, TAU);
+  ctx.fillStyle = rgba(COL.ink, 1); ctx.fill();
+}
+
+// ── hot-state (ordre §3 "Hot-state") — hvilken kontroll som nettopp ble
+// rørt. Transient UI-interaksjon, lever her (ikke i outcome/state); matet
+// inn i buildAnnotations som 4. valgfrie parameter (se impact-annotate.js
+// toppkommentar). Sliderne (face/path/attack/dynLoft) setter/rydder på
+// pointerdown/up; speed pulser 700 ms etter stepper/scrub (ordre §3).
+let hotKey = null;
+let hotTimer = null;
+function pulseHot(key, ms = 700) {
+  hotKey = key;
+  clearTimeout(hotTimer);
+  queueFrame();
+  hotTimer = setTimeout(() => {
+    if (hotKey === key) {
+      hotKey = null;
+      queueFrame();
+    }
+  }, ms);
+}
+
+/* ══ Camera lenses — Outcome is the default cause/effect surface. SIDE/TOP
+   retain their analytical cameras. Camera never mutates impact inputs. ══ */
+let stationTarget = rangeEntry.station;
+let scrubbing = false;
+
+const segButtons = [...document.querySelectorAll('#stseg button')];
+const sideTopSpeed = document.getElementById('sideTopSpeed');
+function syncSeg() {
+  const snapped = Math.round(stationTarget);
+  for (const b of segButtons) b.setAttribute('aria-pressed', String(+b.dataset.s === snapped && !scrubbing));
+  const lens = snapped === 1 ? 'side' : 'top'; // D40: outcome finnes ikke
+  stage.dataset.lens = lens;
+  stage.dataset.rangeMode = state.rangeMode;
+  // A settled shot must show the flight. Details deliberately frees the canvas
+  // for reading; Change retains the camera trace as immediate visual proof.
+  stage.dataset.tracer = 'on'; // V1: kun redigeringsmodus
+  document.body.dataset.rangeLens = lens;
+  sideTopSpeed.hidden = state.rangeMode !== 'change';
+  document.getElementById('stseg').hidden = state.rangeMode !== 'change';
+  updateStateNotices(selectOutcome(state));
+  scheduleResize();
+}
+function setStation(s, animate = true) {
+  // Camera lenses belong to the focused experiment. Programmatic callers get
+  // the same transition as a person who taps Change input before choosing a lens.
+  stationTarget = clamp(s, 1, 2); // D40: outcome-kameraet finnes ikke
+  if (!animate || reduceMotion) state.station = stationTarget;
+  syncSeg();
+  const snapped = Math.round(stationTarget);
+  if (state.rangeMode === 'change' && snapped !== activePaneStation) renderPane(snapped);
+  // The lens and editor footprint changed synchronously. Resize before the
+  // next paint so no frame can reuse the full-height Outcome canvas behind the
+  // Side/Top input panel under a busy WebKit or Chromium event loop.
+  resizePending = false;
+  resize();
+  queueFrame();
+}
+for (const b of segButtons) b.addEventListener('click', () => setStation(+b.dataset.s));
+
+/* ══ INPUTS — all five values stay visible in Outcome; the active value gets
+   one precise Vector Rail. Side/Top render only their two teaching controls. */
+const fmtDeg = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°';
+
+const SLDEF = {
+  speed:   { name:'CLUB SPEED', short:'SPEED', token:'--secondary', min:30, max:150, step:1, ref:90,
+    fmt:v => v.toFixed(1) + ' mph', minLabel:'30', maxLabel:'150', refLabel:'90 mph reference',
+    cause:'More club speed raises ball speed and carry.' },
+  face:    { name:'CLUB FACE', short:'FACE', token:'--q-face', min:-15, max:15, step:.1, ref:0,
+    fmt:fmtDeg, minLabel:'−15°', maxLabel:'+15°', refLabel:'0°',
+    cause:'Face changes the start line and spin-axis relationship.' },
+  path:    { name:'CLUB PATH', short:'PATH', token:'--q-path', min:-15, max:15, step:.1, ref:0,
+    fmt:fmtDeg, minLabel:'−15°', maxLabel:'+15°', refLabel:'0°',
+    cause:'Path reshapes launch direction and curvature in real time.' },
+  attack:  { name:'ATTACK ANGLE', short:'ATTACK', token:'--q-attack', min:-15, max:15, step:.1, ref:0,
+    fmt:fmtDeg, minLabel:'−15°', maxLabel:'+15°', refLabel:'0°',
+    cause:'Attack angle changes delivery, launch and spin loft.' },
+  dynLoft: { name:'DYNAMIC LOFT', short:'LOFT', token:'--q-loft', min:0, max:50, step:.1, ref:25,
+    fmt:v => v.toFixed(1) + '°', minLabel:'0°', maxLabel:'50°', refLabel:'25° reference',
+    cause:'Delivered loft changes launch and spin loft.' },
+};
+
+const PARAM_ORDER = ['speed', 'face', 'path', 'attack', 'dynLoft'];
+const paneTitleEl = document.getElementById('paneTitle');
+const paneEl = document.getElementById('pane');
+let parameterRail = null;
+let activeControl = null;
+let activeParam = 'speed';
+let activePaneStation = null;
+let lastChipsOutcome = null;
+let interactionBaselineOutcome = null;
+let interactionSettleTimer = null;
+let inputUiSignature = '';
+
+function pct(v, d) { return ((clamp(v, d.min, d.max) - d.min) / (d.max - d.min)) * 100; }
+function syncActiveControl() {
+  if (!activeControl) return;
+  const d = SLDEF[activeParam];
+  const value = state[activeParam];
+  const valuePct = pct(value, d), refPct = pct(d.ref, d), ghostPct = pct(refInputValue(activeParam), d);
+  activeControl.style.setProperty('--value-pct', valuePct + '%');
+  activeControl.style.setProperty('--ref-pct', refPct + '%');
+  activeControl.style.setProperty('--ghost-pct', ghostPct + '%');
+  activeControl.style.setProperty('--fill-left', Math.min(valuePct, refPct) + '%');
+  activeControl.style.setProperty('--fill-width', Math.abs(valuePct - refPct) + '%');
+  const input = activeControl.querySelector('input');
+  if (input && +input.value !== value) input.value = String(value);
+  if (input) input.setAttribute('aria-valuetext', d.fmt(value));
+  const output = activeControl.querySelector('.controlValue');
+  if (output) {
+    output.textContent = d.fmt(value);
+  }
+}
+
+function syncParameterButtons() {
+  if (!parameterRail) return;
+  for (const button of parameterRail.querySelectorAll('button[data-param]')) {
+    const key = button.dataset.param;
+    const value = button.querySelector('.paramValue');
+    if (value) value.textContent = SLDEF[key].fmt(state[key]);
+    button.setAttribute('aria-label', `${SLDEF[key].name}, ${SLDEF[key].fmt(state[key])}`);
+  }
+}
+
+function syncTopSpeed() {
+  const output = document.getElementById('topSpeedVal');
+  if (!output) return;
+  output.textContent = `${Math.round(state.speed)} mph`;
+  output.setAttribute('aria-valuenow', String(Math.round(state.speed)));
+  output.setAttribute('aria-valuetext', `${Math.round(state.speed)} mph`);
+}
+
+/* Auto-referansen (eiervedtak, erstatter pin): tilstanden du KOM FRA staar
+   som graa ghost mens du drar, og fader ut kort etter at du slipper.
+   FADE_HOLD/FADE_MS er forslag til laasing hos orkestrator. */
+let fadeRefOutcome = null;   // ghost-referansen
+let fadeStartAt = null;      // null = holder full styrke (interaksjon paagaar)
+const FADE_HOLD_MS = 700;
+const FADE_MS = 260;         // slow-tokenet
+
+function beginOutcomeInteraction() {
+  if (!interactionBaselineOutcome) {
+    interactionBaselineOutcome = selectOutcome(state);
+    fadeRefOutcome = interactionBaselineOutcome;
+  }
+  fadeStartAt = null;        // ny draing: referansen staar
+  clearTimeout(interactionSettleTimer);
+}
+
+function settleOutcomeInteraction() {
+  clearTimeout(interactionSettleTimer);
+  interactionSettleTimer = setTimeout(() => {
+    interactionBaselineOutcome = null;
+    fadeStartAt = performance.now() + FADE_HOLD_MS;
+    queueFrame();
+  }, 650);
+}
+
+/* 0..1 — ghostens styrkefaktor denne framen; null naar den er ferdig fadet */
+function fadeRefAlpha(now) {
+  if (!fadeRefOutcome) return null;
+  if (fadeStartAt === null) return 1;
+  if (reduceMotion) { fadeRefOutcome = null; return null; }   // ingen overgang
+  const t = (now - fadeStartAt) / FADE_MS;
+  if (t >= 1) { fadeRefOutcome = null; fadeStartAt = null; return null; }
+  return t <= 0 ? 1 : 1 - t;
+}
+
+function setParamValue(key, raw) {
+  const d = SLDEF[key];
+  const decimals = d.step < 1 ? 1 : 0;
+  const next = clamp(Number(Number(raw).toFixed(decimals)), d.min, d.max);
+  const previous = state[key];
+  if (next !== previous) {
+    beginOutcomeInteraction();
+    const detent = key === 'speed' ? 5 : 1;
+    if (Math.floor((previous - d.min) / detent) !== Math.floor((next - d.min) / detent)) {
+      haptics.tick(`range-${key}`);
+    }
+  }
+  state[key] = next;
+  if (key === 'speed') pulseHot('speed');
+  syncAllInputUI();
+  settleOutcomeInteraction();
+  queueFrame();
+}
+
+function bindHold(btn, dir, fixedKey = null) {
+  let delay = null, repeat = null;
+  const end = () => { clearTimeout(delay); clearInterval(repeat); delay = repeat = null; };
+  btn.addEventListener('pointerdown', e => {
+    e.stopPropagation(); btn.setPointerCapture(e.pointerId);
+    const key = fixedKey || activeParam;
+    const step = SLDEF[key].step;
+    setParamValue(key, state[key] + dir * step);
+    delay = setTimeout(() => { repeat = setInterval(() => setParamValue(key, state[key] + dir * step), 90); }, 420);
+  });
+  btn.addEventListener('pointerup', end);btn.addEventListener('pointercancel', end);btn.addEventListener('lostpointercapture', end);
+  // Keyboard activation dispatches click with detail=0; pointer clicks already
+  // stepped on pointerdown and must not increment twice.
+  btn.addEventListener('click', event => {
+    if (event.detail === 0) {
+      const key = fixedKey || activeParam;
+      setParamValue(key, state[key] + dir * SLDEF[key].step);
+    }
+  });
+}
+
+function renderActiveControl(key) {
+  if (!activeControl || !parameterRail) return;
+  activeParam = key;
+  const d = SLDEF[key], id = `sl-${key}`;
+  activeControl.style.setProperty('--control-color', `var(${d.token})`);
+  for (const b of parameterRail.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.param === key));
+  activeControl.innerHTML = `
+    <div class="controlHead"><label class="controlName" for="${id}">${d.name}</label>
+      <output class="controlValue" aria-label="Current ${d.name.toLowerCase()}">${d.fmt(state[key])}</output></div>
+    <div class="controlBody">
+      <button type="button" class="stepControl" id="controlMinus" aria-label="Decrease ${d.name.toLowerCase()}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <div class="controlMeter">
+        <div class="railVisual" aria-hidden="true"><span class="railFill"></span><span class="railRef"></span><span class="railGhost"></span></div>
+        <input type="range" id="${id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${state[key]}" aria-label="${d.name}" aria-describedby="controlCause-${key}">
+        <div class="controlScale"><span>${d.minLabel}</span><span id="controlReference">${d.refLabel}</span><span>${d.maxLabel}</span></div>
+      </div>
+      <button type="button" class="stepControl" id="controlPlus" aria-label="Increase ${d.name.toLowerCase()}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div><p class="controlCause" id="controlCause-${key}">${d.cause}</p>`;
+  const input = activeControl.querySelector('input');
+  input.addEventListener('input', () => setParamValue(key, input.value));
+  input.addEventListener('pointerdown', () => { hotKey = key; queueFrame(); });
+  const clearHot = () => {
+    if (hotKey === key) {
+      hotKey = null;
+      queueFrame();
+    }
+  };
+  input.addEventListener('pointerup', clearHot);input.addEventListener('pointercancel', clearHot);
+  bindHold(document.getElementById('controlMinus'), -1);bindHold(document.getElementById('controlPlus'), 1);
+  syncActiveControl();
+}
+
+/* Slider-ghosten viser auto-referansens inputverdi (var: seed-pinnen).
+   Uten referanse legges markoeren paa naavaerende verdi (usynlig). */
+const ENGINE_KEY = Object.freeze({ face: 'faceAngle', path: 'clubPath', attack: 'attackAngle', dynLoft: 'dynamicLoft', speed: 'clubSpeed' });
+function refInputValue(key) {
+  const src = fadeRefOutcome ? fadeRefOutcome.raw[ENGINE_KEY[key]] : undefined;
+  return Number.isFinite(src) ? src : state[key];
+}
+
+function syncPlaneSlider(wrap, key) {
+  if (!wrap) return;
+  const d = SLDEF[key];
+  const value = state[key];
+  const valuePct = pct(value, d), refPct = pct(d.ref, d), ghostPct = pct(refInputValue(key), d);
+  wrap.style.setProperty('--value-pct', valuePct + '%');
+  wrap.style.setProperty('--ref-pct', refPct + '%');
+  wrap.style.setProperty('--fill-left', Math.min(valuePct, refPct) + '%');
+  wrap.style.setProperty('--fill-width', Math.abs(valuePct - refPct) + '%');
+  wrap.style.setProperty('--ghost-pct', ghostPct + '%');
+  const input = wrap.querySelector('input');
+  if (input && +input.value !== value) input.value = String(value);
+  if (input) input.setAttribute('aria-valuetext', d.fmt(value));
+  const output = wrap.querySelector('.val');
+  if (output) output.textContent = d.fmt(value);
+}
+
+function syncPlaneControls() {
+  paneEl.querySelectorAll('.sl[data-param]').forEach(wrap => syncPlaneSlider(wrap, wrap.dataset.param));
+}
+
+function syncAllInputUI(force = false) {
+  const signature = PARAM_ORDER.map(key => state[key]).join('|');
+  if (!force && signature === inputUiSignature) return;
+  inputUiSignature = signature;
+  syncActiveControl();
+  syncParameterButtons();
+  syncTopSpeed();
+  syncPlaneControls();
+}
+
+function buildSlider(container, key) {
+  const d = SLDEF[key];
+  const id = `sl-${key}`;
+  const wrap = document.createElement('div');
+  wrap.className = 'sl';
+  wrap.dataset.param = key;
+  wrap.style.setProperty('--c', `var(${d.token})`);
+  wrap.innerHTML = `
+    <div class="head"><label class="name" for="${id}"><i aria-hidden="true"></i>${d.name}</label>
+      <output class="val" id="${id}-val">${d.fmt(state[key])}</output></div>
+    <div class="slMeter">
+      <div class="railVisual" aria-hidden="true"><span class="railFill"></span><span class="railRef"></span><span class="railGhost"></span></div>
+      <input type="range" id="${id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${state[key]}" aria-label="${d.name}">
+      <div class="slScale"><span>${d.minLabel}</span><span>${d.refLabel}</span><span>${d.maxLabel}</span></div>
+    </div>`;
+  container.appendChild(wrap);
+  const input = wrap.querySelector('input');
+  input.addEventListener('input', () => setParamValue(key, input.value));
+  input.addEventListener('pointerdown', () => { hotKey = key; queueFrame(); });
+  const clearHot = () => {
+    if (hotKey === key) {
+      hotKey = null;
+      queueFrame();
+    }
+  };
+  input.addEventListener('pointerup', clearHot);input.addEventListener('pointercancel', clearHot);
+  syncPlaneSlider(wrap, key);
+}
+
+function updateStateNotices(outcome) {
+  const env = document.getElementById('envMark');
+  if (env) {
+    const ok = inEnvelope(state);
+    env.hidden = ok;
+    if (!ok) env.textContent = `OUTSIDE CLUB ENVELOPE: ${state.speed.toFixed(0)} MPH × ${state.dynLoft.toFixed(1)}°`;
+  }
+  const notice = document.getElementById('paneNotice');
+  if (notice) {
+    const show = flightless(outcome); // vises i alle moduser (shotBrief er fjernet)
+    notice.hidden = !show;
+    if (show) document.getElementById('paneNoticeText').textContent = NO_FLIGHT_ANSWER;
+  }
+}
+
+/* Tilstander utenfor normalen (DESIGN.md v3, arvet): */
+const flightless = o => !o.physical.inDomain || !o.physical.hasFlight;
+const FLIGHT_DEPENDENT = new Set(['curve', 'side', 'carry', 'total', 'apex', 'landingAng']);
+const NO_FLIGHT_ANSWER = 'No flight — spin loft is zero or negative: the face is '
+  + 'delivered at or below the club’s direction of travel, so the ball gets no lift.';
+/* Koellekonvolutten (D21): speed 45 … 130 − 0.95 × loft, loft 6–60. */
+const inEnvelope = st => st.dynLoft >= 6 && st.dynLoft <= 60
+  && st.speed >= 45 && st.speed <= 130 - 0.95 * st.dynLoft;
+
+
+
+
+function signedDirection(value, unit, zeroText) {
+  const magnitude = Math.abs(value);
+  if (magnitude < (unit === '°' ? .2 : .5)) return zeroText;
+  // D28: baade vinkler og avstander 1 desimal — ogsaa i prosa.
+  const rounded = magnitude.toFixed(1);
+  return `${rounded}${unit === '°' ? unit : ' ' + unit} ${value > 0 ? 'right' : 'left'}`;
+}
+
+
+
+/* renderShotPane/renderDetailsPane er fjernet (V1: kun redigering). */
+
+function setRangeMode() {
+  /* Eiervedtak (V1): shot-lesetilstanden og Details er fjernet — instrumentet
+     staar permanent i redigering. Modusbegrepet bestaar kun som konstant. */
+  state.rangeMode = 'change';
+  overlayMetricsDirty = true;
+  const st = clamp(Math.round(stationTarget), 1, 2);
+  stationTarget = st;
+  state.station = st;
+  renderPane(st);
+  syncSeg();
+  resizePending = false;
+  resize();
+  queueFrame();
+}
+
+
+function renderPane(station) {
+  activePaneStation = station;
+  parameterRail = null;
+  activeControl = null;
+  paneTitleEl.className = 'h-title';
+  paneTitleEl.textContent = station === 1 ? 'INPUT · LAUNCH PLANE' : 'INPUT · DIRECTION PLANE';
+  paneEl.innerHTML = `<div class="planeSliders" id="${station === 1 ? 'slSide' : 'slTop'}"></div>`;
+  const container = paneEl.firstElementChild;
+  if (station === 1) { buildSlider(container, 'dynLoft'); buildSlider(container, 'attack'); }
+  else { buildSlider(container, 'face'); buildSlider(container, 'path'); }
+  syncAllInputUI(true);
+}
+
+
+bindHold(document.getElementById('spMinus'), -1, 'speed');
+bindHold(document.getElementById('spPlus'), 1, 'speed');
+document.getElementById('topSpeedVal').addEventListener('keydown', event => {
+  const keyValues = {
+    ArrowLeft: state.speed - 1, ArrowDown: state.speed - 1,
+    ArrowRight: state.speed + 1, ArrowUp: state.speed + 1,
+    Home: SLDEF.speed.min, End: SLDEF.speed.max,
+  };
+  if (!(event.key in keyValues)) return;
+  event.preventDefault();
+  setParamValue('speed', keyValues[event.key]);
+});
+setRangeMode();
+setStation(rangeEntry.station, false);
+
+/* Pin er fjernet i V1 (eiervedtak) — auto-referansen over erstatter den. */
+
+let cometEpoch = performance.now();
+
+// vertikal drag i scenen = kontinuerlig skalar; slipp = snap til nærmeste
+let pan = null;
+cv.addEventListener('pointerdown', e => {
+  pan = { y0: e.clientY, s0: stationTarget };
+  scrubbing = true;
+  cv.setPointerCapture(e.pointerId);
+  syncSeg();
+});
+cv.addEventListener('pointermove', e => {
+  if (!pan) return;
+  const ds = (pan.y0 - e.clientY) * 0.0055;
+  stationTarget = clamp(pan.s0 + ds, 1, 2); // D40
+  state.station = stationTarget; // følg fingeren direkte under scrub
+  queueFrame();
+});
+function endPan() {
+  if (!pan) return;
+  pan = null; scrubbing = false;
+  setStation(Math.round(stationTarget));
+}
+cv.addEventListener('pointerup', endPan);
+cv.addEventListener('pointercancel', endPan);
+
+/* Stable telemetry DOM; it updates only when the memoised Outcome changes. */
+const fCarryLive = document.getElementById('fCarryLive');
+let lastHud = '';
+let liveAnnounceTimer = null;
+function updateStats(outcome) {
+  // D28 via adapteren: carry 1 desimal; enhetsteksten foelger D57-pakken.
+  // Uten flukt finnes ingen carry — aldri et plausibelt tall (02-krav 8).
+  const carryDv = displayValue('distance', outcome.raw.carry, UNIT_SYSTEM);
+  const [carryNum, carryUnit] = flightless(outcome)
+    ? ['–', carryDv.unit]
+    : [carryDv.text.split(' ')[0], carryDv.unit];
+  const spinLoftTxt = displayValue('plainAngle', outcome.raw.spinLoft, UNIT_SYSTEM).text;
+  const ballSpeedTxt = displayValue('speed', outcome.raw.ballSpeed, UNIT_SYSTEM).text;
+  const backspinTxt = displayValue('spin', outcome.raw.backspin, UNIT_SYSTEM).text;
+  const hud = [carryNum, spinLoftTxt, ballSpeedTxt, backspinTxt].join('|');
+  if (hud === lastHud) return;
+  lastHud = hud;
+
+  fCarryNum.textContent = carryNum;
+  const unitEl = fCarryStack.querySelector('.unit');
+  if (unitEl && unitEl.textContent !== carryUnit) unitEl.textContent = carryUnit;
+  const announcement =
+    `Carry ${carryDv.text}, spin loft ${spinLoftTxt}, ` +
+    `ball speed ${ballSpeedTxt}, backspin ${backspinTxt}.`;
+  clearTimeout(liveAnnounceTimer);
+  liveAnnounceTimer = setTimeout(() => { fCarryLive.textContent = announcement; }, 300);
+}
+
+
+
+/* syncSceneHud er fjernet med pin-knappen (V1). */
+
+/* ══ render-løkke ══
+   Kameraglidingen er TIDSBASERT (eksponentiell mot målet, τ=110 ms →
+   ~0,5 s til ro over hele skalaen), ikke per-frame: en droppet frame skal
+   koste bilder, aldri strekke reisen. */
+const TAU_S = 0.11;
+let lastT = 0;
+/**
+ * Skudd-tilpasset innramming (§5.5: pos/look/fov/refDist er fritt å re-tune).
+ *
+ * To grep, begge kontinuerlige i station-blendingen:
+ *   1) sentrer blikkpunktet nedover banen — men BARE i ortho, skalert med
+ *      orthoK, ellers ville FLIGHT-kameraet gli forbi ballen;
+ *   2) zoom ved å dolly kameraet bakover, som skalerer både ortho og
+ *      perspektiv uten å røre fov (se impact-framing.js for hvorfor fov-
+ *      utvidelse ble forkastet: >100° fisheye ved 386 m).
+ * Eksakt-ortografi (A2) er bevart strukturelt — zDiv = refDist ved orthoK=1
+ * uansett hvilken verdi refDist får.
+ */
+function frameForShot(rig, outcome, aspectFix, station, pins = []) {
+  const visibleOutcomes = [outcome, ...pins.map(pin => pin.outcome).filter(Boolean)];
+  const carry = Math.max(1, ...visibleOutcomes.map(item => item.m.carry || 0));
+  const apex = Math.max(0, ...visibleOutcomes.map(item => item.m.apex || 0));
+  const side = Math.max(0, ...visibleOutcomes.map(item => Math.abs(item.m.side || 0)));
+  const mid = carry / 2;
+  const s = clamp(station, 0, 2);
+  const segmentT = s <= 1 ? s : s - 1;
+  const easedT = segmentT * segmentT * (3 - 2 * segmentT);
+  const sideWeight = s <= 1 ? easedT : 1 - easedT;
+  const topWeight = s <= 1 ? 0 : easedT;
+  const maxDist = Math.max(mid, apex, side + 8);   // half-extent that must fit
+  // The compact portrait stage uses a stock-iron home frame. Wedges and the
+  // default iron stay visually stable; longer shots zoom out continuously so
+  // their tracer keeps using the available canvas instead of clipping.
+  const targetScale = fitZoom(Math.max(maxDist, RANGE_HOME_FIT));
+  // FLIGHT is perspective and starts close to the ball. Blend the portrait
+  // dolly in with orthographic weight so Outcome→Side/Top never pulls the
+  // camera through impact during the animated orbit.
+  const k = 1 + (targetScale - 1) * rig.orthoK;
+  const homeScale = fitZoom(RANGE_HOME_FIT);
+  const screenBiasCompensation = homeScale / k;
+  // The shorter tracer canvas needs an off-centre camera target: SIDE keeps
+  // the ground low in frame, while TOP keeps impact low and downrange above.
+  // Translating pos + look together preserves the endpoint camera direction,
+  // exact orthographic projection and every measured angle. Compensating the
+  // world-space bias for dolly keeps the anchor fixed on screen at every speed.
+  const topCentre = Math.max(mid, RANGE_HOME_FIT) + 25 * screenBiasCompensation;
+  const targetX = mid + (topCentre - mid) * topWeight;
+  const dx = (targetX - rig.look.x) * rig.orthoK;
+  const dz = 30 * sideWeight * screenBiasCompensation;
+  const look = { x: rig.look.x + dx, y: rig.look.y, z: rig.look.z + dz };
+  const pos = { x: rig.pos.x + dx, y: rig.pos.y, z: rig.pos.z + dz };
+  const zoomed = dollyRig({ ...rig, pos, look }, k);
+  return {
+    rig: { ...zoomed, xStretch: (rig.xStretch ?? 1) * aspectFix },
+    extent: carry,
+    halfWidth: side,
+    sideSigned: outcome.m.side || 0,
+  };
+}
+
+function buildVisibleBasis(rig, vbox, keepImpactVisible) {
+  const initial = buildBasis(rig, vbox);
+  if (!keepImpactVisible) return initial;
+  const impact = project({ x: 0, y: 0, z: 0 }, initial);
+  if (!impact) return initial;
+  const safeY = clamp(impact.y, 32, vbox.h - 32);
+  if (Math.abs(safeY - impact.y) < 0.5) return initial;
+  const zDiv = impact.depth + (initial.refDist - impact.depth) * rig.orthoK;
+  const shift = (safeY - impact.y) * zDiv / initial.focal;
+  const offset = {
+    x: initial.upVec.x * shift,
+    y: initial.upVec.y * shift,
+    z: initial.upVec.z * shift,
+  };
+  // Equal pos/look translation is a screen-space camera shift: orientation,
+  // orthographic truth and measured angles stay unchanged during the orbit.
+  return buildBasis({
+    ...rig,
+    pos: { x: rig.pos.x + offset.x, y: rig.pos.y + offset.y, z: rig.pos.z + offset.z },
+    look: { x: rig.look.x + offset.x, y: rig.look.y + offset.y, z: rig.look.z + offset.z },
+  }, vbox);
+}
+
+// OUTCOME-lengdereferanse: tre kandidater for støttescenen.
+//   'ladder' (A) — høydestige + ett landingstall (standard-anbefaling)
+//   'gates'  (B) — vertikale distanseporter inne i scenen
+//   'strip'  (C) — flat 2D distansestripe nederst
+let flightRef = 'gates';
+
+function frame(now) {
+  frameRequest = null;
+  // Resize the bitmap inside the render frame, immediately before drawing it.
+  // A ResizeObserver callback that resizes independently can clear the canvas
+  // after paint, which caused a one-frame blank tracer during lens changes.
+  if (resizePending) {
+    resizePending = false;
+    resize();
+  }
+  const dt = Math.min((now - lastT) / 1000 || 0, 0.25);
+  lastT = now;
+  if (!scrubbing) {
+    const k = reduceMotion ? 1 : 1 - Math.exp(-dt / TAU_S);
+    state.station += (stationTarget - state.station) * k;
+    if (Math.abs(state.station - stationTarget) < 0.002) state.station = stationTarget;
+  }
+  if (api.capture && api.trace.length < 4000) api.trace.push({ t: now, station: state.station });
+  // Aspekt-lås mot mocken (§5.5-tuning): mockens ortho-gridskala er bredde-
+  // avhengig (projTop x = W/360 per m), riggens er høydeavhengig. STATIONS-
+  // verdiene er tunet ved aspekt ≈0.4647 (mobil portrett); i bredere vinduer
+  // skaleres ortho-xStretch opp så anisotropien følger mockens W/H. Persp
+  // (orthoK=0) er isotrop i mocken og røres ikke; blend via orthoK holder
+  // reisen kontinuerlig.
+  const rig0 = rigAt(state.station);
+  const aspectFix = 1 + ((W / H) / 0.4647 - 1) * rig0.orthoK;
+  // Skudd-tilpasset innramming: kjenn slaget FØRST, så sentrer og zoom riggen
+  // rundt det. selectOutcome er memoisert, så å hente den før basis er gratis.
+  const liveOutcome = selectOutcome(state);
+  const framed = frameForShot(rig0, liveOutcome, aspectFix, state.station,
+    fadeRefOutcome ? [{ outcome: fadeRefOutcome }] : []);
+  const tracerVisible = stage.dataset.tracer === 'on';
+  basis = buildVisibleBasis(framed.rig, { w: W, h: H }, tracerVisible);
+  ctx.clearRect(0, 0, W, H);
+  const liveFlightless = flightless(liveOutcome);
+  if (tracerVisible) {
+    drawGrid(state.station, framed.extent, framed.halfWidth, framed.sideSigned);
+    drawLandingContact(liveOutcome, state.station);
+    // Auto-referansen (eiervedtak): graa ghost som fader etter slipp.
+    const refA = fadeRefAlpha(now);
+    if (refA !== null && fadeRefOutcome !== liveOutcome && !flightless(fadeRefOutcome)) {
+      drawTraj(fadeRefOutcome, 'ghost', refA);
+    }
+    // Tilstand utenfor normalen: treffet uten flukten — banen tegnes ikke.
+    if (!liveFlightless) drawTraj(liveOutcome, 'active');
+    if (refA !== null && fadeStartAt !== null && !reduceMotion) queueFrame(); // fade-animasjonen
+  }
+  updateStats(liveOutcome);
+
+  const placed = tracerVisible && !liveFlightless
+    ? stabilizeLabels(placeLabels(buildAnnotations(liveOutcome, state.station, basis, hotKey), MEASURE_KEEPOUT, {
+      w: W,
+      h: H,
+      hudKeepOut: null,
+    }), now)
+    : [];
+  if (tracerVisible) drawAnnotationPrimitives(placed);
+  renderAnnotationLabels(placed);
+  if (tracerVisible && !reduceMotion && !liveFlightless) {
+    const cp = cometPoint(liveOutcome, now - cometEpoch);
+    if (cp) drawComet(cp, basis);
+  }
+
+  if (liveOutcome !== lastChipsOutcome) {
+    lastChipsOutcome = liveOutcome;
+    updateStateNotices(liveOutcome);
+  }
+  syncAllInputUI();
+  if (!reduceMotion) queueFrame();
+}
+
+// instrumenteringskrok for evidens (K1/K6: logget skalarverdi per frame når
+// `capture` er på) og for senere økter/dommer
+const api = { state, setStation, setRangeMode,
+  get stationTarget() { return stationTarget; }, setFlightRef(m) { flightRef = m; queueFrame(); },
+  get flightRef() { return flightRef; },
+  projectPoint(point) { return basis ? project(point, basis) : null; },
+  capture: false, trace: [] };
+
+/* D56/D99 — navngitt inngrep fra strøm E. Onboardingen kjører INNE i denne
+   skjermen (aldri i en kopi av den) og trenger to ting: å skrive stegets
+   tilstand øyeblikkelig, og å løfte den parameteren steget handler om.
+   Begge kaller skjermens EGNE funksjoner — ingen ny fysikk, ingen ny
+   tegnevei, ingen parallell tilstand. */
+api.applyShot = (patch) => {
+  Object.assign(state, patch);
+  syncAllInputUI(true);
+  updateStats(selectOutcome(state));
+  queueFrame();
+};
+api.setActiveParam = (key) => { if (SLDEF[key]) renderActiveControl(key); };
+
+window.__impact = api;
+
+const initialOutcome = selectOutcome(state);
+track('live_model_opened', { route: 'outcome' });
+updateStats(initialOutcome);
+lastChipsOutcome = initialOutcome;
+syncSeg();
+resizePending = false;
+resize();
+queueFrame();
+document.fonts?.ready?.then(queueFrame);
+
+/* D56 — onboardingen monteres OPPÅ denne skjermen, ikke i en kopi av den.
+   Er den ikke i gang, gjør `mountOnboarding` ingenting og skjermen er som før. */
+Promise.all([
+  import('../onboarding/onboarding.js'),
+  import('../onboarding/host-ball-flight.js'),
+]).then(([ob, host]) => ob.mountOnboarding(host.ballFlightHost(api)));
+</script>
+<!-- Portrait lock (see sa-orientation.js): the native app holds portrait; this
+     is the web fallback shown only on a landscape phone, where the browser
+     cannot be force-rotated. -->
+<style>
+  .rotate{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg);color:var(--ink);text-align:center;padding:24px}
+  .rotate .ico{width:46px;height:46px;color:var(--secondary)}
+  .rotate .ico svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .rotate p{font-size:15px;max-width:240px;margin:0}
+  @media (orientation:landscape) and (max-height:480px){.rotate{display:flex}}
+</style>
+<div class="rotate"><div class="ico" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="14" y="6" width="20" height="36" rx="4"/><path d="M21 10h6M22 37h4"/><path d="M7 19a18 18 0 0 0 5 15M7 19l-2 6M7 19l6 2"/></svg></div><p>Rotate your phone to portrait</p></div>
+<script type="module">import { lockPortrait } from '../shared/sa-orientation.js'; lockPortrait();</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+/*
+ * ONBOARDING · COACHMARK — DESIGN.md v3 sin `coachmark`-komponent.
+ *
+ * Tokens, aldri naken hex (DESIGN.md «Do's and Don'ts»). Flaten er `surface`
+ * med glasskanten fra materialtabellen; teksten er `ink` i `body`. Boksen har
+ * INGEN glød: den ligger oppå banescener i fire av seks steg, og D85 sier at
+ * inne i en banescene er deltaflaten det eneste myke elementet.
+ *
+ * Boksen konkurrerer aldri med det den peker på. Den er ikke det brukeren skal
+ * ta på — den aktive kontrollen er det — så den bærer ingen parameterkulør.
+ */
+
+.ob-coachmark {
+  position: fixed;
+  z-index: 40;
+  box-sizing: border-box;
+  max-width: min(343px, calc(100vw - 32px));
+  padding: var(--sp-lg);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--font-ui);
+  transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease);
+  /* D114: er sonen lavere enn teksten, ruller boksen. Den vokser aldri ut i
+     en flate steget faktisk bruker — det var nettopp bruddet G-2 målte. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Landskap (Studio) har horisontal plass, men ikke i kantene — se steps.js.
+   Boksen får bredden av det ledige midtbåndet og holdes lav. */
+.ob-coachmark[data-orientation='landscape'] { max-width: none; padding: var(--sp-md) var(--sp-lg); }
+
+.ob-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-sm);
+}
+
+/* Stegtelleren er meta og roper aldri (DESIGN.md informasjonsnivåer). */
+.ob-counter {
+  color: var(--muted);
+  font: 700 10px/1.3 var(--font-ui);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.ob-text { margin: 0; }
+
+.ob-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-top: var(--sp-md);
+}
+
+/* Ordet bærer handlingen — intet ikon står alene (DESIGN.md Ikonografi). */
+.ob-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--sp-lg);
+  border: 0;
+  border-radius: var(--r-control);
+  background: var(--plate);
+  color: var(--ink);
+  font: 700 10px/1.3 var(--font-ui);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+
+.ob-skip { color: var(--muted); background: transparent; padding-inline: var(--sp-sm); }
+.ob-skip:hover { color: var(--ink); }
+
+.ob-next { background: var(--primary); color: var(--on-primary); }
+.ob-next[disabled] { background: var(--plate); color: var(--ghost); cursor: default; }
+
+/* D94: fokus er en egen akse, og ringen er INK — mock-konvensjonen vinner.
+   Synlig i alle tilstander, også når knappen er aktiv. */
+.ob-btn:focus-visible,
+.ob-choice:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* Pekeren: en enkel trekant i samme flate som boksen. Ingen kant, ingen glød. */
+.ob-coachmark[data-pointer]::after {
+  content: '';
+  position: absolute;
+  left: var(--ob-pointer-x, 50%);
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  transform: translateX(-50%) rotate(45deg);
+}
+.ob-coachmark[data-pointer='down']::after { bottom: -7px; }
+.ob-coachmark[data-pointer='up']::after { top: -7px; }
+
+/* ── Enhetsskjermen (D103): egen fullskjerm, ett trykk ER svaret ──────────── */
+.ob-units {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--sp-xl);
+  padding: var(--sp-xl);
+  background: var(--neutral);
+  color: var(--ink);
+}
+
+.ob-units-title {
+  margin: 0;
+  font: 700 34px/1.05 var(--font-display);
+  letter-spacing: -.01em;
+}
+
+.ob-choices { display: flex; flex-direction: column; gap: var(--sp-md); }
+
+.ob-choice {
+  min-height: 64px;
+  padding: var(--sp-lg);
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--plate);
+  box-shadow: inset 0 0 0 1px var(--glass-edge);
+  color: var(--ink);
+  font: 700 10px/1.3 var(--font-ui);
+  letter-spacing: .1em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease);
+}
+.ob-choice:hover { background: var(--surface); }
+
+.ob-units-support { margin: 0; color: var(--muted); font: 400 12px/1.5 var(--font-ui); }
+
+/* Modellgrensen er meta: caption, muted, aldri i svarlinjen. */
+.ob-units-boundary {
+  margin: 0;
+  color: var(--muted);
+  font: 400 12px/1.5 var(--font-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-coachmark, .ob-btn, .ob-choice { transition-duration: var(--t-instant); }
+}

@@ -1,0 +1,215 @@
+/* ══ v3-MIGRERT (D82) ═══════════════════════════════════════════════════════
+   nav.css skrev opprinnelig mot v2-tokens (--coal-*, --text*, --ease-out) som
+   D82 fjernet. Mekanisk mapping til v3:
+     coal-1->plate  coal-2->surface  coal-3->line  text->muted  text-hi->ink
+     r-sm/md->control  r-lg->card  ease-out/in-out->ease (mockens kurve)
+   Typografiklassene .t-* bor naa her (regenererte tokens.css er kun tokens)
+   og er uttrykt i v3-rollene: Geist (UI) / Space Grotesk (display) /
+   IBM Plex Mono (data). ═══════════════════════════════════════════════════ */
+
+/* v3-typografiroller for prototypesidene */
+.t-display-lens{font-family:var(--font-display);font-size:22px;font-weight:500;line-height:1.1;letter-spacing:.12em}
+.t-label{font-family:var(--font-ui);font-size:10px;font-weight:700;line-height:1.3;letter-spacing:.1em}
+.t-value-lg{font-family:var(--font-ui);font-size:17px;font-weight:600;line-height:1.2}
+.t-value-md{font-family:var(--font-data);font-size:14px;font-weight:500;line-height:1.25;font-variant-numeric:tabular-nums}
+.t-body{font-family:var(--font-ui);font-size:15px;font-weight:400;line-height:1.55}
+.t-caption{font-family:var(--font-ui);font-size:12px;font-weight:400;line-height:1.5}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px} /* D94: ink-ring, mock-konvensjonen */
+
+/*
+ * nav.css — navigasjonsprototypens eget lag oppå tokens.css.
+ * Alt her følger DESIGN.md; det som er FORSLAG (ikke låst) er merket
+ * i NAVIGASJON.md under «Forslag som trenger låsing».
+ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--neutral);
+  color: var(--muted);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Modulbytte-overgang: base 160ms easeInOut (noe forlater mens noe
+     ankommer — samme begrunnelse som linsebytte). FORSLAG. ───────────── */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--t-base);
+  animation-timing-function: var(--ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
+/* ── HOME-sirkelen — det eneste permanente navigasjonschromet ─────────────
+     44 × 44 px (kravet er minimum, sirkelen ER berøringsflaten).
+     Ordet, ikke et ikon: «Der et ord er presist, brukes ordet» (DESIGN.md,
+     Ikonografi). Følger knappemønsteret i interaksjonstabellen:
+     rest coal-2 · hover coal-3 · pressed −12 % luminans. */
+.home-circle {
+  position: fixed;
+  top: max(var(--sp-sm), env(safe-area-inset-top));
+  left: max(var(--sp-sm), env(safe-area-inset-left));
+  width: 44px;
+  height: 44px;
+  /* v3 home-circle-komponenten: plate-flate, ink-tekst, pill-radius */
+  border-radius: var(--r-pill);
+  border: none;
+  background: var(--plate);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 10;
+  transition: background var(--t-fast) var(--ease),
+              filter var(--t-fast) var(--ease);
+}
+.home-circle:hover  { background: var(--line); }
+.home-circle:active { filter: brightness(0.88); }
+
+/* ── Linsepiller — tilstandsbytte INNEN en modul, aldri modulbytte ────────
+     Grammatikken: sirkel = modulnivå, pill = tilstandsnivå.
+     Tilstander fra DESIGN.md-tabellen for linsevelger. */
+.lens-switch {
+  display: inline-flex;
+  gap: var(--sp-xs);
+  background: var(--plate);
+  border-radius: var(--r-control);
+  padding: var(--sp-xs);
+}
+.lens-pill {
+  min-height: 36px;
+  min-width: 44px;
+  padding: 0 var(--sp-lg);
+  border: none;
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease),
+              filter var(--t-fast) var(--ease);
+}
+.lens-pill:hover { background: var(--line); }
+.lens-pill:active { filter: brightness(0.88); }
+.lens-pill[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+/* 36 px synlig høyde, 44 px treffsone via utvidet klikkeflate */
+.lens-pill { position: relative; }
+.lens-pill::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+
+/* ── Home-hub ── */
+.hub {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-xxl) var(--sp-lg);
+  padding-top: max(var(--sp-xxl), env(safe-area-inset-top));
+  max-width: 430px;
+  margin: 0 auto;
+}
+.hub-title {
+  color: var(--ink);
+  text-transform: uppercase;
+  margin-bottom: var(--sp-xxl);
+}
+.hub-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.hub-card {
+  display: block;
+  background: var(--plate);
+  border-radius: var(--r-card);
+  padding: var(--sp-lg);
+  min-height: 44px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background var(--t-fast) var(--ease),
+              filter var(--t-fast) var(--ease);
+}
+.hub-card:hover  { background: var(--surface); }
+.hub-card:active { filter: brightness(0.88); }
+
+/* ── Modulskjelett ── */
+.module {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.module-top {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-sm);
+  padding-top: max(var(--sp-sm), env(safe-area-inset-top));
+}
+.scene {
+  flex: 1;
+  /* Prikkrutenett: line-soft, radius 0.8 px, avstand 16 px (DESIGN.md). */
+  background-image: radial-gradient(circle, var(--line-soft) 0.8px, transparent 0.8px);
+  background-size: 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.zone {
+  border-top: 1px solid var(--line);
+  padding: var(--sp-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.zone-name { color: var(--muted); text-transform: uppercase; }
+.skeleton-note {
+  color: var(--muted);
+  text-align: center;
+  padding: var(--sp-md);
+}
+
+/* ── Studio: orienteringsporten ───────────────────────────────────────────
+     `landscape` er en ORIENTERINGSBETINGELSE (D59): bredde > høyde,
+     minimum 568 × 320. Ikke en breddeterskel. */
+.studio-landscape { display: none; }
+.studio-rotate {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-lg);
+  padding: var(--sp-xl);
+  text-align: center;
+}
+.studio-rotate .t-display-lens { color: var(--ink); text-transform: uppercase; }
+.studio-rotate .t-body { color: var(--muted); max-width: 320px; }
+
+@media (orientation: landscape) and (min-width: 568px) and (min-height: 320px) {
+  .studio-rotate { display: none; }
+  .studio-landscape {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: row;
+  }
+  .studio-landscape .scene { flex: 1; }
+  .studio-landscape .zone {
+    border-top: none;
+    border-left: 1px solid var(--line);
+    width: 220px;
+    flex-direction: column;
+    gap: var(--sp-sm);
+  }
+}

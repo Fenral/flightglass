@@ -1,0 +1,67 @@
+/*
+ * tokens.css — mekanisk avledet fra DESIGN.md v3 sin frontmatter.
+ * Endres DESIGN.md, regenereres denne — aldri omvendt. (D82-kjeden)
+ */
+
+:root {
+  /* colors */
+  --primary: #FF8A4D;
+  --primary-soft: #3D2417;
+  --on-primary: #1C0E05;
+  --secondary: #9D8BFF;
+  --neutral: #07060C;
+  --surface: #110D1C;
+  --plate: #0D0A18;
+  --line: #241E33;
+  --line-soft: #181226;
+  --ink: #F5F2FF;
+  --muted: #A79FC7;
+  --ghost: #A7A0C4;
+  --face: #FF5C6B;
+  --path: #5BC8F5;
+  --attack: #F470B8;
+  --loft: #B9A0FF;
+  --plane: #9C8DF5;
+  --strike: #E3B05C;
+  --depth: #C98AE6;
+  --good: #58E6A8;
+  --bad: #FF7B8A;
+  --celebrate: #FF5CE1;
+
+  /* radius */
+  --r-none: 0px;
+  --r-control: 12px;
+  --r-card: 16px;
+  --r-lens: 20px;
+  --r-pill: 999px;
+
+  /* spacing */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-xxl: 32px;
+
+  /* motion */
+  --t-instant: 0ms;
+  --t-fast: 90ms;
+  --t-base: 160ms;
+  --t-slow: 260ms;
+  --ease: cubic-bezier(.2,.8,.2,1);
+
+  /* materiale */
+  --plate-glass: rgba(8,5,14,.86);
+  --glass-edge: rgba(255,255,255,.06);
+  --line-strong: rgba(255,255,255,.30);
+  --scene-bg: radial-gradient(130% 120% at 50% -10%, #140E24, #07060C);
+  --dusk-scene-bg:
+    radial-gradient(120% 55% at 50% 58%, #3B2A55 0%, transparent 60%),
+    linear-gradient(180deg, #0E0A18 0%, #120D1E 34%, #241536 58%,
+      #17102A 74%, #0F0B1C 100%);
+
+  /* fonter */
+  --font-ui: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", var(--font-ui);
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}

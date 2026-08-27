@@ -1,0 +1,395 @@
+/**
+ * IMPACT · ANNOTATE — ESM module (named exports).
+ * Ren transform: (Outcome, station, basis) → primitiver. Ingen DOM, ingen
+ * canvas-kall — kalleren (impact.html) tegner. Pure functions, no deps.
+ *
+ * Kontrakt: docs/systemkontrakt.md §7 (flate), §8 (fileier). Reglene selv
+ * (tallterskler, rekkefølge) står i design/orders/impact-kamera.md §3 og
+ * gjentas ikke som prosa her — hver konstant under er merket med hvilken
+ * ordre-linje den porterer.
+ *
+ * Verdenskonvensjon (låst, §1.4): Z-up meter, +X nedslag, +Y høyre, +Z høyde.
+ * `outcome` kommer fra ./impact-outcome.js (selectOutcome) — denne modulen
+ * kaller aldri solveFlight og multipliserer aldri med YD2M (§3.3/A7).
+ *
+ * `hotKey` (4. param, additiv — ikke del av den låste §5.3/§7-signaturen på
+ * de tre første parameterne, men nødvendig for §3 sitt hot-state-krav, som
+ * er transient UI-interaksjon [hvilken slider dras / nylig endret speed] og
+ * derfor ikke kan avledes fra outcome/station/basis alene): 'face'|'path'|
+ * 'attack'|'dynLoft'|'speed'|null. Utelates → alt kaldt, ingen atferdsendring
+ * for eksisterende kallere.
+ */
+
+import { project } from './impact-camera.js';
+
+const RAD = Math.PI / 180;
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const smoothstep = t => t * t * (3 - 2 * t);
+const fmtDeg = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°';
+const sign = v => Math.sign(v) || 1;
+
+// ordre §3 "Etikettplassering" — tallterskler, verbatim.
+const SPAN_THRESHOLD = 74;   // px, regel 1
+const LABEL_GAP = 10;        // px, avstand fra endepunkt til etikett-senter
+const LABEL_DY = -15;        // px, regel 3: "midtpunkt, 15 px over linjen"
+const NUDGE_GAP = 3;         // px, kollisjonsregisterets vertikale luft
+const MAX_NUDGE_ITER = 3;    // maks iterasjoner
+const LABEL_H = 19;          // px, smallLabel-høyde (samme stil på alt her)
+const LABEL_WIDTH_SAFETY = 4; // px, Inter kan rendres litt bredere enn heuristikken
+
+// ordre §3 "stats-keep-out (x < 246 px, y 88–356 px)" — eksportert slik
+// kalleren har ett sted å hente det normative tallet fra, ikke en kopi.
+export const MEASURE_KEEPOUT = Object.freeze({ x0: 0, y0: 88, x1: 246, y1: 356 });
+
+function estWidth(label) {
+  // Ingen canvas-measureText her (K: ingen canvas-kall) — grov, deterministisk
+  // bredde-heuristikk. Avgjør ikke kaskade-grenen (den styres av span/keepOut,
+  // ikke av denne bredden alene bortsett fra som offset), kun visuell nudge.
+  return Math.max(30, label.length * 6.3 + 16 + LABEL_WIDTH_SAFETY);
+}
+
+/**
+ * Genererer en polylinje for en hårstrekbue: gen(aRad, m) → world point,
+ * a fra 0..angMagRad i `steps` inkrementer, projisert med `project`.
+ * Returnerer null når vinkelen er for liten til å tegnes (ordre-grammatikk:
+ * buer under ~0.3° tegnes ikke — porter av mockens hairArc-guard).
+ */
+function buildArc(basis, gen, angDeg, steps = 18) {
+  if (Math.abs(angDeg) < 0.3) return null;
+  const angMag = Math.abs(angDeg) * RAD;
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const a = (angMag * i) / steps;
+    const q = project(gen(a, 1), basis);
+    if (q) pts.push(q);
+  }
+  if (pts.length < 2) return null;
+  const t0 = project(gen(0, 0.955), basis);
+  const t1 = project(gen(0, 1.045), basis);
+  const tick = t0 && t1 ? [t0, t1] : null;
+  const labelAnchor = project(gen(angMag * 0.5, 1.3), basis);
+  return { points: pts, tick, labelAnchor };
+}
+
+/**
+ * (Outcome, station, basis) → Primitive[] — §7/§5.3-signaturen, uendret.
+ * `basis` er det impact-camera.js sin buildBasis() returnerer; projeksjonen
+ * gjøres med `project` (importert fra samme modul, §5.3) — ingen DOM/canvas,
+ * kun ren geometri. `hotKey` er den additive 4. parameteren, se toppkommentar.
+ */
+export function buildAnnotations(outcome, station, basis, hotKey = null) {
+  const s = station;
+  const P = (x, y, z) => project({ x, y, z }, basis);
+  const primitives = [];
+
+  const hotDir = hotKey === 'face' || hotKey === 'path';
+  const hotCurve = hotDir || hotKey === 'speed';
+  const hotLaunch = hotKey === 'attack' || hotKey === 'dynLoft';
+
+  const carry = outcome.m.carry;
+  const side = outcome.m.side;
+  const curve = outcome.m.curve;
+  const apex = outcome.m.apex;
+  const launchDir = outcome.deg.launchDir;
+  const launchAng = outcome.deg.launchAng;
+  const landAng = outcome.deg.landAng;
+  const tanDir = Math.tan(launchDir * RAD);
+  const path = outcome.path;
+
+  // TARGET-annotasjonen (fast 228 m-pinne + «TARGET»-etikett) er fjernet
+  // (eierordre 2026-07-22): den ga ingen mening med skudd-adaptiv innramming.
+  // Down-the-line-siktelinja tegnes fortsatt i impact.html (ren canvas-geometri).
+
+  // ── Apex (ordre §3 SIDE "Apex = gulldot på banens visuelle topp") ──
+  if (s < 1.4) {
+    let best = null, bestY = Infinity;
+    for (let i = 4; i < path.length - 4; i++) {
+      const q = project(path[i], basis);
+      if (q && q.y < bestY) { bestY = q.y; best = q; }
+    }
+    if (best) {
+      primitives.push({
+        kind: 'apex', points: [best], tone: 'measure', alpha: 1,
+        label: s < 1.35 ? `Apex ${Math.round(apex)} m` : null,
+        labelAnchor: { x: best.x, y: best.y - 26 },
+      });
+    }
+  }
+
+  // ── TOP · retningsplanet (ordre §3 TOP, fader inn > ~1.25) ──
+  const topA = smoothstep(clamp((s - 1.25) / 0.75, 0, 1));
+  if (topA > 0.03) {
+    const straightEnd = { x: carry, y: carry * tanDir, z: 0 };
+    const landing = { x: carry, y: side, z: 0 };
+
+    // kurve-sjikt: flate mellom startlinjen og faktisk bane
+    const bandPts = [];
+    let q = P(0, 0, 0); if (q) bandPts.push(q);
+    for (let i = 1; i < path.length; i++) { q = P(path[i].x, path[i].y, 0); if (q) bandPts.push(q); }
+    for (let i = path.length - 1; i >= 0; i--) { q = P(path[i].x, path[i].x * tanDir, 0); if (q) bandPts.push(q); }
+    if (bandPts.length >= 3) {
+      primitives.push({
+        kind: 'band', points: bandPts, tone: 'measure',
+        alphaFrom: 0.02 * topA, alphaTo: (hotCurve ? 0.34 : 0.20) * topA,
+      });
+    }
+
+    // avviks-ticks ved 35/60/80 % (kurven vokser med t² — spinn virker over tid)
+    const tickAlpha = topA * (hotCurve ? 0.95 : 0.6);
+    for (const t of [0.35, 0.6, 0.8]) {
+      const i = Math.round(t * (path.length - 1));
+      const a = P(path[i].x, path[i].x * tanDir, 0);
+      const b = P(path[i].x, path[i].y, 0);
+      if (a && b) primitives.push({ kind: 'tick', points: [a, b], tone: 'measure', alpha: tickAlpha });
+    }
+
+    // startlinje (rett referanse, stiplet)
+    const s0 = P(0, 0, 0), s1 = P(straightEnd.x, straightEnd.y, 0);
+    if (s0 && s1) primitives.push({ kind: 'line', points: [s0, s1], tone: 'measure', alpha: topA * 0.75, dashed: true });
+
+    // retningsbue ved ballen (r 26 m), uten etikett
+    const dirArc = buildArc(basis,
+      (a, m) => ({ x: Math.cos(a) * 26 * m, y: Math.sin(a) * 26 * m * sign(launchDir), z: 0 }),
+      launchDir);
+    if (dirArc) {
+      primitives.push({
+        kind: 'arc', points: dirArc.points, tick: dirArc.tick,
+        tone: 'measure', alpha: topA, hot: hotDir, label: null, labelAnchor: null,
+      });
+      // «Launch dir ±X.X°»-etikett ligger på startlinjen ved ~52 % av carry
+      if (topA > 0.1) {
+        const lp = P(0.52 * straightEnd.x, 0.52 * straightEnd.y, 0);
+        if (lp) primitives.push({
+          kind: 'label', points: [lp], tone: 'measure', alpha: topA, hot: hotDir,
+          label: `Launch dir ${fmtDeg(launchDir)}`, labelAnchor: lp,
+        });
+      }
+    }
+
+    // kurvemål — skjules når |curve| < 3 m
+    if (Math.abs(curve) >= 3) {
+      const a = P(straightEnd.x, straightEnd.y, 0), b = P(landing.x, landing.y, 0);
+      if (a && b) primitives.push({
+        kind: 'dimline', points: [a, b], tone: 'measure', alpha: topA, hot: hotCurve,
+        label: `${Math.abs(Math.round(curve))} m curve`,
+      });
+    }
+
+    // offline-brakett ved z = carry + 12
+    {
+      const a = P(carry + 12, 0, 0), b = P(carry + 12, side, 0);
+      if (a && b) primitives.push({
+        kind: 'dimline', points: [a, b], tone: 'measure', alpha: topA, hot: false,
+        label: `${Math.abs(Math.round(side))} m ${side >= 0 ? 'R' : 'L'}`,
+      });
+    }
+  }
+
+  // ── SIDE · ærlige endepunkt-readouts (bell rundt skalar 1) ──
+  // Kameraet forvrenger skjermromsvinkler, så launch/landing skal ikke tegnes
+  // som gradnøyaktige buer eller referansestreker. Tallene er autoritative og
+  // forankres i stedet nær banens faktiske start- og sluttpunkt.
+  const sideA = smoothstep(clamp(1 - Math.abs(s - 1) * 1.7, 0, 1));
+  if (sideA > 0.03) {
+    const p0 = path[0] || { x: 0, y: 0, z: 0 };
+    const p2 = path[path.length - 1];
+    const launchEnd = P(p0.x, p0.y, p0.z);
+    const landingEnd = p2 ? P(p2.x, p2.y, p2.z) : null;
+    const inward = launchEnd && landingEnd ? sign(landingEnd.x - launchEnd.x) : 1;
+
+    if (launchEnd) primitives.push({
+      kind: 'label', points: [launchEnd], tone: 'launch', alpha: sideA, hot: hotLaunch,
+      label: `Launch Angle ${launchAng.toFixed(1)}°`,
+      labelAnchor: { x: launchEnd.x + inward * 58, y: launchEnd.y - 26 },
+    });
+    if (landingEnd) primitives.push({
+      kind: 'label', points: [landingEnd], tone: 'measure', alpha: sideA * 0.95, hot: hotLaunch,
+      label: `Landing Angle ${Math.round(landAng)}°`,
+      labelAnchor: { x: landingEnd.x - inward * 64, y: landingEnd.y - 32 },
+    });
+  }
+
+  return primitives;
+}
+
+function lerpN(a, b, t) { return a + (b - a) * t; }
+
+/**
+ * Deterministisk etikett-kaskade (ordre §3 "Etikettplassering") +
+ * kollisjonsregister. Stateless per kall — ingen tilstand mellom frames
+ * (docs/systemkontrakt.md §7). `keepOut` er `{x0,y0,x1,y1}` når stats-
+ * blokken står til venstre (regel 2 kan da slå inn), ellers `null`/`undefined`
+ * (statsRight === true → regel 2 gjelder aldri, jf. ordre "OG stats står til
+ * venstre"). Fast tegnerekkefølge er den rekkefølgen `primitives` allerede
+ * står i (buildAnnotations returnerer target → apex → TOP → SIDE, dvs.
+ * "grid → bane-etiketter → mål-etiketter" — ordre §3).
+ */
+export function placeLabels(primitives, keepOut, vbox) {
+  const rects = [];
+  const out = [];
+  for (const prim of primitives) {
+    if (!prim.label) { out.push(prim); continue; }
+    const base = prim.kind === 'dimline'
+      ? dimlineAnchor(prim.points[0], prim.points[1], prim.label, keepOut)
+      : prim.labelAnchor;
+    if (!base) { out.push(prim); continue; }
+    const w = estWidth(prim.label);
+    const clearOfHud = avoidHudKeepOut(base, w, LABEL_H, vbox?.hudKeepOut, vbox);
+    const nudged = nudge(clearOfHud, w, LABEL_H, rects);
+    const placed = resolveLabelPosition(nudged, base, w, LABEL_H, rects, vbox?.hudKeepOut, vbox);
+    rects.push({ x: placed.x - w / 2, y: placed.y - LABEL_H / 2, w, h: LABEL_H });
+    out.push({ ...prim, labelPos: placed });
+  }
+  return out;
+}
+
+function overlapsRect(pos, w, h, rect) {
+  return pos.x - w / 2 < rect.x + rect.w
+    && pos.x + w / 2 > rect.x
+    && pos.y - h / 2 < rect.y + rect.h
+    && pos.y + h / 2 > rect.y;
+}
+
+/**
+ * Scene-HUD er ikke en måleetikett og inngår derfor ikke i den vanlige
+ * etikett-kaskaden. Når en label faktisk treffer HUD-feltet, flyttes bare den
+ * labelen til nærmeste ledige side. Kamera og autoritativt anker forblir urørt.
+ */
+function avoidHudKeepOut(pos, w, h, keepOut, vbox) {
+  if (!keepOut || !overlapsRect(pos, w, h, keepOut)) return pos;
+  const minX = w / 2;
+  const maxX = Math.max(minX, (vbox?.w ?? Infinity) - w / 2);
+  const rightX = keepOut.x + keepOut.w + LABEL_GAP + w / 2;
+  if (rightX <= maxX) return { x: rightX, y: pos.y };
+
+  const minY = h / 2;
+  const maxY = Math.max(minY, (vbox?.h ?? Infinity) - h / 2);
+  const belowY = keepOut.y + keepOut.h + LABEL_GAP + h / 2;
+  if (belowY <= maxY) return { x: clamp(pos.x, minX, maxX), y: belowY };
+
+  const aboveY = keepOut.y - LABEL_GAP - h / 2;
+  return { x: clamp(pos.x, minX, maxX), y: clamp(aboveY, minY, maxY) };
+}
+
+/**
+ * HUD, tidligere etiketter og viewport er likestilte sluttkrav. Den låste
+ * vertikale nudge-kaskaden kjører først; bare hvis resultatet fortsatt bryter
+ * et krav velges nærmeste deterministiske frie kryss mellom hindringskantene.
+ */
+function resolveLabelPosition(initial, base, w, h, rects, hudKeepOut, vbox) {
+  const hasWidth = Number.isFinite(vbox?.w);
+  const hasHeight = Number.isFinite(vbox?.h);
+  const minX = hasWidth ? Math.min(w / 2, vbox.w / 2) : -Infinity;
+  const maxX = hasWidth ? Math.max(minX, vbox.w - w / 2) : Infinity;
+  const minY = hasHeight ? Math.min(h / 2, vbox.h / 2) : -Infinity;
+  const maxY = hasHeight ? Math.max(minY, vbox.h - h / 2) : Infinity;
+  const clampPos = pos => ({ x: clamp(pos.x, minX, maxX), y: clamp(pos.y, minY, maxY) });
+  const obstacles = rects.map(rect => ({ rect, gap: NUDGE_GAP }));
+  if (hudKeepOut) obstacles.push({ rect: hudKeepOut, gap: LABEL_GAP });
+  const valid = pos => pos.x >= minX && pos.x <= maxX && pos.y >= minY && pos.y <= maxY
+    && obstacles.every(({ rect }) => !overlapsRect(pos, w, h, rect));
+
+  const clampedInitial = clampPos(initial);
+  if (valid(clampedInitial)) return clampedInitial;
+
+  const clampedBase = clampPos(base);
+  const xs = new Set([clampedBase.x, clampedInitial.x]);
+  const ys = new Set([clampedBase.y, clampedInitial.y]);
+  for (const { rect, gap } of obstacles) {
+    xs.add(clamp(rect.x - gap - w / 2, minX, maxX));
+    xs.add(clamp(rect.x + rect.w + gap + w / 2, minX, maxX));
+    ys.add(clamp(rect.y - gap - h / 2, minY, maxY));
+    ys.add(clamp(rect.y + rect.h + gap + h / 2, minY, maxY));
+  }
+
+  const baseHitsHud = hudKeepOut && overlapsRect(clampedBase, w, h, hudKeepOut);
+  const preferredRight = baseHitsHud
+    ? hudKeepOut.x + hudKeepOut.w + LABEL_GAP + w / 2
+    : null;
+  const canPreferRight = preferredRight !== null && preferredRight >= minX && preferredRight <= maxX;
+  if (canPreferRight) xs.add(preferredRight);
+
+  const candidates = [];
+  for (const x of xs) for (const y of ys) {
+    const pos = { x, y };
+    if (!valid(pos)) continue;
+    const dx = x - base.x;
+    const dy = y - base.y;
+    candidates.push({
+      pos,
+      rank: [canPreferRight && Math.abs(x - preferredRight) > 0.01 ? 1 : 0,
+        dx * dx + dy * dy, Math.abs(dy), Math.abs(dx), y, x],
+    });
+  }
+  candidates.sort((a, b) => {
+    for (let i = 0; i < a.rank.length; i++) {
+      if (a.rank[i] !== b.rank[i]) return a.rank[i] - b.rank[i];
+    }
+    return 0;
+  });
+  if (candidates.length) return candidates[0].pos;
+
+  // A physically overfull viewport has no collision-free solution. Preserve
+  // the primary HUD reading layer and keep the fallback fully on-screen.
+  return clampPos(avoidHudKeepOut(clampedInitial, w, h, hudKeepOut, vbox));
+}
+
+/** ordre §3, regel 1–3, verbatim på A (indre/nær) → B (ytre/fjern). */
+function dimlineAnchor(A, B, label, keepOut) {
+  const lw = estWidth(label);
+  const span = Math.hypot(B.x - A.x, B.y - A.y);
+  if (span < SPAN_THRESHOLD) {
+    const dx = sign(B.x - A.x);
+    return { x: B.x + dx * (lw / 2 + LABEL_GAP), y: B.y };
+  }
+  const midX = (A.x + B.x) / 2;
+  const midY = (A.y + B.y) / 2 + LABEL_DY;
+  if (keepOut && (midX - lw / 2) < keepOut.x1 && midY > keepOut.y0 && midY < keepOut.y1) {
+    const R = A.x >= B.x ? A : B;
+    return { x: R.x + lw / 2 + LABEL_GAP, y: R.y };
+  }
+  return { x: midX, y: midY };
+}
+
+/** ordre §3: "kollisjonsregister per frame, vertikal nudge vekk fra overlapp, maks 3 iterasjoner". */
+function nudge(pos, w, h, rects) {
+  let { x, y } = pos;
+  for (let k = 0; k < MAX_NUDGE_ITER; k++) {
+    let moved = false;
+    for (const r of rects) {
+      if (x - w / 2 < r.x + r.w && x + w / 2 > r.x && y - h / 2 < r.y + r.h && y + h / 2 > r.y) {
+        y = y <= r.y + r.h / 2 ? r.y - h / 2 - NUDGE_GAP : r.y + r.h + h / 2 + NUDGE_GAP;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return { x, y };
+}
+
+/**
+ * Stats-flip (ordre §3 "Stats-flip"): hysterese-reduksjon, ren funksjon av
+ * (forrige tilstand, station, side i meter) → ny tilstand. impact.html sin
+ * `updateStats` kaller denne i stedet for å duplisere hysteresen inline —
+ * én kilde for regelen, testbar uten DOM/canvas.
+ */
+export function statsFlip(prevRight, station, sideM) {
+  if (!prevRight) return station > 1.1 && sideM < -28;
+  return !(station < 0.9 || sideM > -14);
+}
+
+/**
+ * Komet (ordre §3 "Komet"): ~2.9 s syklus + pause, kontinuerlig langs aktiv
+ * bane. Ren funksjon av (Outcome, now) → verdenspunkt | null (null i pause-
+ * fasen). Kalleren projiserer og tegner; kalleren sjekker også
+ * `prefers-reduced-motion` FØR den kaller denne (ordre: "→ av" er en
+ * on/off-beslutning på kallersiden, ikke en parameter her).
+ */
+export function cometPoint(outcome, now) {
+  const cyc = (now / 2900) % 1.3;
+  if (cyc > 1) return null;
+  const t = smoothstep(cyc);
+  const path = outcome.path;
+  const idx = Math.min(path.length - 1, Math.floor(t * (path.length - 1)));
+  return path[idx];
+}

@@ -1,0 +1,50 @@
+/* Flightglass immersive app shell.
+   Home owns navigation. Tool routes keep only orientation, entitlement and a
+   single explicit Home exit, so no persistent bar consumes the canvas. */
+
+[data-home-exit] {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--plate-solid) 94%, transparent);
+  color: var(--ink);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .08s var(--ease), background .16s var(--ease), border-color .16s var(--ease);
+}
+
+[data-home-exit] svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[data-home-exit]:hover {
+  border-color: var(--secondary-line);
+  background: var(--secondary-soft);
+}
+
+[data-home-exit]:active {
+  transform: scale(.97);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+[data-home-exit]:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bg) 85%, transparent),
+    inset 0 0 0 3px var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-home-exit] { transition: none; }
+}

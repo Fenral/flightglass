@@ -1,0 +1,13 @@
+/*
+ * Flight Glass v3 — stilgrunnlag for Claude Design.
+ * Kilde: DESIGN.md v3 (mockenes visuelle sprak, systematisert — D82).
+ */
+@import "./tokens/tokens.css";
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&display=swap");
+
+body {
+  background: var(--neutral);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}

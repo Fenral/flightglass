@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Flightglass · Connections</title>
+  <meta name="description" content="Explore how Flightglass parameters shape one another.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307060C'/%3E%3Cpath d='M13 36c10-20 23-20 38-8' fill='none' stroke='%239D8BFF' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='48' cy='28' r='5' fill='%23F470B8'/%3E%3C/svg%3E">
+  <script src="./sa-view-transition-guard.js"></script>
+  <link rel="stylesheet" href="./sa-p3.css">
+  <!-- Presentation is owned by the canonical P3 sheet and the page-specific system layer. -->
+  <link rel="stylesheet" href="./connections.css">
+</head>
+<body class="sa-depth" data-sa-route="connections">
+  <main class="connections-page" data-connections-root aria-label="Flightglass connections">
+    <header class="topbar">
+      <a class="icon-btn sa-focus" id="back" href="./index.html" aria-label="Back to home">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.8 4.2 7 10l5.8 5.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="title-block"><div class="eyebrow">System map</div><h1>Connections</h1></div>
+      <button class="reset sa-focus" id="reset" data-connections-reset>Reset</button>
+    </header>
+
+    <div class="instruction"><span>Tap a parameter. Read its relative signal.</span><strong id="status" data-connections-status>Full system</strong></div>
+
+    <div class="segment" role="group" aria-label="Relationship direction">
+      <button class="sa-focus" type="button" id="causes" data-connections-mode-causes aria-pressed="true">What shapes it</button>
+      <button class="sa-focus" type="button" id="effects" data-connections-mode-effects aria-pressed="false">What it shapes</button>
+    </div>
+
+    <section class="network-shell" aria-label="Interactive parameter network">
+      <div class="map-stage" id="stage" data-connections-stage>
+        <svg class="edge-layer" id="edges" data-connections-edges aria-hidden="true"></svg>
+        <div id="labels" data-connections-labels aria-hidden="true"></div>
+        <div id="nodes" data-connections-nodes></div>
+      </div>
+      <div class="legend" aria-label="Connection and relative influence legend">
+        <div class="legend-row">
+          <span class="key direct"><i></i>Direct</span>
+          <span class="key coupled"><i></i>Coupled / varies</span>
+          <span class="key modeled"><i></i>Modeled</span>
+        </div>
+        <div class="legend-row signal-scale" aria-label="Relative influence here, from lower to higher">
+          <span class="legend-title">Relative here</span>
+          <span class="influence-taper" aria-hidden="true"></span>
+          <span class="scale-labels"><span>Lower</span><span>Higher</span></span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="detail idle-card" id="detail" data-connections-detail>
+      <div class="detail-meta"><span class="role" id="role" data-connections-role>Complete system</span><span class="direction-badge" id="direction" data-connections-direction>Tap any node</span></div>
+      <h2 id="detail-title" data-connections-title>Everything is connected</h2>
+      <ul id="detail-list" data-connections-list></ul>
+    </aside>
+    <p class="sr-only" id="live-status" data-connections-live aria-live="polite" aria-atomic="true"></p>
+  </main>
+
+  <div class="rotate-hint" role="status" aria-live="polite">
+    <span aria-hidden="true">↻</span>
+    <strong>Rotate your phone to portrait</strong>
+    <small>Connections is designed as a vertical map.</small>
+  </div>
+
+  <script type="module">
+    import { mountConnectionsMap } from './connections-map.js';
+    import { lockPortrait } from './sa-orientation.js';
+    mountConnectionsMap(document.querySelector('[data-connections-root]'));
+    lockPortrait();
+  </script>
+</body>
+</html>

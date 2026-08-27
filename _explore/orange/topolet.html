@@ -1,0 +1,1013 @@
+<title>Topolet sveip</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..700&display=swap">
+
+<style>
+/* ============================================================
+   FLIGHT GLASS — TOP VIEW · retning "Topolet sveip"
+   Oransje #F75105/#F78E21 = NÅ.  Stål #8FA3BD = FØR.
+   Deltaflaten mellom banene er en gradient fra stål til oransje.
+   ============================================================ */
+
+:root{
+  --acc:      #F75105;   /* NÅ, mettet          */
+  --warm:     #F78E21;   /* NÅ, varm topp       */
+  --acc-deep: #B93A03;
+  --steel:    #8FA3BD;   /* FØR                 */
+  --steel-dim:#5E7089;
+  --s0:       #0A0B0E;   /* app-flate           */
+  --s1:       #22242B;   /* kort                */
+  --s2:       #2F323A;   /* hevet               */
+  --muted:    #5D5C5B;
+  --dim:      #8B8D92;
+  --text:     #D2D3D4;
+  --ink:      #190A02;   /* tekst PÅ oransje    */
+  --hair:     rgba(255,255,255,.075);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  min-height:100%;
+  font-family:'Archivo','Helvetica Neue',Arial,sans-serif;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  /* Phoenix' signaturgradient som MILJØ, aldri som fyll i komponenter */
+  background:
+    radial-gradient(145% 58% at 50% 114%,
+      rgba(247,142,33,.92) 0%,
+      rgba(247,81,5,.80) 20%,
+      rgba(140,38,4,.55) 44%,
+      rgba(0,0,0,0) 72%),
+    radial-gradient(110% 34% at 50% -6%,
+      rgba(247,81,5,.30) 0%, rgba(0,0,0,0) 70%),
+    #000;
+  background-attachment:fixed;
+  padding:26px 12px 60px;
+  display:flex;justify-content:center;
+}
+
+.phone{
+  width:390px;max-width:100%;
+  background:var(--s0);
+  border-radius:42px;
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:
+    0 0 0 9px #0B0B0C,
+    0 0 0 10px rgba(255,255,255,.06),
+    0 44px 120px rgba(247,81,5,.42),
+    0 10px 40px rgba(0,0,0,.85);
+  overflow:hidden;
+  position:relative;
+}
+/* svak varme øverst inne i appen — samme lyskilde som miljøet */
+.phone::before{
+  content:'';position:absolute;inset:0 0 auto;height:230px;pointer-events:none;
+  background:radial-gradient(120% 100% at 50% 0%, rgba(247,81,5,.16), rgba(0,0,0,0) 70%);
+}
+.phone > *{position:relative}
+
+/* ---------- typografi ---------- */
+.disp{
+  font-variation-settings:'wdth' 125,'wght' 400;
+  text-transform:uppercase;letter-spacing:.145em;line-height:.94;
+}
+.lbl{
+  font-size:9.5px;font-variation-settings:'wdth' 115,'wght' 600;
+  text-transform:uppercase;letter-spacing:.15em;color:var(--dim);
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;
+     font-variation-settings:'wdth' 100,'wght' 600;}
+
+/* ---------- status + header ---------- */
+.sb{display:flex;justify-content:space-between;align-items:center;
+    padding:14px 24px 2px;font-size:11.5px;font-variation-settings:'wght' 600;color:var(--text)}
+.sb .rt{display:flex;gap:5px;align-items:center;opacity:.85}
+.sb .bars{display:flex;gap:2px;align-items:flex-end;height:9px}
+.sb .bars i{width:2.5px;background:var(--text);border-radius:1px;display:block}
+.sb .bars i:nth-child(1){height:3px}.sb .bars i:nth-child(2){height:5px}
+.sb .bars i:nth-child(3){height:7px}.sb .bars i:nth-child(4){height:9px}
+.sb .bat{width:20px;height:10px;border:1px solid var(--muted);border-radius:3px;padding:1.5px}
+.sb .bat span{display:block;height:100%;width:62%;background:var(--acc);border-radius:1px}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 4px}
+.ic{width:34px;height:34px;border-radius:50%;background:var(--s1);border:1px solid var(--hair);
+    color:var(--text);font-size:15px;line-height:1;display:grid;place-items:center;cursor:pointer}
+.wm{font-size:11px;font-variation-settings:'wdth' 120,'wght' 700;letter-spacing:.28em;
+    text-transform:uppercase}
+.wm b{color:var(--acc);font-variation-settings:'wdth' 120,'wght' 700}
+.bell{width:34px;height:34px;border-radius:50%;background:var(--s1);border:1px solid var(--hair);
+      display:grid;place-items:center;position:relative}
+.bell::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--acc);
+      position:absolute;top:5px;right:5px;box-shadow:0 0 10px var(--acc)}
+.bell i{width:11px;height:11px;border:1.5px solid var(--dim);border-radius:3px 3px 1px 1px;display:block}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;padding:12px 18px 0}
+.tab{flex:1;text-align:center;padding:9px 0;border-radius:999px;font-size:10px;
+     font-variation-settings:'wdth' 112,'wght' 600;letter-spacing:.16em;text-transform:uppercase;
+     background:var(--s1);border:1px solid var(--hair);color:var(--muted)}
+.tab.on{background:linear-gradient(100deg,var(--acc),var(--warm));color:var(--ink);border-color:transparent;
+        box-shadow:0 6px 22px rgba(247,81,5,.45)}
+
+/* ---------- tittel ---------- */
+.title{padding:22px 18px 12px}
+.title .eyebrow{font-size:9px;letter-spacing:.24em;color:var(--muted);
+  font-variation-settings:'wdth' 112,'wght' 600;text-transform:uppercase;margin-bottom:9px}
+.title h1{font-size:46px;color:var(--text)}
+.title h1 em{font-style:normal;color:var(--acc)}
+
+/* ---------- oransje utfallsplate (Phoenix' OUTPUT-flis) ---------- */
+.plate{
+  margin:4px 18px 0;border-radius:20px;padding:16px 18px 15px;
+  background:linear-gradient(102deg,var(--acc) 0%,var(--acc) 42%,var(--warm) 100%);
+  color:var(--ink);display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+  box-shadow:0 14px 46px rgba(247,81,5,.42), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.plate .k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  font-variation-settings:'wdth' 112,'wght' 700;opacity:.72}
+.plate .shape{font-size:34px;font-variation-settings:'wdth' 122,'wght' 700;
+  letter-spacing:.06em;text-transform:uppercase;line-height:1;margin-top:6px}
+.plate .rt{text-align:right}
+.plate .big{font-size:33px;line-height:1;margin-top:5px;font-variation-settings:'wdth' 100,'wght' 700;
+  font-variant-numeric:tabular-nums}
+.plate .big i{font-style:normal;font-size:14px;font-variation-settings:'wght' 600;margin-left:3px}
+.plate .dirchip{display:inline-flex;align-items:center;gap:5px;margin-top:7px;
+  border:1.4px solid rgba(25,10,2,.55);border-radius:6px;padding:3px 7px;
+  font-size:9px;letter-spacing:.16em;font-variation-settings:'wdth' 112,'wght' 700;text-transform:uppercase}
+
+/* ---------- global sannhetssetning (nøyaktig én ---------- */
+.truth{margin:11px 18px 0;display:flex;align-items:center;gap:8px;
+  font-size:10.5px;color:var(--dim);font-variation-settings:'wght' 500;letter-spacing:.02em}
+.truth b{width:5px;height:5px;border-radius:50%;background:var(--steel);flex:none}
+
+/* ---------- plott ---------- */
+.plotwrap{margin:14px 12px 0;border-radius:24px;background:#101217;border:1px solid var(--hair);
+  overflow:hidden;position:relative}
+.plotwrap svg{display:block;width:100%;height:auto}
+.plotfoot{display:flex;justify-content:space-between;align-items:center;
+  padding:9px 14px 11px;border-top:1px solid var(--hair);background:rgba(0,0,0,.35)}
+
+/* ---------- kort ---------- */
+.card{margin:14px 12px 0;background:var(--s1);border:1px solid var(--hair);border-radius:22px;padding:15px 15px 16px}
+.card > .head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+.card > .head .l{display:flex;align-items:center;gap:9px;min-width:0}
+.card > .head > .lbl,.card > .head > .stamp{flex:none;text-align:right}
+.rule{width:22px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--acc),var(--warm));
+  box-shadow:0 0 12px rgba(247,81,5,.7)}
+.rule.cold{background:var(--steel-dim);box-shadow:none}
+.stamp{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border-radius:6px;
+  background:rgba(247,81,5,.14);color:var(--warm);border:1px solid rgba(247,81,5,.42);
+  font-variation-settings:'wdth' 112,'wght' 700}
+
+/* ---------- sveipepanel ---------- */
+.poles{display:flex;justify-content:space-between;margin:2px 0 7px;font-size:9px;letter-spacing:.13em;
+  text-transform:uppercase;font-variation-settings:'wdth' 112,'wght' 700}
+.poles .b{color:var(--steel)}
+.poles .n{color:var(--warm)}
+
+input[type=range]#scrub{
+  -webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;cursor:grab;display:block;
+}
+input[type=range]#scrub:active{cursor:grabbing}
+input[type=range]#scrub::-webkit-slider-runnable-track{
+  height:14px;border-radius:8px;
+  background:linear-gradient(90deg,var(--steel) 0%,#9C8D9B 34%,var(--acc) 78%,var(--warm) 100%);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.4), 0 0 22px rgba(247,81,5,.35);
+}
+input[type=range]#scrub::-moz-range-track{
+  height:14px;border-radius:8px;
+  background:linear-gradient(90deg,var(--steel) 0%,#9C8D9B 34%,var(--acc) 78%,var(--warm) 100%);
+}
+input[type=range]#scrub::-webkit-slider-thumb{
+  -webkit-appearance:none;width:24px;height:24px;border-radius:50%;margin-top:-5px;
+  background:radial-gradient(circle at 34% 30%,#FFE2C4,var(--warm) 42%,var(--acc) 100%);
+  border:2px solid #1A0D05;box-shadow:0 0 0 3px rgba(247,81,5,.28),0 0 24px rgba(247,81,5,.85);
+}
+input[type=range]#scrub::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#FFE2C4,var(--warm) 42%,var(--acc) 100%);
+  border:2px solid #1A0D05;box-shadow:0 0 0 3px rgba(247,81,5,.28),0 0 24px rgba(247,81,5,.85);
+}
+input[type=range]#scrub:focus-visible{outline:2px solid var(--warm);outline-offset:5px;border-radius:10px}
+
+.replay{background:var(--s2);border:1px solid rgba(247,81,5,.5);color:var(--warm);
+  border-radius:999px;padding:6px 12px;font-family:inherit;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;font-variation-settings:'wdth' 112,'wght' 700;cursor:pointer}
+.replay:hover{background:rgba(247,81,5,.16)}
+.replay:focus-visible{outline:2px solid var(--warm);outline-offset:3px}
+
+.dtable{margin-top:13px;border-top:1px solid var(--hair)}
+.drow{display:grid;grid-template-columns:64px 1fr 1fr 1fr;align-items:baseline;gap:6px;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.drow:last-child{border-bottom:0;padding-bottom:2px}
+.drow.hdr{padding:8px 0 6px;border-bottom:1px solid var(--hair)}
+.drow.hdr span{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  font-variation-settings:'wdth' 112,'wght' 700}
+.drow .nm{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  font-variation-settings:'wdth' 112,'wght' 700}
+.drow .v{font-size:14px;font-variant-numeric:tabular-nums;font-variation-settings:'wght' 600;text-align:right}
+.drow .v.before{color:var(--steel)}
+.drow .v.now{color:var(--warm)}
+.drow .v.delta{color:var(--text)}
+.drow .v small{font-size:9px;font-variation-settings:'wght' 600;letter-spacing:.08em;
+  margin-left:3px;opacity:.8}
+.drow .v .LR{display:inline-block;min-width:13px;margin-left:4px;padding:1px 3px;border-radius:3px;
+  font-size:8.5px;line-height:1.3;border:1px solid currentColor;letter-spacing:.06em;
+  font-variation-settings:'wdth' 112,'wght' 700;vertical-align:1px}
+
+/* Phoenix-mønster #10: tynn vertikal oransje linjal, tonet ut i begge ender */
+.cause{position:relative;margin-top:12px;padding:10px 12px 10px 15px;border-radius:12px;
+  background:rgba(143,163,189,.07);font-size:11px;line-height:1.5;color:var(--text)}
+.cause::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:1px;
+  background:linear-gradient(180deg,rgba(247,81,5,0),var(--acc) 30%,var(--warm) 70%,rgba(247,142,33,0))}
+.cause b{color:var(--warm);font-variation-settings:'wght' 700;font-variant-numeric:tabular-nums}
+
+/* ---------- utfall ---------- */
+.grid3{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cell{background:var(--s2);border-radius:14px;padding:10px 11px 11px;border:1px solid rgba(255,255,255,.04)}
+.cell .k{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  font-variation-settings:'wdth' 112,'wght' 700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .v{font-size:20px;margin-top:6px;font-variant-numeric:tabular-nums;
+  font-variation-settings:'wdth' 100,'wght' 600;color:var(--text);line-height:1}
+.cell .v i{font-style:normal;font-size:11px;font-variation-settings:'wght' 600;margin-left:3px;color:var(--dim)}
+.cell .dir{display:inline-flex;gap:5px;align-items:center;margin-top:7px;
+  border:1px solid var(--steel-dim);color:var(--steel);border-radius:5px;padding:2px 6px;
+  font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;font-variation-settings:'wdth' 112,'wght' 700}
+.cell .dir b{font-size:10px;font-variation-settings:'wght' 700}
+.cell .chg{margin-top:7px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--warm);
+  font-variation-settings:'wdth' 112,'wght' 700;font-variant-numeric:tabular-nums;
+  display:flex;align-items:center;gap:5px}
+.cell .chg::before{content:'';width:12px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,var(--steel),var(--acc));flex:none}
+.cell.wide{grid-column:span 2}
+.cell.hot{background:linear-gradient(160deg,rgba(247,81,5,.20),rgba(247,142,33,.06));
+  border:1px solid rgba(247,81,5,.42);box-shadow:inset 0 0 30px rgba(247,81,5,.10)}
+.cell.hot .v{color:#FFD7B4}
+.note{margin-top:10px;font-size:9.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;
+  font-variation-settings:'wdth' 112,'wght' 600}
+
+/* ---------- fem slidere ---------- */
+.ctl{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.ctl:last-of-type{border-bottom:0;padding-bottom:2px}
+.ctl-top{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+.ctl-name{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  font-variation-settings:'wdth' 112,'wght' 700;flex:1}
+.ctl-val{font-size:16px;font-variant-numeric:tabular-nums;font-variation-settings:'wght' 600;color:var(--text)}
+.ctl-val i{font-style:normal;font-size:10px;color:var(--dim);margin-left:2px}
+.ctl-chip{border:1px solid var(--steel-dim);color:var(--steel);border-radius:5px;padding:2px 5px;
+  font-size:8px;letter-spacing:.12em;text-transform:uppercase;font-variation-settings:'wdth' 112,'wght' 700}
+.ctl-track{position:relative;height:24px;display:flex;align-items:center}
+.ctl-track .bar{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:#3A3E48}
+.ctl-track .zero{position:absolute;left:50%;top:2px;bottom:2px;width:1px;background:var(--muted)}
+.ctl-track .fill{position:absolute;height:6px;border-radius:3px;background:var(--steel-dim)}
+.ctl-track .knob{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--steel);
+  border:2px solid #12141A;transform:translateX(-50%)}
+.ctl-scale{display:flex;justify-content:space-between;margin-top:6px;font-size:8.5px;color:var(--muted);
+  font-variant-numeric:tabular-nums;letter-spacing:.08em}
+
+/* aktiv slider — Club Path */
+.ctl.active{position:relative;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(247,81,5,.20), rgba(247,81,5,0) 72%),
+    linear-gradient(180deg,rgba(247,81,5,.10),rgba(247,81,5,0));
+  margin:6px -15px;padding:15px 15px 15px;border-radius:16px;
+  border:1px solid rgba(247,81,5,.30);
+  box-shadow:inset 0 0 34px rgba(247,81,5,.10)}
+.ctl.active .ctl-name{color:var(--warm)}
+/* Phoenix-mønster #8: pille med oransje fyll = på */
+.ctl.active .ctl-name::after{content:'AKTIV';margin-left:8px;padding:2px 7px;border-radius:999px;
+  background:linear-gradient(100deg,var(--acc),var(--warm));color:var(--ink);
+  font-size:8px;letter-spacing:.14em;font-variation-settings:'wdth' 112,'wght' 700;
+  box-shadow:0 0 16px rgba(247,81,5,.6)}
+.ctl.active .ctl-val{font-size:22px;color:#FFD7B4}
+.ctl.active .ctl-chip{border-color:rgba(247,142,33,.6);color:var(--warm)}
+.ctl.active .ctl-track{height:34px}
+.ctl.active .bar{height:10px;border-radius:5px;background:#2A2E36}
+.ctl.active .fill{height:10px;border-radius:5px;
+  background:linear-gradient(90deg,rgba(247,81,5,.35),var(--acc));box-shadow:0 0 18px rgba(247,81,5,.5)}
+/* deltabåndet på slideren = 1-D versjon av deltaflaten i plottet */
+.ctl.active .band{position:absolute;height:16px;border-radius:8px;
+  background:linear-gradient(90deg,var(--steel),#B08A6C 45%,var(--acc) 88%,var(--warm) 100%);
+  box-shadow:0 0 26px rgba(247,81,5,.75), inset 0 1px 0 rgba(255,255,255,.25)}
+.ctl.active .ghost{position:absolute;width:14px;height:14px;border-radius:50%;
+  background:#12141A;border:2.5px solid var(--steel);transform:translateX(-50%)}
+.ctl.active .ghost::after{content:'FØR';position:absolute;top:-17px;left:50%;transform:translateX(-50%);
+  font-size:8px;letter-spacing:.14em;color:var(--steel);font-variation-settings:'wdth' 112,'wght' 700}
+.ctl.active .knob{width:24px;height:24px;border:2.5px solid #12141A;
+  background:radial-gradient(circle at 34% 30%,#FFE6CB,var(--warm) 40%,var(--acc));
+  box-shadow:0 0 0 3px rgba(247,81,5,.25),0 0 26px rgba(247,81,5,.9)}
+.ctl-sub{margin-top:9px;font-size:9.5px;color:var(--dim);letter-spacing:.06em;
+  font-variant-numeric:tabular-nums}
+.ctl-sub b{color:var(--warm);font-variation-settings:'wght' 700}
+
+footer{padding:18px 20px 26px;display:flex;justify-content:space-between;gap:10px;
+  font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  font-variation-settings:'wdth' 112,'wght' 600}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;animation:none !important}
+  /* Sveipet spilles ikke av. All informasjon står allerede i flaten,
+     i FØR/NÅ/Δ-tabellen og i målsettingen — ingenting går tapt. */
+  .replay{display:none}
+}
+</style>
+
+<div class="phone">
+
+  <!-- ── status ─────────────────────────────────────────── -->
+  <div class="sb">
+    <span class="num">9:41</span>
+    <span class="rt">
+      <span class="bars"><i></i><i></i><i></i><i></i></span>
+      <span class="bat"><span></span></span>
+    </span>
+  </div>
+
+  <header>
+    <button class="ic" aria-label="Hjem">&#8592;</button>
+    <div class="wm">FLIGHT<b>GLASS</b></div>
+    <div class="bell" aria-hidden="true"><i></i></div>
+  </header>
+
+  <!-- ── visninger ──────────────────────────────────────── -->
+  <nav class="tabs" aria-label="Visning">
+    <div class="tab">Outcome</div>
+    <div class="tab">Side</div>
+    <div class="tab on" aria-current="page">Top</div>
+  </nav>
+
+  <!-- ── tittel ─────────────────────────────────────────── -->
+  <div class="title">
+    <div class="eyebrow">Ball flight &middot; retningsplan</div>
+    <h1 class="disp">Top<br><em>View</em></h1>
+  </div>
+
+  <!-- ── oransje utfallsplate ───────────────────────────── -->
+  <div class="plate">
+    <div>
+      <div class="k">Form</div>
+      <div class="shape">Draw</div>
+    </div>
+    <div class="rt">
+      <div class="k">Side @ carry</div>
+      <div class="big num">&minus;15.7<i>m</i></div>
+      <div class="dirchip">L &middot; Venstre</div>
+    </div>
+  </div>
+
+  <!-- ── én global sannhetssetning ──────────────────────── -->
+  <p class="truth"><b></b>Modellert slag &mdash; ikke en m&aring;ling.</p>
+
+  <!-- ── PLOTT ──────────────────────────────────────────── -->
+  <figure class="plotwrap">
+    <svg id="plot" viewBox="0 0 358 600" role="img"
+         aria-label="Toppvisning. N&aring;v&aelig;rende modellerte bane med Club Path +5,0 grader: launch direction +0,32 grader h&oslash;yre, kurve 16,7 meter venstre, side 15,7 meter venstre ved carry 173,5 meter. Referansebane med Club Path +2,0 grader: kurve 10,4 meter venstre, side 9,8 meter venstre ved carry 171,9 meter. Flaten mellom banene er fylt med en gradient fra st&aring;lbl&aring; ved referansen til oransje ved n&aring;v&aelig;rende.">
+      <defs>
+        <pattern id="dots" width="13" height="13" patternUnits="userSpaceOnUse">
+          <circle cx="1.2" cy="1.2" r="1" fill="#8FA3BD" opacity=".13"/>
+        </pattern>
+
+        <radialGradient id="heat" cx="50%" cy="50%" r="50%">
+          <stop offset="0"   stop-color="#FFC489" stop-opacity=".55"/>
+          <stop offset=".30" stop-color="#F78E21" stop-opacity=".34"/>
+          <stop offset=".62" stop-color="#F75105" stop-opacity=".16"/>
+          <stop offset="1"   stop-color="#F75105" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- kjernegradienten: hvitglødende i treffet, mettet oransje utover -->
+        <linearGradient id="curStroke" gradientUnits="userSpaceOnUse" x1="179" y1="545" x2="89" y2="149">
+          <stop offset="0"    stop-color="#FFE3C6"/>
+          <stop offset=".05"  stop-color="#FBB05C"/>
+          <stop offset=".20"  stop-color="#F78E21"/>
+          <stop offset=".58"  stop-color="#F75105"/>
+          <stop offset="1"    stop-color="#FF6612"/>
+        </linearGradient>
+
+        <!-- bunnflate under ribbene: dreper skjøter, tenner nedstrøms -->
+        <linearGradient id="fanBase" gradientUnits="userSpaceOnUse" x1="179" y1="545" x2="106" y2="151">
+          <stop offset="0"   stop-color="#8FA3BD" stop-opacity=".10"/>
+          <stop offset=".45" stop-color="#C4702A" stop-opacity=".20"/>
+          <stop offset="1"   stop-color="#F75105" stop-opacity=".34"/>
+        </linearGradient>
+
+        <!-- KURVEFLATEN: alt mellom launch line og nåværende bane tilhører NÅ.
+             Tetner nedstrøms, akkurat som kurven selv vokser. -->
+        <linearGradient id="curveField" gradientUnits="userSpaceOnUse" x1="179" y1="545" x2="132" y2="150">
+          <stop offset="0"   stop-color="#F75105" stop-opacity="0"/>
+          <stop offset=".32" stop-color="#F75105" stop-opacity=".07"/>
+          <stop offset=".70" stop-color="#F75105" stop-opacity=".19"/>
+          <stop offset="1"   stop-color="#F78E21" stop-opacity=".34"/>
+        </linearGradient>
+
+        <!-- varmen som brer seg utover fra NÅ-kanten -->
+        <linearGradient id="fanRamp" gradientUnits="userSpaceOnUse" x1="179" y1="545" x2="106" y2="151">
+          <stop offset="0"   stop-color="#F75105" stop-opacity="0"/>
+          <stop offset=".38" stop-color="#F75105" stop-opacity=".22"/>
+          <stop offset=".76" stop-color="#F78E21" stop-opacity=".52"/>
+          <stop offset="1"   stop-color="#FFA23A" stop-opacity=".72"/>
+        </linearGradient>
+
+        <filter id="bloom" x="-45%" y="-14%" width="190%" height="128%">
+          <feGaussianBlur stdDeviation="8"/>
+        </filter>
+        <filter id="bloomSoft" x="-45%" y="-14%" width="190%" height="128%">
+          <feGaussianBlur stdDeviation="15"/>
+        </filter>
+
+        <clipPath id="plotClip"><rect x="0" y="0" width="358" height="600" rx="0"/></clipPath>
+      </defs>
+
+      <rect width="358" height="600" fill="#101217"/>
+      <rect width="358" height="600" fill="url(#dots)"/>
+
+      <g clip-path="url(#plotClip)">
+        <!-- varmekilde i treffpunktet -->
+        <ellipse cx="179" cy="545" rx="196" ry="168" fill="url(#heat)"/>
+
+        <!-- rutenett -->
+        <g stroke="#8FA3BD" stroke-width="1" opacity=".10">
+          <line x1="36" y1="431" x2="322" y2="431"/>
+          <line x1="36" y1="317" x2="322" y2="317"/>
+          <line x1="36" y1="203" x2="322" y2="203"/>
+        </g>
+        <g stroke="#8FA3BD" stroke-width="1" opacity=".07">
+          <line x1="122" y1="150" x2="122" y2="545"/>
+          <line x1="236" y1="150" x2="236" y2="545"/>
+          <line x1="65"  y1="150" x2="65"  y2="545"/>
+          <line x1="293" y1="150" x2="293" y2="545"/>
+        </g>
+        <g fill="#5D5C5B" font-size="8.5" font-family="Archivo, sans-serif"
+           letter-spacing="1.4" style="font-variant-numeric:tabular-nums">
+          <text x="40" y="426">50 M</text>
+          <text x="40" y="312">100 M</text>
+          <text x="40" y="198">150 M</text>
+        </g>
+
+        <!-- sidevei-linjal -->
+        <g>
+          <line x1="36.5" y1="26" x2="321.5" y2="26" stroke="#5D5C5B" stroke-width="1"/>
+          <g stroke="#5D5C5B" stroke-width="1" opacity=".8">
+            <line x1="36.5" y1="26" x2="36.5" y2="32"/><line x1="65" y1="26" x2="65" y2="31"/>
+            <line x1="93.5" y1="26" x2="93.5" y2="29"/><line x1="122" y1="26" x2="122" y2="31"/>
+            <line x1="150.5" y1="26" x2="150.5" y2="29"/>
+            <line x1="179" y1="26" x2="179" y2="34" stroke="#8FA3BD"/>
+            <line x1="207.5" y1="26" x2="207.5" y2="29"/><line x1="236" y1="26" x2="236" y2="31"/>
+            <line x1="264.5" y1="26" x2="264.5" y2="29"/><line x1="293" y1="26" x2="293" y2="31"/>
+            <line x1="321.5" y1="26" x2="321.5" y2="32"/>
+          </g>
+          <g fill="#8B8D92" font-size="8" font-family="Archivo, sans-serif" letter-spacing="1.2"
+             text-anchor="middle" style="font-variant-numeric:tabular-nums">
+            <text x="36.5" y="18">25 L</text><text x="122" y="18">10 L</text>
+            <text x="179" y="18" fill="#8FA3BD">C</text>
+            <text x="236" y="18">10 R</text><text x="321.5" y="18">25 R</text>
+          </g>
+        </g>
+
+        <!-- KURVEFLATEN — mellom launch line og nåværende bane. Alt her er NÅ. -->
+        <path id="curveArea" d="" fill="url(#curveField)"/>
+        <path id="curveAreaBloom" d="" fill="url(#curveField)" opacity=".55"
+              filter="url(#bloomSoft)" style="mix-blend-mode:screen"/>
+
+        <!-- mållinje -->
+        <line x1="179" y1="545" x2="179" y2="140" stroke="#8FA3BD" stroke-width="1.4"
+              stroke-dasharray="1 6" stroke-linecap="round" opacity=".75"/>
+
+        <!-- launch line (tilhører NÅ) -->
+        <line id="launchLine" x1="179" y1="545" x2="184.7" y2="134" stroke="#F78E21" stroke-width="1.3"
+              stroke-dasharray="5 5" opacity=".70"/>
+
+        <!-- ═══ DELTAFLATEN ═══
+             Ett gradient-ribbe per nedstrømsstasjon: stål ved referansebanen,
+             oransje ved nåværende. Flaten viser bevegelsesretningen selv. -->
+        <g id="fanGroup">
+          <path id="fanBloom" d="" fill="url(#fanRamp)" opacity=".62"
+                filter="url(#bloomSoft)" style="mix-blend-mode:screen"/>
+          <path id="fanBaseP" d="" fill="url(#fanBase)"/>
+          <g id="ribs"></g>
+          <path id="fanRampP" d="" fill="url(#fanRamp)" opacity=".30"
+                style="mix-blend-mode:screen"/>
+          <g id="blades" fill="none" stroke-linecap="round"></g>
+          <path id="fanEdge" d="" fill="none" stroke="#FFB169" stroke-width="1" opacity=".30"/>
+        </g>
+
+        <!-- referansebane (FØR) -->
+        <path id="refGlow" d="" fill="none" stroke="#8FA3BD" stroke-width="13" opacity=".13"
+              stroke-linecap="round" filter="url(#bloom)"/>
+        <path id="refPath" d="" fill="none" stroke="#8FA3BD" stroke-width="4"
+              stroke-linecap="round" opacity=".95"/>
+
+        <!-- nåværende bane (NÅ) — tykt glødende bånd -->
+        <path id="curBloom" d="" fill="none" stroke="#F75105" stroke-width="34" opacity=".22"
+              stroke-linecap="round" filter="url(#bloomSoft)"/>
+        <path id="curGlow"  d="" fill="none" stroke="#F75105" stroke-width="17" opacity=".34"
+              stroke-linecap="round" filter="url(#bloom)"/>
+        <path id="curPath"  d="" fill="none" stroke="url(#curStroke)" stroke-width="8"
+              stroke-linecap="round"/>
+        <path id="curFilm"  d="" fill="none" stroke="#FFD2A6" stroke-width="1.5"
+              stroke-linecap="round" opacity=".26"/>
+
+        <!-- endepunkter -->
+        <g id="refEnd">
+          <circle r="5" fill="#101217" stroke="#8FA3BD" stroke-width="2.2"/>
+        </g>
+        <g id="curEnd">
+          <circle r="15" fill="#F75105" opacity=".22" filter="url(#bloom)"/>
+          <circle r="7"  fill="#F75105"/>
+          <circle r="3"  fill="#FFE9D4"/>
+        </g>
+
+        <!-- ballen / treffpunktet -->
+        <circle cx="179" cy="545" r="16" fill="#F78E21" opacity=".26" filter="url(#bloom)"/>
+        <circle cx="179" cy="545" r="6" fill="#FFF3E6"/>
+        <circle cx="179" cy="545" r="11" fill="none" stroke="#F78E21" stroke-width="1.4" opacity=".7"/>
+
+        <!-- ═══ MÅLSETTING (drafting) — vises når sveipet er ferdig ═══ -->
+        <g id="dims" opacity="1">
+          <g stroke="#5D5C5B" stroke-width="1" stroke-dasharray="2 3">
+            <line x1="89.3"  y1="132" x2="89.3"  y2="62"/>
+            <line x1="123.1" y1="147" x2="123.1" y2="96"/>
+            <line x1="184.5" y1="145" x2="184.5" y2="62"/>
+          </g>
+          <!-- CURVE: fra launch line til nåværende bane -->
+          <g stroke="#F78E21" stroke-width="1.2" opacity=".9">
+            <line x1="89.3" y1="66" x2="184.5" y2="66"/>
+            <line x1="89.3" y1="62" x2="89.3" y2="70"/>
+            <line x1="184.5" y1="62" x2="184.5" y2="70"/>
+          </g>
+          <text x="137" y="58" fill="#F78E21" font-size="9.5" font-family="Archivo, sans-serif"
+                letter-spacing="1.3" text-anchor="middle" style="font-variant-numeric:tabular-nums">
+            CURVE &#8722;16.7 M &#183; L
+          </text>
+          <!-- Δ SIDE: bredden på deltaflaten -->
+          <g stroke="#FFB169" stroke-width="1.2">
+            <line x1="89.3" y1="100" x2="123.1" y2="100"/>
+            <line x1="89.3" y1="96" x2="89.3" y2="104"/>
+            <line x1="123.1" y1="96" x2="123.1" y2="104"/>
+          </g>
+          <text x="130" y="103.5" fill="#FFB169" font-size="9.5" font-family="Archivo, sans-serif"
+                letter-spacing="1.3" style="font-variant-numeric:tabular-nums">
+            &#916; SIDE &#8722;5.9 M &#183; L
+          </text>
+          <text x="89.3" y="136" fill="#FFD7B4" font-size="8.5" font-family="Archivo, sans-serif"
+                letter-spacing="1.4" text-anchor="middle">N&#197;</text>
+          <text x="137" y="168" fill="#8FA3BD" font-size="8.5" font-family="Archivo, sans-serif"
+                letter-spacing="1.4">F&#216;R</text>
+        </g>
+
+        <!-- ═══ TEGNFORKLARING: de to polene ═══ -->
+        <g id="key">
+          <defs>
+            <linearGradient id="keySwatch" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#8FA3BD"/>
+              <stop offset=".45" stop-color="#C9762B"/>
+              <stop offset="1" stop-color="#FF6612"/>
+            </linearGradient>
+          </defs>
+          <rect x="186" y="200" width="158" height="146" rx="13"
+                fill="#0A0B0E" opacity=".90" stroke="#2F323A"/>
+
+          <rect x="198" y="218" width="26" height="8" rx="4" fill="#F75105" opacity=".6"
+                filter="url(#bloom)"/>
+          <rect x="198" y="218" width="26" height="8" rx="4" fill="#F75105"/>
+          <text x="232" y="225" fill="#FFD7B4" font-size="9" font-family="Archivo, sans-serif"
+                letter-spacing="1.1" style="font-variant-numeric:tabular-nums">N&#197; &#183; PATH +5.0&#176;</text>
+
+          <rect x="198" y="240" width="26" height="4" rx="2" fill="#8FA3BD"/>
+          <text x="232" y="245" fill="#8FA3BD" font-size="9" font-family="Archivo, sans-serif"
+                letter-spacing="1.1" style="font-variant-numeric:tabular-nums">F&#216;R &#183; PATH +2.0&#176;</text>
+
+          <rect x="198" y="257" width="26" height="11" rx="3" fill="url(#keySwatch)"/>
+          <text x="232" y="266" fill="#D2D3D4" font-size="9" font-family="Archivo, sans-serif"
+                letter-spacing="1.1">SVEIPT FLATE</text>
+
+          <rect x="198" y="279" width="26" height="11" rx="3" fill="#F75105" opacity=".30"/>
+          <text x="232" y="288" fill="#B98A63" font-size="9" font-family="Archivo, sans-serif"
+                letter-spacing="1.1" style="font-variant-numeric:tabular-nums">KURVEFLATE 16.7 M</text>
+
+          <line x1="198" y1="309" x2="224" y2="309" stroke="#F78E21" stroke-width="1.6"
+                stroke-dasharray="5 5"/>
+          <text x="232" y="312" fill="#F78E21" font-size="9" font-family="Archivo, sans-serif"
+                letter-spacing="1.1" style="font-variant-numeric:tabular-nums">LAUNCH +0.32&#176; R</text>
+
+          <line x1="198" y1="329" x2="224" y2="329" stroke="#8FA3BD" stroke-width="1.6"
+                stroke-dasharray="1 5" stroke-linecap="round"/>
+          <text x="232" y="332" fill="#8FA3BD" font-size="9" font-family="Archivo, sans-serif"
+                letter-spacing="1.1">TARGET &#183; C</text>
+        </g>
+
+        <!-- tee-sone -->
+        <text x="179" y="572" fill="#8B8D92" font-size="8.5" font-family="Archivo, sans-serif"
+              letter-spacing="1.8" text-anchor="middle">TREFF</text>
+      </svg>
+
+    <figcaption class="plotfoot">
+      <span class="lbl">Sidevei &#215;2.5 forst&oslash;rret</span>
+      <span class="lbl" style="color:var(--warm)">Oransje = N&Aring; &nbsp;/&nbsp; St&aring;l = F&Oslash;R</span>
+    </figcaption>
+  </figure>
+
+  <!-- ── SVEIPEPANEL ────────────────────────────────────── -->
+  <section class="card">
+    <div class="head">
+      <div class="l"><span class="rule"></span><span class="lbl">Sveip &#183; f&oslash;r &#8594; n&aring;</span></div>
+      <button class="replay" id="replay">&#8635; Spill av</button>
+    </div>
+
+    <div class="poles">
+      <span class="b">F&Oslash;R &#183; PATH +2.0&#176;</span>
+      <span class="n">N&Aring; &#183; PATH +5.0&#176;</span>
+    </div>
+    <input type="range" id="scrub" min="0" max="1" step="0.001" value="1"
+           aria-label="Sveip mellom f&oslash;r (Club Path +2,0 grader) og n&aring; (Club Path +5,0 grader)">
+
+    <div class="dtable">
+      <div class="drow hdr">
+        <span></span><span style="text-align:right">F&Oslash;R</span>
+        <span style="text-align:right">N&Aring;</span><span style="text-align:right">&#916;</span>
+      </div>
+      <div class="drow">
+        <span class="nm">Side</span>
+        <span class="v before">&minus;9.8<small>m</small><span class="LR">L</span></span>
+        <span class="v now">&minus;15.7<small>m</small><span class="LR">L</span></span>
+        <span class="v delta">&minus;5.9<small>m</small><span class="LR">L</span></span>
+      </div>
+      <div class="drow">
+        <span class="nm">Curve</span>
+        <span class="v before">&minus;10.4<small>m</small><span class="LR">L</span></span>
+        <span class="v now">&minus;16.7<small>m</small><span class="LR">L</span></span>
+        <span class="v delta">&minus;6.3<small>m</small><span class="LR">L</span></span>
+      </div>
+      <div class="drow">
+        <span class="nm">Carry</span>
+        <span class="v before">171.9<small>m</small></span>
+        <span class="v now">173.5<small>m</small></span>
+        <span class="v delta">+1.6<small>m</small></span>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:9px">&#916; vises kun der f&oslash;r-verdi finnes</div>
+
+    <p class="cause">
+      Club Path <b>+2.0&#176; &#8594; +5.0&#176;</b>. Face &minus;1.0&#176; gir face-to-path
+      <b>&minus;6.0&#176;</b> (lukket til path) &#8594; spin axis <b>&minus;16.26&#176; L</b>
+      &#8594; kurven vokser <b>6.3 m</b> mot venstre.
+    </p>
+  </section>
+
+  <!-- ── 13 UTFALL ──────────────────────────────────────── -->
+  <section class="card">
+    <div class="head">
+      <div class="l"><span class="rule"></span><span class="lbl">Direction</span></div>
+      <span class="stamp">N&Aring; &#183; Path +5.0&#176;</span>
+    </div>
+    <div class="grid3">
+      <div class="cell">
+        <div class="k">Launch dir</div>
+        <div class="v num">+0.32<i>&#176;</i></div>
+        <div class="dir"><b>R</b> H&#216;YRE</div>
+      </div>
+      <div class="cell">
+        <div class="k">Spin axis</div>
+        <div class="v num">&minus;16.26<i>&#176;</i></div>
+        <div class="dir"><b>L</b> VENSTRE</div>
+      </div>
+      <div class="cell hot">
+        <div class="k">Curve</div>
+        <div class="v num">&minus;16.7<i>m</i></div>
+        <div class="dir"><b>L</b> VENSTRE</div>
+        <div class="chg">&#916; &minus;6.3 m</div>
+      </div>
+      <div class="cell hot">
+        <div class="k">Side @ carry</div>
+        <div class="v num">&minus;15.7<i>m</i></div>
+        <div class="dir"><b>L</b> VENSTRE</div>
+        <div class="chg">&#916; &minus;5.9 m</div>
+      </div>
+    </div>
+    <div class="note">&minus; = venstre &#183; + = h&oslash;yre &#183; alltid med L / R / C</div>
+  </section>
+
+  <section class="card">
+    <div class="head">
+      <div class="l"><span class="rule cold"></span><span class="lbl">Launch &amp; spin</span></div>
+      <span class="lbl" style="color:var(--muted)">Ingen f&oslash;r-verdi</span>
+    </div>
+    <div class="grid3">
+      <div class="cell"><div class="k">Launch angle</div><div class="v num">14.5<i>&#176;</i></div></div>
+      <div class="cell"><div class="k">Spin loft</div><div class="v num">19.9<i>&#176;</i></div></div>
+      <div class="cell"><div class="k">Backspin</div><div class="v num">3173<i>rpm</i></div></div>
+      <div class="cell"><div class="k">Landing angle</div><div class="v num">45.5<i>&#176;</i></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="head">
+      <div class="l"><span class="rule"></span><span class="lbl">Distance</span></div>
+      <span class="stamp">N&Aring; &#183; Path +5.0&#176;</span>
+    </div>
+    <div class="grid3">
+      <div class="cell hot wide">
+        <div class="k">Carry</div>
+        <div class="v num" style="font-size:30px">173.5<i style="font-size:13px">m</i></div>
+        <div class="chg">&#916; +1.6 m</div>
+      </div>
+      <div class="cell"><div class="k">Total</div><div class="v num">180.3<i>m</i></div></div>
+      <div class="cell"><div class="k">Apex</div><div class="v num">29.4<i>m</i></div></div>
+      <div class="cell"><div class="k">Ball speed</div><div class="v num">130.6<i>mph</i></div></div>
+      <div class="cell"><div class="k">Smash</div><div class="v num">1.451</div></div>
+    </div>
+  </section>
+
+  <!-- ── FEM SLIDERE ────────────────────────────────────── -->
+  <section class="card">
+    <div class="head">
+      <div class="l"><span class="rule"></span><span class="lbl">Levering</span></div>
+      <span class="lbl" style="color:var(--muted)">Fem verdier</span>
+    </div>
+
+    <div class="ctl">
+      <div class="ctl-top"><span class="ctl-name">Club speed</span>
+        <span class="ctl-val num">90<i>mph</i></span></div>
+      <div class="ctl-track">
+        <div class="bar"></div><div class="fill" style="left:0;width:50%"></div>
+        <div class="knob" style="left:50%"></div>
+      </div>
+      <div class="ctl-scale num"><span>30</span><span>90</span><span>150</span></div>
+    </div>
+
+    <div class="ctl">
+      <div class="ctl-top"><span class="ctl-name">Club face</span>
+        <span class="ctl-val num">&minus;1.0<i>&#176;</i></span>
+        <span class="ctl-chip">L &#183; lukket</span></div>
+      <div class="ctl-track">
+        <div class="bar"></div><div class="zero"></div>
+        <div class="fill" style="left:46.67%;width:3.33%"></div>
+        <div class="knob" style="left:46.67%"></div>
+      </div>
+      <div class="ctl-scale num"><span>&minus;15</span><span>0</span><span>+15</span></div>
+    </div>
+
+    <!-- AKTIV -->
+    <div class="ctl active">
+      <div class="ctl-top"><span class="ctl-name">Club path</span>
+        <span class="ctl-val num">+5.0<i>&#176;</i></span>
+        <span class="ctl-chip">R &#183; inn&#8211;ut</span></div>
+      <div class="ctl-track">
+        <div class="bar"></div><div class="zero"></div>
+        <div class="fill" style="left:50%;width:6.67%"></div>
+        <div class="band" style="left:56.67%;width:10%"></div>
+        <div class="ghost" style="left:56.67%"></div>
+        <div class="knob" style="left:66.67%"></div>
+      </div>
+      <div class="ctl-scale num"><span>&minus;15</span><span>0</span><span>+15</span></div>
+      <div class="ctl-sub">B&aring;ndet er sveipet: <b>+2.0&#176;</b> &#8594; <b>+5.0&#176;</b>
+        &#183; face-to-path <b>&minus;6.0&#176;</b></div>
+    </div>
+
+    <div class="ctl">
+      <div class="ctl-top"><span class="ctl-name">Attack angle</span>
+        <span class="ctl-val num">+5.0<i>&#176;</i></span>
+        <span class="ctl-chip">Opp</span></div>
+      <div class="ctl-track">
+        <div class="bar"></div><div class="zero"></div>
+        <div class="fill" style="left:50%;width:16.67%"></div>
+        <div class="knob" style="left:66.67%"></div>
+      </div>
+      <div class="ctl-scale num"><span>&minus;15</span><span>0</span><span>+15</span></div>
+    </div>
+
+    <div class="ctl">
+      <div class="ctl-top"><span class="ctl-name">Dynamic loft</span>
+        <span class="ctl-val num">24.0<i>&#176;</i></span></div>
+      <div class="ctl-track">
+        <div class="bar"></div><div class="fill" style="left:0;width:48%"></div>
+        <div class="knob" style="left:48%"></div>
+      </div>
+      <div class="ctl-scale num"><span>0</span><span>25</span><span>50</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fixture-verifiserte verdier</span>
+    <span>Sidevei &#215;2.5</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---- Verifiserte tilstander fra motorens fixture ---- */
+  var NOW = { S:173.5, dir:0.32, curve:-16.7 };   /* Club Path +5.0° */
+  var REF = { S:171.9, dir:0.20, curve:-10.4 };   /* Club Path +2.0° */
+
+  /* Sideveis avvik fra launch line vokser som u^KEXP; endepunktet treffer
+     eksakt Side/Curve-tallene:  −15.731 m og −9.800 m. */
+  var KEXP = 2.15;
+  var XC = 179, YB = 545, KX = 5.7, KY = 2.28;   /* KX/KY = 2.50 (deklarert i UI) */
+  var DEG = Math.PI/180;
+  var N = 72, NBLADES = 13, NRIB = 36;
+
+  function lat(st, u){ return Math.tan(st.dir*DEG)*st.S*u + st.curve*Math.pow(u,KEXP); }
+  function pt(st, u){ return [ XC + lat(st,u)*KX, YB - st.S*u*KY ]; }
+  function lerp(a,b,p){ return a + (b-a)*p; }
+  function blend(p){
+    return { S:lerp(REF.S,NOW.S,p), dir:lerp(REF.dir,NOW.dir,p), curve:lerp(REF.curve,NOW.curve,p) };
+  }
+  function samples(st){
+    var a=[],i,u;
+    for(i=0;i<=N;i++){ u=i/N; a.push(pt(st,u)); }
+    return a;
+  }
+  function d(pts){
+    var s='M'+pts[0][0].toFixed(2)+' '+pts[0][1].toFixed(2), i;
+    for(i=1;i<pts.length;i++) s+='L'+pts[i][0].toFixed(2)+' '+pts[i][1].toFixed(2);
+    return s;
+  }
+  function dRev(pts){
+    var s='', i;
+    for(i=pts.length-1;i>=0;i--) s+='L'+pts[i][0].toFixed(2)+' '+pts[i][1].toFixed(2);
+    return s;
+  }
+
+  var $ = function(id){ return document.getElementById(id); };
+  var svg      = $('plot'),
+      fanBaseP = $('fanBaseP'), fanBloom = $('fanBloom'), fanRampP = $('fanRampP'),
+      fanEdge  = $('fanEdge'),  blades   = $('blades'),   ribs   = $('ribs'),
+      refPath  = $('refPath'),  refGlow  = $('refGlow'),
+      curPath  = $('curPath'),  curGlow  = $('curGlow'),
+      curBloom = $('curBloom'), curFilm  = $('curFilm'),
+      curEnd   = $('curEnd'),   refEnd   = $('refEnd'),
+      curveArea = $('curveArea'), curveAreaBloom = $('curveAreaBloom'),
+      dims     = $('dims'),
+      curGrad  = document.querySelector('#curStroke'),
+      scrub    = $('scrub'),    replay   = $('replay');
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var defs = svg.querySelector('defs');
+
+  function mkStop(off, col, op){
+    var s = document.createElementNS(NS,'stop');
+    s.setAttribute('offset', off);
+    s.setAttribute('stop-color', col);
+    s.setAttribute('stop-opacity', op);
+    return s;
+  }
+  function mkGrad(id){
+    var g = document.createElementNS(NS,'linearGradient');
+    g.setAttribute('id', id);
+    g.setAttribute('gradientUnits','userSpaceOnUse');
+    defs.appendChild(g);
+    return g;
+  }
+
+  /* ── DELTAFLATEN, ribbe for ribbe ────────────────────────────────
+     Én firkant per nedstrømsstasjon, hver med sin egen tverrgradient
+     fra stål (referansebanen) til oransje (nåværende bane). Derfor
+     bærer HELE flaten oransje — ikke bare den ytterste kanten.       */
+  var ribEls = [], ribGrads = [];
+  (function buildRibs(){
+    for(var i=0;i<NRIB;i++){
+      var um = (i + 0.5)/NRIB;
+      var g  = mkGrad('rb'+i);
+      g.appendChild(mkStop('0',    '#8FA3BD', (0.14 + 0.38*um).toFixed(3)));
+      g.appendChild(mkStop('0.40', '#D07C2A', (0.26 + 0.50*um).toFixed(3)));
+      g.appendChild(mkStop('1',    '#FF6612', (0.38 + 0.58*um).toFixed(3)));
+      ribGrads.push(g);
+
+      var p = document.createElementNS(NS,'path');
+      p.setAttribute('fill','url(#rb'+i+')');
+      ribs.appendChild(p);
+      ribEls.push(p);
+    }
+  })();
+
+  /* Én gradient per vifteblad: stål ved referansebanen, oransje ved nåværende.
+     Det er dette som gjør flaten til en RETNING og ikke bare en farge. */
+  var bladeEls = [], bladeGrads = [];
+  (function buildBlades(){
+    for(var i=1;i<=NBLADES;i++){
+      var g = mkGrad('bl'+i);
+      g.appendChild(mkStop('0',    '#B7C6DA', '1'));
+      g.appendChild(mkStop('0.55', '#E8913C', '1'));
+      g.appendChild(mkStop('1',    '#FFB169', '1'));
+      bladeGrads.push(g);
+
+      var ln = document.createElementNS(NS,'line');
+      ln.setAttribute('stroke','url(#bl'+i+')');
+      ln.setAttribute('stroke-width','1.4');
+      blades.appendChild(ln);
+      bladeEls.push(ln);
+    }
+  })();
+
+  var refPts = samples(REF);
+  var refD   = d(refPts);
+  refPath.setAttribute('d', refD);
+  refGlow.setAttribute('d', refD);
+  refEnd.setAttribute('transform','translate('+refPts[N][0].toFixed(2)+','+refPts[N][1].toFixed(2)+')');
+
+  function render(p){
+    var st = blend(p);
+    var cur = samples(st);
+    var cd  = d(cur);
+
+    curPath.setAttribute('d', cd);
+    curGlow.setAttribute('d', cd);
+    curBloom.setAttribute('d', cd);
+    curFilm.setAttribute('d', cd);
+    curEnd.setAttribute('transform','translate('+cur[N][0].toFixed(2)+','+cur[N][1].toFixed(2)+')');
+
+    /* kjernegradienten følger banen slik at varmen alltid ligger utover */
+    curGrad.setAttribute('x2', cur[N][0].toFixed(2));
+    curGrad.setAttribute('y2', cur[N][1].toFixed(2));
+
+    /* KURVEFLATEN: launch line opp, tvers over, nåværende bane ned igjen.
+       Bredden ved carry er nøyaktig Curve = 16,7 m. */
+    var lx = XC + Math.tan(st.dir*DEG)*st.S*KX, ly = YB - st.S*KY;
+    var carea = 'M'+XC+' '+YB+'L'+lx.toFixed(2)+' '+ly.toFixed(2)+dRev(cur)+'Z';
+    curveArea.setAttribute('d', carea);
+    curveAreaBloom.setAttribute('d', carea);
+
+    /* DELTAFLATEN: referansebanen fram, nåværende bane tilbake */
+    var area = refD + dRev(cur) + 'Z';
+    fanBaseP.setAttribute('d', area);
+    fanBloom.setAttribute('d', area);
+    fanRampP.setAttribute('d', area);
+    fanEdge.setAttribute('d', cd);
+
+    /* ribbene: hver med sin egen kald→varm tverrgradient */
+    for(var r=0;r<NRIB;r++){
+      var u0 = r/NRIB, u1 = (r+1)/NRIB;
+      var a0 = pt(REF,u0), a1 = pt(REF,u1), b1 = pt(st,u1), b0 = pt(st,u0);
+      ribEls[r].setAttribute('d',
+        'M'+a0[0].toFixed(2)+' '+a0[1].toFixed(2)+
+        'L'+a1[0].toFixed(2)+' '+a1[1].toFixed(2)+
+        'L'+b1[0].toFixed(2)+' '+b1[1].toFixed(2)+
+        'L'+b0[0].toFixed(2)+' '+b0[1].toFixed(2)+'Z');
+      var gm = ribGrads[r];
+      gm.setAttribute('x1', ((a0[0]+a1[0])/2).toFixed(2));
+      gm.setAttribute('y1', ((a0[1]+a1[1])/2).toFixed(2));
+      gm.setAttribute('x2', ((b0[0]+b1[0])/2).toFixed(2));
+      gm.setAttribute('y2', ((b0[1]+b1[1])/2).toFixed(2));
+    }
+
+    /* viftebladene */
+    for(var i=0;i<NBLADES;i++){
+      var u = (i+1)/NBLADES;
+      var a = pt(REF,u), b = pt(st,u);
+      var e = bladeEls[i], g = bladeGrads[i];
+      e.setAttribute('x1',a[0].toFixed(2)); e.setAttribute('y1',a[1].toFixed(2));
+      e.setAttribute('x2',b[0].toFixed(2)); e.setAttribute('y2',b[1].toFixed(2));
+      e.setAttribute('opacity', (0.14 + 0.60*Math.pow(u,1.4)).toFixed(3));
+      g.setAttribute('x1',a[0].toFixed(2)); g.setAttribute('y1',a[1].toFixed(2));
+      g.setAttribute('x2',b[0].toFixed(2)); g.setAttribute('y2',b[1].toFixed(2));
+    }
+
+    /* måltall vises først når sveipet står stille på NÅ */
+    var o = Math.max(0, Math.min(1, (p-0.70)/0.30));
+    dims.setAttribute('opacity', o.toFixed(3));
+  }
+
+  /* ---------- animasjon ---------- */
+  var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var raf = 0;
+  function stop(){ if(raf){ cancelAnimationFrame(raf); raf = 0; } }
+
+  function sweep(from, to, ms){
+    stop();
+    if(mq.matches){ scrub.value = to; render(to); return; }
+    var t0 = performance.now();
+    (function step(now){
+      var k = Math.min(1, (now - t0)/ms);
+      var e = 1 - Math.pow(1-k, 3);
+      var p = from + (to-from)*e;
+      scrub.value = p;
+      render(p);
+      if(k < 1) raf = requestAnimationFrame(step); else raf = 0;
+    })(t0);
+  }
+
+  render(1);
+  if(!mq.matches){
+    render(0);
+    setTimeout(function(){ sweep(0, 1, 1250); }, 420);
+  }
+
+  scrub.addEventListener('input', function(){ stop(); render(parseFloat(scrub.value)); });
+  scrub.addEventListener('change', function(){
+    var v = parseFloat(scrub.value);
+    if(v < 0.999) sweep(v, 1, 420);
+  });
+  scrub.addEventListener('pointerup', function(){
+    var v = parseFloat(scrub.value);
+    if(v < 0.999) sweep(v, 1, 420);
+  });
+  replay.addEventListener('click', function(){
+    if(mq.matches){ render(1); scrub.value = 1; return; }
+    render(0); scrub.value = 0;
+    setTimeout(function(){ sweep(0, 1, 1250); }, 120);
+  });
+})();
+</script>

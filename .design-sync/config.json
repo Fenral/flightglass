@@ -1,0 +1,6 @@
+{
+  "projectId": "e3792b14-4901-4e6f-9a55-a74f0cb9402f",
+  "projectName": "Flight Glass Design System",
+  "shape": "guidelines-only",
+  "note": "Minimal synk: tokens + stilark + retningslinjer. Ingen kodede komponenter finnes — komponentene bygges i SwiftUI (D70). Off-script layout; ingen _ds_sync.json-anker (neste synk re-verifiserer alt, som er korrekt)."
+}
