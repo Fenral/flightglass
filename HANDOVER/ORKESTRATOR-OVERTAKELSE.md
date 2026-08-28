@@ -81,6 +81,14 @@ med portrett-først-prompten).
   enheter, ankerbytte-dokumentasjon, setInspect-fjerning). D142: native
   orienteringslås, web-port kun fallback. VENTER: B sin RETTET · eierens
   sømtest (eneste gjenværende port for E) · H-hovedvalg + variant A/B/C.
+- LYS-KROM-PIVOTEN 2026-08-28 (D143): eieren valgte LYST krom etter B sin
+  kontrastmåling (dagens mørke krom: ΔL* 5,7 / 1,12:1 mellom nabo-flater —
+  11 elementer bar ramme for å være synlige). Scenen forblir mørk. ÅPENT
+  HOS EIER: variant C1 SOFT / C2 PAPER / C3 TECH / C4 MACHINE — studie som
+  levende flate, artifact 20d3f33d-726b-4701-839f-d36d051dca40. Ingenting
+  bygget; app/studio/index.html står som v4. Ved valg: fire kostnader i
+  D143-raden må inn i byggeplanen, og DESIGN.md må omskrives (Colors +
+  Elevation + «enkelttema mørkt»-setningen).
 - Hos eier: kun å åpne E-økten når ønsket.
 
 ## Porter som alltid gjelder
