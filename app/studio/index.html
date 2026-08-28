@@ -1,1946 +1,1133 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="flightglass">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#07060C" />
-<title>Flight Glass — Impact Studio</title>
-<!--
-  D82/v3: mockens visuelle språk ER fasit (_source/mocks/impact-studio/,
-  skrivebeskyttet per D77 — dette er kopien). Strøm Bs jobb her er
-  motorkobling via adapter/, U-rettelsene, arvereglene (tallformat,
-  informasjonsnivåer, én leder, tilstander), fontbyttet Inter→Geist (D83)
-  og gul-oppryddingen (D84/D89). Glød per D88: mockens materialglød står;
-  vaktregelen er at ingen målt posisjon får bli tvetydig av den.
-  Hvert avvik fra mocken er merket «AVVIK (ref)» — full liste i STUDIO.md.
--->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../tokens.css" />
-<link rel="stylesheet" href="../onboarding/onboarding.css" />
-<style>
-  /* ── Mock-varnavn → v3-tokens ─────────────────────────────────────────────
-     Mockens egne variabelnavn beholdes i komposisjons-CSS-en under; verdiene
-     kommer fra tokens.css (som ER mockens palett, D82). Lokale tillegg er
-     mock-materiale uten token ennå — meldt som token-hull i STUDIO.md. */
-  :root{
-    --bg:var(--neutral);
-    --muted-tk:var(--muted);
-    --line-tk:var(--line);
-    /* --line-strong og --dusk-scene-bg kommer nå fra tokens.css (tettet av
-       orkestrator 2026-08-26); lokalkopiene er fjernet. */
-    --card-line:var(--line);
-    --secondary-line:color-mix(in srgb, var(--secondary) 45%, transparent);
-    --secondary-soft:color-mix(in srgb, var(--secondary) 14%, transparent);
-    --studio-soil:#8a5a2b;                 /* scene-materiale, ikke palett */
-  }
-  /* D94: fokusring i INK per mock-konvensjonen — backdrop-sikker dobbelring
-     (mørk 1 px under 3 px ink, innfelt). Range-inputen har transparent flate,
-     så den får en synlig ink-outline i stedet. */
-  :focus-visible{outline:none;
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.85), inset 0 0 0 3px var(--ink)}
-  :focus:not(:focus-visible){outline:none}
-  #range:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;box-shadow:none}
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-  body{
-    background:var(--bg);color:var(--ink);font-family:var(--font-ui);
-    /* height:100% (ikke dvh): dvh desynker i WKWebView etter bakgrunn/forgrunn */
-    display:flex;flex-direction:column;height:100%;user-select:none;-webkit-user-select:none;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
-  }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07060C" id="themeColor">
+  <title>Flight Glass — Impact Studio</title>
+  <!--
+    PORTRETT-STUDIO (eierbeslutning 2026-08-28, ført via orkestrator):
+    Sol-handoffen er komposisjonsfasit; landskapsflaten er bevart som
+    landscape.html (V2). Denne fila = handoffens DOM/interaksjon med
+    (1) motoren via adapter i updateScene()-sømmen (mock-formlene er UTE),
+    (2) de låste vedtakene integrert: LIE-velger ved køllevelgeren (D93-kjerne:
+    diskret, navngitt, aldri fri mm), strike-svar + entry/low/exit i FACE ON
+    (STRIKE-viewet droppet), D67-ord, 0.1-steg, HOME-ord (N-b), D89-båndfarger,
+    D65-loft med ASSUMED-chip, Higgsfield turf/kølle-materiale.
+    A/B-tema består (?theme=titan|flightglass) til eier velger palett.
+    Ingen trig i denne fila — adapteren projiserer (fysikklinten står).
+  -->
+  <script>
+    (() => {
+      const requested = new URLSearchParams(location.search).get('theme');
+      document.documentElement.dataset.theme = requested === 'titan' ? 'titan' : 'flightglass';
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../tokens.css" />
+  <link rel="stylesheet" href="../onboarding/onboarding.css" />
+  <style>
+    /* Handoffens tokenlag. flightglass-verdiene ER v3-tokens (tokens.css);
+       titan er A/B-wildcarden. Samme DOM, tema kun på html[data-theme]. */
+    :root {
+      color-scheme: dark;
+      --black: #050606;
+      --body: #020303;
+      --panel: #0d0e0f;
+      --panel-2: #131416;
+      --recess: #08090a;
+      --steel: #3a3b3d;
+      --steel-soft: #222426;
+      --ink: #f5f1e9;
+      --muted: #8f8d87;
+      --copper: #ff7a32;
+      --copper-hot: #ff9d64;
+      --accent-rgb: 255, 122, 50;
+      --cyan: #67d6ff;
+      --magenta: #f765b3;
+      --good: #82f0b7;
+      --bad: #ff7b8a;
+      --strike-gold: #f0bd8d;
+      --shell-top: #090a0b;
+      --shell-border: #303234;
+      --surface-top: #202123;
+      --surface-bottom: #0b0c0d;
+      --surface-line: #3b352f;
+      --canvas-field: #0c0916;
+      --canvas-sky-1: #151020;
+      --canvas-sky-2: #171527;
+      --canvas-sky-3: #11150f;
+      --canvas-shape: #3b315a;
+      --canvas-grid: #77758d;
+      --canvas-plane: #67d6ff;
+      --canvas-turf-top: #6da541;
+      --canvas-turf-mid: #365d27;
+      --canvas-turf-line: #8bc75a;
+      --canvas-arc: #e9e7e1;
+      --ease: cubic-bezier(.2,.75,.25,1);
+      font-family: "Geist", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-  /* ---------- outcome strip ---------- */
-  .top{display:flex;gap:8px;align-items:stretch;padding:5px 10px;height:54px;flex:0 0 auto}
-  .card{
-    flex:1 1 0;min-width:0;border-radius:12px;background:var(--surface);
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    position:relative;border:1px solid var(--card-line);
-    transition:opacity .25s var(--ease);
-  }
-  .card .col{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0}
-  .card .lab{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;
-    letter-spacing:.07em;color:var(--muted-tk);white-space:nowrap}
-  .card .lab .dot{width:6px;height:6px;border-radius:50%;background:var(--card-hue);flex:0 0 auto}
-  .card .val{font-family:var(--font-data);font-variant-numeric:tabular-nums;
-    font-size:18px;font-weight:700;color:var(--ink);line-height:1;white-space:nowrap}
-  .card.attack{--card-hue:var(--attack);--card-line:color-mix(in srgb,var(--attack) 22%,transparent)}
-  .card.path{--card-hue:var(--path);--card-line:color-mix(in srgb,var(--path) 22%,transparent)}
-  .card::after{content:"";position:absolute;left:14%;right:14%;bottom:-1px;height:2px;
-    border-radius:2px;background:var(--card-hue);opacity:0;transition:opacity .3s var(--ease)}
-  .card.hit::after{opacity:1}
-  .card.dim{opacity:.55}
-  /* AVVIK (N-a/N-b, låst navigasjon): pil-ikonet → HOME-ordsirkelen, 44 px.
-     v3-komponenten home-circle: plate-grunn, ink-tekst, pill. */
-  .ts-back{-webkit-tap-highlight-color:transparent;text-decoration:none;flex:0 0 44px;
-    width:44px;height:44px;border-radius:var(--r-pill);display:inline-flex;align-items:center;justify-content:center;
-    color:var(--ink);background:var(--plate);border:1px solid var(--line-tk);
-    font-size:10px;font-weight:700;letter-spacing:.1em;
-    transition:transform .15s,border-color .2s}
-  .ts-back:active{transform:scale(.95);border-color:var(--line-strong)}
-  /* AVVIK (DESIGN Ikonografi, arvet): ↺-glyf alene → ordet RESET */
-  #resetBtn{
-    flex:0 0 auto;min-width:44px;border-radius:12px;background:var(--surface);
-    border:1px solid var(--line-tk);color:var(--muted-tk);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;font-family:inherit;
-    font-size:10px;font-weight:700;letter-spacing:.1em;padding:0 10px;
-  }
-  #resetBtn:active{color:var(--ink);border-color:var(--line-strong)}
+    html[data-theme="flightglass"] {
+      --black: #07060c;
+      --body: #040309;
+      --panel: #110d1c;
+      --panel-2: #171224;
+      --recess: #0d0a18;
+      --steel: #3b3152;
+      --steel-soft: #211a31;
+      --ink: #f5f2ff;
+      --muted: #a79fc7;
+      --copper: #ff8a4d;
+      --copper-hot: #ffb08a;
+      --accent-rgb: 255, 138, 77;
+      --cyan: #5bc8f5;
+      --magenta: #f470b8;
+      --good: #58e6a8;
+      --bad: #ff7b8a;
+      --strike-gold: #e3b05c;
+      --shell-top: #0d0916;
+      --shell-border: #362d4a;
+      --surface-top: #1d1729;
+      --surface-bottom: #0d0a18;
+      --surface-line: #493757;
+      --canvas-field: #0d0a18;
+      --canvas-sky-1: #130f21;
+      --canvas-sky-2: #171329;
+      --canvas-sky-3: #0e1018;
+      --canvas-shape: #3b315a;
+      --canvas-grid: #847aa8;
+      --canvas-plane: #9c8df5;
+      --canvas-turf-top: #58e6a8;
+      --canvas-turf-mid: #267b5f;
+      --canvas-turf-line: #70efb7;
+      --canvas-arc: #f5f2ff;
+    }
 
-  /* ---------- stage ---------- */
-  .stage{position:relative;flex:1 1 auto;min-height:0;margin:0 10px;border-radius:14px;
-    overflow:hidden;border:1px solid var(--line-tk);
-    background:var(--dusk-scene-bg)}
-  #scene{position:absolute;inset:0;width:100%;height:100%;display:block}
-  /* right rail: perspective, club, and the dedicated Strike contact view. */
-  .rail{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
-  .orb{
-    width:58px;min-height:60px;padding:4px 2px 6px;border-radius:14px;cursor:pointer;
-    background:var(--plate-glass);border:1px solid var(--line-tk);color:var(--muted-tk);
-    font-family:inherit;backdrop-filter:blur(3px);position:relative;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
-    transition:transform .16s cubic-bezier(.16,1,.3,1),border-color .18s cubic-bezier(.16,1,.3,1);
-  }
-  .orb:active{border-color:var(--line-strong);transform:scale(.96)}
-  .orb svg{width:40px;height:36px;display:block}
-  .orb .cap{font-size:10px;font-weight:700;letter-spacing:.03em;line-height:1;color:var(--ink)}
-  .orb::before{content:"";position:absolute;inset:-3px;border-radius:17px;
-    border:2px solid var(--secondary);opacity:0;transform:scale(.97);pointer-events:none;
-    transition:opacity .18s cubic-bezier(.16,1,.3,1),transform .18s cubic-bezier(.16,1,.3,1)}
-  .orb.pulse::before{opacity:.9;transform:scale(1.06)}
-  .orb.contact-active{border-color:color-mix(in srgb,var(--strike) 62%,transparent)}
-  .view-toast{position:absolute;top:10px;left:50%;z-index:7;transform:translate(-50%,-4px);
-    min-height:36px;padding:9px 14px;border-radius:12px;background:var(--plate-glass);
-    border:1px solid var(--secondary-line);
-    box-shadow:0 14px 34px -18px color-mix(in srgb,var(--bg) 88%,transparent);
-    color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.12em;white-space:nowrap;
-    opacity:0;transition:opacity .18s cubic-bezier(.16,1,.3,1),transform .18s cubic-bezier(.16,1,.3,1);
-    pointer-events:none}
-  .view-toast.is-visible{opacity:1;transform:translate(-50%,0)}
+    * { box-sizing: border-box; }
 
-  /* miniskjerm: zoomed contact-zone inset (mockens mønster) */
-  .inset{
-    position:absolute;top:8px;left:8px;z-index:4;
-    width:min(32%,240px);border-radius:14px;overflow:hidden;
-    background:linear-gradient(180deg,color-mix(in srgb,var(--plate) 96%,transparent),color-mix(in srgb,var(--bg) 96%,transparent));
-    border:1px solid color-mix(in srgb,var(--strike) 30%,transparent);
-    box-shadow:0 18px 50px -20px color-mix(in srgb,var(--bg) 85%,transparent),inset 0 0 0 1px var(--glass-edge);
-    backdrop-filter:blur(3px);
-  }
-  /* Informasjonsnivåer (arvet): panelets SVAR er strike-resultatet (.st) i
-     ink på data-nivå; paneltittel + kontekstrad er META — muted, aldri rop. */
-  .inset .eyebrow{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:7px 36px 1px 10px;font-size:10px;font-weight:700;letter-spacing:.14em;
-    color:var(--muted-tk);white-space:nowrap;
-  }
-  .inset .eyebrow .st{font-family:var(--font-data);font-variant-numeric:tabular-nums;
-    letter-spacing:0;color:var(--ink)}
-  .inset .eyebrow .st em{font-style:normal;font-family:var(--font-ui);font-weight:800;
-    letter-spacing:.08em}
-  /* AVVIK (U1/D3b): kontekstraden — underlaget står ALLTID i samme visning som
-     turfkontakt-statusen (D93: lie-NAVNET fast etikett, mm som caption);
-     maksimert viser også loftantagelsen (D65). */
-  .inset .eyebrow2{
-    padding:0 36px 3px 10px;font-size:9px;font-weight:500;letter-spacing:.08em;
-    color:var(--muted-tk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .inset .eyebrow2 .mmv{font-family:var(--font-data);letter-spacing:0;font-weight:500}
-  /* Proveniensmerker er små chips i meta-nivået (arvet) */
-  .prov-chip{display:inline-block;border:1px solid var(--line-tk);border-radius:4px;
-    padding:0 3px;margin-left:5px;font-size:8px;font-weight:700;letter-spacing:.08em;
-    color:var(--muted-tk);vertical-align:1px}
-  .inset--max .prov-chip{font-size:9px;padding:0 4px}
-  .inset::after{content:"";position:absolute;left:10px;right:10px;top:24px;height:2px;
-    border-radius:2px;background:var(--strike);opacity:0;transition:opacity .3s var(--ease)}
-  .inset.hit::after{opacity:1}
-  #insetCv{display:block;width:100%;height:100px}
-  .inset .eyebrow > span:first-child{margin-right:8px}
-  .inset .eyebrow .ez,.inset .eyebrow2 .ez{display:none}  /* compact → short always */
-  @media (max-width:620px){ #insetCv{height:76px}
-    .inset .eyebrow{font-size:10px;padding:5px 8px 1px}
-    .inset .eyebrow2{padding:0 8px 2px} }
-  /* maksimer: innsetet blir inspeksjonsmodus i full scene (lavpunkt + divot) */
-  .inset__max{position:absolute;right:0;top:0;width:44px;height:44px;border:0;cursor:pointer;
-    background:transparent;color:var(--strike);font-size:15px;line-height:1;opacity:.85;padding:0;z-index:6;
-    font-family:inherit;transition:transform .16s cubic-bezier(.16,1,.3,1),opacity .16s cubic-bezier(.16,1,.3,1)}
-  .inset__max:active{transform:scale(.92);opacity:1}
-  .inset--max{top:8px;left:8px;right:8px;bottom:8px;width:auto;max-width:none;
-    display:flex;flex-direction:column}
-  .inset--max .inset__max{right:72px;top:2px;width:44px;height:44px;font-size:17px}
-  .inset--max #insetCv{flex:1 1 auto;height:auto!important;min-height:0}
-  .inset--max .eyebrow{font-size:13px;padding:10px 132px 2px 14px}
-  .inset--max .eyebrow2{font-size:11px;padding:0 132px 4px 14px}
-  .inset--max .eyebrow .ez,.inset--max .eyebrow2 .ez{display:inline}
+    .sr-only {
+      position: absolute !important; width: 1px !important; height: 1px !important;
+      padding: 0 !important; margin: -1px !important; overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important;
+    }
 
-  /* ---------- controls ---------- */
-  .controls{flex:0 0 auto;height:calc(96px + env(safe-area-inset-bottom));
-    padding:2px 10px calc(2px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:4px}
-  .chips{display:flex;gap:8px;flex:0 0 44px}
-  .chip{
-    flex:1 1 0;min-width:0;border-radius:12px;background:var(--surface);cursor:pointer;
-    border:1px solid var(--line-tk);display:flex;flex-direction:column;align-items:center;
-    justify-content:center;gap:2px;font-family:inherit;color:var(--muted-tk);padding:0 4px;
-  }
-  .chip .cl{font-size:10.5px;font-weight:700;letter-spacing:.05em;white-space:nowrap;
-    max-width:100%;overflow:hidden;text-overflow:ellipsis}
-  /* Informasjonsnivåer (arvet): holdt parameter er INAKTIV — ghost og mindre;
-     kun den aktive kontrollens verdi står på verdinivået. */
-  .chip .cv{font-family:var(--font-data);font-variant-numeric:tabular-nums;
-    font-size:11px;font-weight:500;color:var(--ghost);line-height:1;white-space:nowrap;
-    max-width:100%;overflow:hidden;text-overflow:ellipsis}
-  .chip.active{border-color:var(--chip-hue);color:var(--ink);
-    box-shadow:inset 0 0 0 1px var(--chip-hue), 0 0 18px -8px var(--chip-hue)}
-  .chip.active .cl{color:var(--chip-hue)}
-  .chip.active .cv{font-size:14px;font-weight:700;color:var(--ink)}
-  /* Parameterpaletten (v3): hver parameter eier sin kulør.
-     D95: LIE har bevisst INGEN parameterkulør — underlag er kontekst;
-     chip og slider står i ink/ghost, aldri secondary. */
-  .chip[data-p="plane"]{--chip-hue:var(--plane)}
-  .chip[data-p="dir"]{--chip-hue:var(--path)}
-  .chip[data-p="low"]{--chip-hue:var(--primary)}   /* Ball Position: live ball → ember */
-  .chip[data-p="arc"]{--chip-hue:var(--depth)}
-  .chip[data-p="lie"]{--chip-hue:var(--ink)}
+    html, body { margin: 0; min-height: 100%; background: var(--body); }
 
-  .sliderZone{position:relative;flex:0 0 44px;display:flex;align-items:center}
-  .track{position:absolute;left:13px;right:13px;top:50%;height:4px;margin-top:-2px;
-    border-radius:2px;background:color-mix(in srgb,var(--ink) 14%,transparent)}
-  .fill{position:absolute;top:50%;height:4px;margin-top:-2px;border-radius:2px;
-    background:var(--slider-hue,var(--secondary))}
-  .notch{position:absolute;top:50%;width:2px;height:12px;margin-top:-6px;
-    background:var(--line-strong);border-radius:1px;display:none}
-  #range{
-    position:absolute;inset:0;width:100%;appearance:none;-webkit-appearance:none;
-    background:transparent;margin:0;cursor:pointer;
-  }
-  #range::-webkit-slider-runnable-track{height:44px;background:transparent}
-  #range::-webkit-slider-thumb{
-    -webkit-appearance:none;width:26px;height:26px;border-radius:50%;margin-top:9px;
-    background:var(--ink);border:3px solid var(--slider-hue,var(--secondary));
-    box-shadow:0 2px 10px color-mix(in srgb,var(--bg) 60%,transparent);
-  }
-  #range::-moz-range-track{height:44px;background:transparent}
-  #range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
-    background:var(--ink);border:3px solid var(--slider-hue,var(--secondary))}
+    body {
+      min-height: 100dvh;
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  /* compact phones (568x320) */
-  @media (max-width:620px){
-    .top{height:54px}
-    .card .val{font-size:15px}
-    .card .lab{font-size:10px;letter-spacing:.04em}
-    .chip .cl{font-size:10px;letter-spacing:.03em}
-    .controls{height:calc(96px + env(safe-area-inset-bottom))}
-    .orb{width:52px;min-height:54px}
-    .orb svg{width:34px;height:30px}
-  }
-  @media (max-height:480px){
-    .rail{gap:5px}
-    .orb{width:52px;min-height:48px;height:48px;padding:2px 2px 4px;border-radius:12px}
-    .orb svg{width:31px;height:27px}
-    .orb .cap{font-size:10px}
-    .view-toast{top:8px;min-height:32px;padding:7px 12px;font-size:10px}
-  }
-  @media (max-height:340px){
-    .rail{top:5px;right:5px;flex-direction:row;gap:4px}
-    .orb{width:44px;min-height:44px;height:44px;padding:1px;border-radius:11px}
-    .orb svg{width:27px;height:23px}
-    .orb .cap{font-size:10px;letter-spacing:0}
-    .inset--max .inset__max{right:152px}
-  }
-  @media (hover:hover) and (pointer:fine){
-    .orb:hover,.inset__max:hover{border-color:var(--line-strong)}
-  }
+    button, select, input { font: inherit; }
+    button, select { min-height: 44px; color: inherit; -webkit-tap-highlight-color: transparent; }
 
-  /* portrait gate — AVVIK (D59): orienteringsbetingelse + minimum 568×320.
-     AVVIK (DESIGN/N-e, arvet): emoji ut (tegnet glyf), N-e-ordlyden. */
-  .rotate{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;
-    justify-content:center;gap:14px;background:var(--bg);text-align:center;padding:24px}
-  .rotate .ico{width:46px;height:46px;animation:tilt 1.8s ease-in-out infinite;color:var(--muted-tk)}
-  .rotate .ico svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
-    stroke-width:1.5;stroke-linecap:butt}
-  .rotate p{font-size:15px;max-width:260px;color:var(--ink)}
-  .rotate-home{position:absolute;
-    top:max(8px, env(safe-area-inset-top));left:max(8px, env(safe-area-inset-left))}
-  @keyframes tilt{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(78deg)}}
-  @media (orientation:portrait), (max-width:567.98px), (max-height:319.98px){
-    .rotate{display:flex}
-  }
-  @media (prefers-reduced-motion:reduce){
-    *{transition:none!important;animation:none!important}
-    .view-toast,.view-toast.is-visible{transform:translate(-50%,0)}
-  }
-</style>
+    button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible {
+      outline: 2px solid var(--copper-hot);
+      outline-offset: 3px;
+    }
+
+    .app {
+      width: min(100%, 430px);
+      min-height: 100dvh;
+      background:
+        radial-gradient(80% 35% at 50% -4%, rgba(var(--accent-rgb),.09), transparent 68%),
+        linear-gradient(180deg, var(--shell-top) 0%, var(--black) 100%);
+      display: grid;
+      grid-template-rows: auto auto auto minmax(292px, 1fr) auto;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .topbar {
+      min-height: 50px;
+      padding: max(10px, env(safe-area-inset-top)) 14px 7px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .title-lockup { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+    /* AVVIK (N-b, låst): ordet HOME, aldri ikon — handoffens maskinerte sirkel beholdt */
+    .home-exit {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: linear-gradient(145deg, var(--surface-top), var(--recess));
+      border: 1px solid var(--shell-border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 5px 12px rgba(0,0,0,.45);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 9px; font-weight: 700; letter-spacing: .09em;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .home-exit:active { transform: scale(.97); }
+
+    .eyebrow, .topbar h1 { margin: 0; }
+    .eyebrow { color: var(--muted); font-size: 10px; line-height: 1.2; letter-spacing: .1em; text-transform: uppercase; }
+    .topbar h1 { font-size: 16px; line-height: 1.2; letter-spacing: -.01em; font-family: "Space Grotesk", "Geist", sans-serif; }
+
+    .reset {
+      min-width: 44px; padding: 0;
+      border: 0; background: transparent; color: var(--muted);
+      font-size: 11px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; cursor: pointer;
+    }
+
+    .metrics { padding: 7px 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    .metric {
+      min-height: 52px;
+      padding: 8px 12px 7px;
+      border: 1px solid var(--steel-soft);
+      border-bottom-color: #090a0a;
+      border-radius: 9px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), transparent 32%),
+        linear-gradient(145deg, var(--panel-2), var(--recess));
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.03);
+      display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 7px;
+    }
+
+    .metric-dot { width: 5px; height: 5px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+    .metric.attack .metric-dot { color: var(--magenta); background: currentColor; }
+    .metric.path .metric-dot { color: var(--cyan); background: currentColor; }
+    .metric-copy { min-width: 0; }
+    .metric-label { display: block; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .metric-value { display: block; min-width: 6ch; margin-top: 2px; font: 600 22px/1 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+
+    /* AVVIK (U1/D3b, eierbeslutning 2028-08-28-pakken): strike-svaret som lav
+       tekststripe, alltid synlig i FO og DTL. Båndordet bærer (D10), fargen
+       forsterker (D89: good/strike-gull/bad). Loft-antagelsen (D65) som
+       meta + ASSUMED-chip til høyre. */
+    .strike-strip {
+      margin: 7px 12px 8px;
+      min-height: 30px;
+      padding: 5px 12px;
+      border: 1px solid var(--steel-soft);
+      border-radius: 8px;
+      background: var(--recess);
+      display: flex; align-items: center; gap: 8px;
+      font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums;
+      white-space: nowrap; overflow: hidden;
+    }
+    .strike-strip .lab { color: var(--muted); font-family: "Geist", sans-serif; font-size: 9px; font-weight: 700; letter-spacing: .09em; }
+    .strike-strip .band { font-size: 12px; font-weight: 600; }
+    .strike-strip .off { color: var(--ink); font-size: 11px; }
+    .strike-strip .meta { margin-left: auto; color: var(--muted); font-size: 9px; overflow: hidden; text-overflow: ellipsis; }
+    .prov-chip {
+      display: inline-block; border: 1px solid var(--steel-soft); border-radius: 4px;
+      padding: 0 3px; margin-left: 4px;
+      font-family: "Geist", sans-serif; font-size: 8px; font-weight: 700; letter-spacing: .08em;
+      color: var(--muted); vertical-align: 1px;
+    }
+
+    .scene-wrap { padding: 0 10px; min-height: 0; }
+
+    .scene {
+      height: 100%; min-height: 292px;
+      position: relative; overflow: hidden;
+      border-radius: 17px;
+      background: var(--canvas-field);
+      border: 1px solid var(--steel);
+      box-shadow: inset 0 0 0 1px #090a0a, inset 0 1px 0 rgba(255,255,255,.12), 0 11px 26px rgba(0,0,0,.55);
+    }
+    .scene::before {
+      content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      border-radius: inherit;
+      box-shadow: inset 0 0 26px 8px rgba(0,0,0,.65), inset 0 -1px 0 rgba(var(--accent-rgb),.16);
+    }
+    .scene svg { width: 100%; height: 100%; display: block; }
+
+    .scene-tools {
+      position: absolute; left: 12px; right: 12px; top: 11px; z-index: 5;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;
+    }
+    .tool-selects { display: flex; gap: 6px; min-width: 0; }
+
+    .club-select-wrap { position: relative; min-width: 0; }
+    .club-select-wrap::after {
+      content: ""; position: absolute; right: 11px; top: 50%; width: 6px; height: 6px; pointer-events: none;
+      border-right: 1.5px solid var(--copper-hot); border-bottom: 1.5px solid var(--copper-hot);
+      transform: translateY(-65%) rotate(45deg);
+    }
+    .club-select {
+      appearance: none; max-width: 100%; padding: 0 27px 0 10px;
+      border: 1px solid var(--surface-line); border-radius: 8px;
+      background: color-mix(in srgb, var(--recess) 90%, transparent); backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 16px rgba(0,0,0,.32);
+      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    }
+
+    .view-switch {
+      display: grid; grid-template-columns: repeat(2, 1fr); padding: 3px;
+      border-radius: 9px; background: color-mix(in srgb, var(--recess) 88%, transparent); border: 1px solid var(--steel-soft);
+    }
+    .view-switch button {
+      min-width: 46px; min-height: 44px; padding: 0 7px;
+      border: 0; border-radius: 6px; background: transparent;
+      color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .05em; cursor: pointer;
+    }
+    .view-switch button[aria-pressed="true"] {
+      color: var(--ink); background: linear-gradient(180deg, var(--steel), var(--panel-2));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 2px 8px rgba(0,0,0,.5);
+    }
+
+    .arc-main { transition: filter 350ms var(--ease), stroke-width 350ms var(--ease), stroke 350ms var(--ease); }
+    .guide-line, .measure-tag { opacity: 0; transition: opacity 350ms var(--ease); }
+    .scene.is-adjusting .arc-main { stroke: var(--copper-hot); stroke-width: 4.25; filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),.82)); transition-duration: 90ms; }
+    .scene.is-adjusting .guide-line, .scene.is-adjusting .measure-tag { opacity: 1; transition-duration: 90ms; }
+    .canvas-view[hidden] { display: none; }
+    .canvas-view { transform-origin: 50% 55%; }
+    .scene.is-changing-view .canvas-view:not([hidden]) { animation: view-seat 240ms var(--ease); }
+    .geometry-focus { transition: opacity 350ms var(--ease), filter 350ms var(--ease), stroke-width 350ms var(--ease); }
+    .scene.is-adjusting .geometry-focus { opacity: 1 !important; filter: drop-shadow(0 0 7px rgba(var(--accent-rgb),.7)); transition-duration: 90ms; }
+    .scene.is-adjusting .dtl-plane { fill-opacity: .34; stroke-opacity: .9; }
+    @keyframes view-seat { 0% { opacity: .5; transform: scale(.985); } 100% { opacity: 1; transform: none; } }
+
+    .control-deck {
+      margin-top: 8px;
+      border-top: 1px solid var(--steel-soft);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), transparent 4px),
+        linear-gradient(160deg, var(--panel-2), var(--recess) 72%);
+      box-shadow: 0 -10px 25px rgba(0,0,0,.28);
+      padding: 9px 11px calc(10px + env(safe-area-inset-bottom));
+    }
+
+    .active-instrument {
+      min-height: 105px; position: relative;
+      border: 1px solid var(--surface-line);
+      border-radius: 12px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
+        linear-gradient(145deg, var(--surface-top), var(--panel-2) 54%, var(--surface-bottom));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.13), inset 0 -1px 0 #000, 0 6px 14px rgba(0,0,0,.4);
+      padding: 11px 14px 14px;
+      overflow: hidden;
+    }
+    .active-instrument::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
+      background: var(--copper-hot);
+    }
+
+    .instrument-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+    .instrument-head p { margin: 0; }
+    .active-label { color: var(--muted); font-family: "Geist", sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+    .active-value { min-width: 9ch; margin-top: 3px !important; font: 600 24px/1 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; letter-spacing: -.05em; white-space: nowrap; }
+    .active-value .unit { color: var(--muted); font-size: 11px; letter-spacing: .02em; }
+    .slider-row { margin-top: 12px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 9px; }
+    /* AVVIK (D67): endene bærer ord, aldri nakne fortegn */
+    .tick-label { color: var(--muted); font: 600 9px/1.2 "IBM Plex Mono", monospace; min-width: 25px; max-width: 78px; }
+    .tick-label:last-child { text-align: right; }
+
+    input[type="range"] { width: 100%; height: 44px; margin: 0; appearance: none; background: transparent; cursor: pointer; }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px; border-radius: 99px;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--copper) 32%, var(--steel-soft)), var(--copper) var(--fill,50%), var(--steel-soft) var(--fill,50%));
+      box-shadow: inset 0 1px 2px #000, 0 1px 0 rgba(255,255,255,.07);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none; width: 26px; height: 26px; border-radius: 50%; margin-top: -10px;
+      border: 1px solid var(--copper-hot);
+      background:
+        radial-gradient(circle at 38% 32%, #ffd0b4 0 8%, transparent 9%),
+        linear-gradient(145deg, var(--copper-hot), var(--copper) 68%);
+      box-shadow: 0 0 0 3px var(--panel-2), 0 4px 11px #000, inset 0 1px 0 rgba(255,255,255,.48);
+    }
+    input[type="range"]::-moz-range-track { height: 5px; border-radius: 99px; background: var(--steel-soft); box-shadow: inset 0 1px 2px #000; }
+    input[type="range"]::-moz-range-progress { height: 5px; border-radius: 99px; background: var(--copper); }
+    input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--copper-hot); background: var(--copper); box-shadow: 0 0 0 3px var(--panel-2), 0 4px 11px #000; }
+
+    .parameter-rail {
+      margin-top: 8px; min-height: 58px;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--steel-soft); border-bottom: 1px solid #080909;
+      background: var(--recess);
+    }
+    .parameter-rail button {
+      min-width: 0; min-height: 58px; padding: 7px 4px 6px;
+      border: 0; border-right: 1px solid var(--steel-soft);
+      background: transparent; color: var(--muted); cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      font-family: "Geist", sans-serif;
+      white-space: nowrap; overflow: hidden;
+    }
+    .parameter-rail button:last-child { border-right: 0; }
+    .parameter-rail button:active { color: var(--copper-hot); background: rgba(var(--accent-rgb),.045); }
+    .parameter-rail-label {
+      max-width: 100%; color: var(--muted);
+      font-size: 10px; line-height: 1; font-weight: 700; letter-spacing: .03em;
+      text-transform: uppercase; white-space: nowrap;
+    }
+    .parameter-rail-value {
+      display: block; min-width: 8ch; color: var(--ink);
+      font: 500 12px/1 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums;
+      letter-spacing: -.02em; text-align: center; white-space: nowrap;
+    }
+
+    .control-deck.is-swapping .active-instrument { animation: instrument-swap 220ms var(--ease); }
+    @keyframes instrument-swap { 0% { opacity: .6; transform: translateY(4px); } 100% { opacity: 1; transform: none; } }
+
+    @media (min-width: 431px) {
+      body { padding: 20px; }
+      .app { min-height: min(900px, calc(100dvh - 40px)); border: 1px solid var(--shell-border); border-radius: 28px; box-shadow: 0 35px 90px #000; }
+    }
+
+    @media (max-height: 830px) {
+      .app { grid-template-rows: auto auto auto minmax(276px, 1fr) auto; }
+      .topbar { min-height: 45px; padding-bottom: 4px; }
+      .metrics { padding-top: 4px; }
+      .metric { min-height: 48px; padding-top: 6px; padding-bottom: 5px; }
+      .strike-strip { margin-top: 5px; margin-bottom: 6px; min-height: 26px; padding-block: 3px; }
+      .scene { min-height: 276px; }
+      .active-instrument { min-height: 96px; padding-top: 9px; padding-bottom: 9px; }
+      .slider-row { margin-top: 8px; }
+      .control-deck { padding-top: 7px; padding-bottom: calc(7px + env(safe-area-inset-bottom)); }
+      .parameter-rail { margin-top: 5px; min-height: 54px; }
+      .parameter-rail button { min-height: 54px; padding-block: 5px; }
+    }
+
+    /* D139/D142: rotasjonsporten er et SCENE-overlegg, aldri skjermoverlegg —
+       modulkrom og kontroller står synlige og AKTIVE mens den vises. Ingen
+       HOME-sirkel i porten (D126). D142: porten er WEB-FALLBACK, ikke
+       produktatferd — native V1 orienteringslåses (D70); SwiftUI-laget skal
+       IKKE bygge den. Ordlyd eierlåst til kortformen. */
+    .rotate {
+      position: absolute; inset: 0; z-index: 6; display: none;
+      flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+      background: color-mix(in srgb, var(--canvas-field) 88%, transparent);
+      backdrop-filter: blur(4px);
+      border-radius: inherit; text-align: center; padding: 24px;
+    }
+    .rotate .ico { width: 40px; height: 40px; animation: tilt 1.8s ease-in-out infinite; color: var(--muted); }
+    .rotate .ico svg { width: 100%; height: 100%; display: block; fill: none; stroke: currentColor; stroke-width: 1.5; }
+    .rotate p { margin: 0; font-size: 14px; max-width: 240px; color: var(--ink); }
+    @keyframes tilt { 0%,100% { transform: rotate(78deg); } 50% { transform: rotate(-12deg); } }
+    @media (orientation: landscape) { .rotate { display: flex; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+    }
+  </style>
 </head>
 <body data-screen="studio" data-home="../nav/index.html">
-
-  <div class="top">
-    <a class="ts-back" data-home-exit href="../nav/index.html" aria-label="Home">HOME</a>
-    <div class="card attack" id="cardAttack">
-      <div class="col">
-        <div class="lab"><span class="dot"></span>ATTACK ANGLE</div>
-        <div class="val" id="vAttack">&#8722;4.0&deg;</div>
+  <main class="app" aria-label="Impact Studio">
+    <header class="topbar">
+      <div class="title-lockup">
+        <a class="home-exit" data-home-exit href="../nav/index.html" aria-label="Home">HOME</a>
+        <div>
+          <p class="eyebrow">Flight Glass</p>
+          <h1>Impact Studio</h1>
+        </div>
       </div>
-    </div>
-    <div class="card path" id="cardPath">
-      <div class="col">
-        <div class="lab"><span class="dot"></span>CLUB PATH</div>
-        <div class="val" id="vPath">0.0&deg;</div>
-      </div>
-    </div>
-    <button id="resetBtn" aria-label="Reset">RESET</button>
-  </div>
+      <button class="reset" type="button" id="resetButton" aria-label="Reset all parameters">Reset</button>
+    </header>
 
-  <div class="stage" id="stage" data-view="face" data-ghost-anchor="impact">
-    <canvas id="scene"></canvas>
-    <div class="view-toast" id="viewToast" role="status" aria-live="polite" aria-hidden="true" hidden></div>
-    <div class="inset" id="inset">
-      <div class="eyebrow"><span>STRIKE<span class="ez"> &middot; CONTACT ZONE</span></span>
-        <span class="st"><em id="insetQual">PURE</em>&nbsp;&middot;&nbsp;<span id="insetMm">0.0 mm</span></span></div>
-      <div class="eyebrow2"><span id="insetCtx">MID-IRON &middot; HARDPAN <span class="mmv">0 mm</span></span><span class="ez" id="insetLoft"></span></div>
-      <canvas id="insetCv"></canvas>
-      <button id="insetMax" class="inset__max" aria-label="Open Strike contact zone">&#x2922;</button>
+    <section class="metrics" aria-label="Calculated impact metrics">
+      <article class="metric attack">
+        <span class="metric-dot" aria-hidden="true"></span>
+        <div class="metric-copy"><span class="metric-label">Attack angle</span><output class="metric-value" id="attackValue">&#8722;4.3&deg;</output></div>
+      </article>
+      <article class="metric path">
+        <span class="metric-dot" aria-hidden="true"></span>
+        <div class="metric-copy"><span class="metric-label">Club path</span><output class="metric-value" id="pathValue">+2.5&deg;</output></div>
+      </article>
+    </section>
+
+    <div class="strike-strip" id="strikeStrip" aria-label="Strike result">
+      <span class="lab">STRIKE</span>
+      <span class="band" id="strikeBandText">PURE</span>
+      <span class="off" id="strikeOffsetText">0.0 mm</span>
+      <span class="meta" id="strikeMeta">DYNAMIC LOFT 31.0&deg;<span class="prov-chip">ASSUMED</span></span>
     </div>
-    <div class="rail">
-      <button class="orb" id="btnView" aria-label="Switch to Down the line">
-        <svg viewBox="0 0 44 40" aria-hidden="true">
-          <circle cx="22" cy="22" r="12.5" fill="none" stroke="var(--secondary-line)"
-                  stroke-width="1.2" stroke-dasharray="2.5 3"/>
-          <line x1="22" y1="22" x2="22" y2="8" stroke="rgba(245,242,255,.45)" stroke-width="1.3"/>
-          <path d="M22 4.5 l-3 5 h6 z" fill="rgba(245,242,255,.55)"/>
-          <circle cx="22" cy="22" r="3" fill="var(--ink)"/>
-          <g id="camG" style="transform-origin:22px 22px;transform:rotate(-90deg);
-                              transition:transform .24s cubic-bezier(.16,1,.3,1)">
-            <g transform="translate(22 34.5)">
-              <circle r="4.4" fill="var(--plate)" stroke="var(--secondary)" stroke-width="1.6"/>
-              <circle r="1.6" fill="var(--secondary)"/>
+
+    <section class="scene-wrap" aria-label="Interactive swing arc visualization">
+      <div class="scene" id="stage">
+        <div class="scene-tools">
+          <div class="tool-selects">
+            <label class="club-select-wrap">
+              <span class="sr-only">Club</span>
+              <select class="club-select" id="clubSelect" aria-label="Choose club">
+                <option value="driver">DRIVER</option>
+                <option value="threeWood">3-WOOD</option>
+                <option value="midIron" selected>MID-IRON</option>
+              </select>
+            </label>
+            <!-- D93-kjernen som velger: diskret, navngitt, aldri fri mm. Lever i FO og DTL. -->
+            <label class="club-select-wrap">
+              <span class="sr-only">Lie</span>
+              <!-- D138: standard-lie er FAIRWAY (åpning og reset) -->
+              <select class="club-select" id="lieSelect" aria-label="Choose lie">
+                <option value="hardpan">HARDPAN &middot; 0 mm</option>
+                <option value="tight">TIGHT &middot; 3 mm</option>
+                <option value="fairway" selected>FAIRWAY &middot; 8 mm</option>
+                <option value="lightRough">LIGHT ROUGH &middot; 15 mm</option>
+                <option value="rough">ROUGH &middot; 22 mm</option>
+                <option value="tee">TEE &middot; 30 mm</option>
+                <option value="teeHigh">HIGH TEE &middot; 42 mm</option>
+              </select>
+            </label>
+          </div>
+          <div class="view-switch" role="group" aria-label="Canvas view">
+            <button type="button" data-view="fo" aria-pressed="true">FACE ON</button>
+            <button type="button" data-view="dtl" aria-pressed="false">DTL</button>
+          </div>
+        </div>
+
+        <svg id="swingSvg" viewBox="0 0 390 330" role="img" aria-labelledby="sceneTitle sceneDesc" preserveAspectRatio="xMidYMax meet">
+          <title id="sceneTitle">Mid-iron face-on swing arc at impact</title>
+          <desc id="sceneDesc">A face-on view of the club arc, golf ball, low point, turf entry and exit, and ground plane.</desc>
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--canvas-sky-1)"/><stop offset=".55" stop-color="var(--canvas-sky-2)"/><stop offset="1" stop-color="var(--canvas-sky-3)"/></linearGradient>
+            <linearGradient id="dtlSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--canvas-sky-1)"/><stop offset=".58" stop-color="var(--canvas-sky-3)"/><stop offset="1" stop-color="var(--recess)"/></linearGradient>
+            <!-- G-4: gressbåndet ~24 px (målt eierpreferanse 22–26; 8 px leste ikke som gress) -->
+            <linearGradient id="turf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--canvas-turf-top)"/><stop offset=".28" stop-color="var(--canvas-turf-mid)"/><stop offset=".33" stop-color="#191817"/><stop offset="1" stop-color="#080808"/></linearGradient>
+            <radialGradient id="ballFill" cx="35%" cy="28%"><stop offset="0" stop-color="#ffffff"/><stop offset=".58" stop-color="#dedbd3"/><stop offset="1" stop-color="#8f8b84"/></radialGradient>
+            <filter id="ballGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="8" result="blur"/><feFlood flood-color="var(--copper)" flood-opacity=".48"/><feComposite in2="blur" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse" patternTransform="skewX(-18)"><path d="M 38 0 L 0 0 0 38" fill="none" stroke="var(--canvas-grid)" stroke-opacity=".12" stroke-width="1"/></pattern>
+            <pattern id="dtlGrid" width="32" height="24" patternUnits="userSpaceOnUse" patternTransform="skewX(-31)"><path d="M32 0H0V24" fill="none" stroke="#9da6a1" stroke-opacity=".12" stroke-width="1"/></pattern>
+          </defs>
+
+          <g class="canvas-view" data-canvas-view="fo" id="viewFaceOn">
+            <rect width="390" height="330" fill="url(#sky)"/>
+            <path d="M0 120 L390 168 L390 250 L0 250 Z" fill="var(--canvas-shape)" opacity=".26"/>
+            <rect x="0" y="108" width="390" height="142" fill="url(#grid)" opacity=".72"/>
+            <path d="M26 238 L130 130 M82 244 L185 125 M140 246 L245 120 M205 247 L308 122 M274 247 L370 139" stroke="#a9a5c4" stroke-opacity=".08"/>
+            <rect y="250" width="390" height="80" fill="url(#turf)"/>
+            <!-- Higgsfield-turfplaten (eierbestilt materialforbedring), tonet av temagradienten over -->
+            <image href="./assets/turf.png" x="0" y="250" width="390" height="34" preserveAspectRatio="xMidYMid slice" opacity=".5"/>
+            <line x1="0" y1="250" x2="390" y2="250" stroke="var(--canvas-turf-line)" stroke-width="2" opacity=".8"/>
+            <!-- G-4: strå OPPÅ platen — båndet+linja+stråene er det som gjør gress til gress -->
+            <g stroke="var(--canvas-turf-line)" stroke-width="1.2" stroke-linecap="round" opacity=".55">
+              <path d="M14 250l2-6M31 250l-2-5M52 250l2-6M74 250l-1-5M96 250l2-6M118 250l-2-5M139 250l1-6M162 250l2-5M184 250l-2-6M228 250l2-6M251 250l-1-5M273 250l2-6M296 250l-2-5M318 250l1-6M341 250l2-5M363 250l-2-6M381 250l1-5"/>
             </g>
+            <g id="foStanceTicks" fill="var(--muted)" opacity=".78" font-family="IBM Plex Mono,monospace" font-size="10" text-anchor="middle"><text x="171" y="270">BACK</text><text x="205" y="270">MID</text><text x="239" y="270">FWD</text></g>
+            <g stroke="#757474" opacity=".55"><path id="foStanceTickMarks" d="M171 250v7M205 250v7M239 250v7"/></g>
+            <path id="foArcGhost" d="" fill="none" stroke="#101112" stroke-width="9" opacity=".82"/>
+            <path id="foArcPath" class="arc-main geometry-focus" d="" fill="none" stroke="var(--canvas-arc)" stroke-width="2.7" stroke-linecap="round"/>
+            <!-- Entry/Low/Exit — alltid i FO (eierbeslutning): merker + ord + verdier -->
+            <g id="foTurfMarks" font-family="IBM Plex Mono,monospace" text-anchor="middle">
+              <path id="foEntryLine" d="" stroke="var(--copper-hot)" stroke-dasharray="2 3" opacity=".55"/>
+              <text id="foEntryText" y="282" fill="var(--muted)" font-size="8">ENTRY</text>
+              <text id="foEntryVal" y="293" fill="var(--muted)" font-size="8"></text>
+              <path id="foExitLine" d="" stroke="var(--copper-hot)" stroke-dasharray="2 3" opacity=".55"/>
+              <text id="foExitText" y="282" fill="var(--muted)" font-size="8">EXIT</text>
+              <text id="foExitVal" y="293" fill="var(--muted)" font-size="8"></text>
+              <text id="foLowText" y="304" fill="var(--magenta)" font-size="8">LOW</text>
+              <text id="foLowVal" y="315" fill="var(--magenta)" font-size="8" opacity=".85"></text>
+              <text id="foNoTurf" y="282" x="195" fill="var(--muted)" font-size="8" opacity="0">NO TURF CONTACT</text>
+            </g>
+            <!-- Lie-visualer: tee-sprite for TEE/HIGH TEE, strå som bærer ballen
+                 for gress-lies (D138 åpner på fairway → strå fra første sekund) -->
+            <image id="foTeeImg" href="./assets/tee.png" style="display:none"/>
+            <g id="foLieBlades" stroke="var(--canvas-turf-line)" stroke-width="1.4" stroke-linecap="round" opacity=".8"></g>
+            <g id="foClubGroup">
+              <path id="foShaft" d="M-2 0 L-22 -83" stroke="#b8b5b0" stroke-width="3" opacity=".65"/>
+              <!-- Higgsfield-køllehode (sprite, kalibrert mot ballradius) -->
+              <image id="foClubImg" href="./assets/iron-head.png" opacity=".88"/>
+              <line id="foSweetNotch" stroke="#fff" stroke-opacity=".55" stroke-width="1.2"/>
+              <circle id="foContactDot" r="2.6" fill="var(--copper)"/>
+            </g>
+            <g id="foBallGroup"><ellipse cx="0" cy="13" rx="18" ry="5" fill="#000" opacity=".62"/><circle r="13" fill="var(--copper)" opacity=".25" filter="url(#ballGlow)"/><circle r="12" fill="url(#ballFill)" stroke="#fff" stroke-opacity=".65" stroke-width=".7"/><g fill="var(--muted)" opacity=".42"><circle cx="-4" cy="-5" r=".7"/><circle cx="2" cy="-7" r=".7"/><circle cx="6" cy="-2" r=".7"/><circle cx="-7" cy="1" r=".7"/><circle cx="0" cy="3" r=".7"/><circle cx="6" cy="6" r=".7"/><circle cx="-3" cy="8" r=".7"/></g></g>
+            <g class="guide-line" stroke="var(--copper-hot)" fill="none"><path id="foPositionGuide" d="" stroke-dasharray="2 4" opacity=".9"/></g>
+            <g class="measure-tag" id="foMeasureTag"><rect width="92" height="18" rx="5" fill="var(--recess)" stroke="var(--copper)"/><text id="foMeasureText" x="46" y="12.5" fill="var(--copper-hot)" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">0.0 cm</text></g>
+            <circle id="foLowPoint" r="4" fill="var(--recess)" stroke="var(--magenta)" stroke-width="2"/>
+          </g>
+
+          <g class="canvas-view" data-canvas-view="dtl" id="viewDtl" hidden>
+            <rect width="390" height="330" fill="url(#dtlSky)"/>
+            <path d="M0 238L195 104L390 238V330H0Z" fill="#111814"/>
+            <path d="M0 240H390V330H0Z" fill="url(#dtlGrid)"/>
+            <g stroke="#a5aaa6" stroke-opacity=".14"><path d="M195 104L15 330M195 104L82 330M195 104L145 330M195 104L245 330M195 104L308 330M195 104L375 330"/><path d="M38 288H352M72 256H318M105 225H285M134 194H256"/></g>
+            <path id="dtlPlane" class="dtl-plane geometry-focus" d="" fill="var(--canvas-plane)" fill-opacity=".14" stroke="var(--canvas-plane)" stroke-opacity=".42"/>
+            <path id="dtlTargetLine" d="" fill="none" stroke="var(--canvas-arc)" stroke-width="1.2" stroke-dasharray="4 5" opacity=".62"/>
+            <text id="dtlTargetText" x="198" y="76" fill="var(--muted)" font-family="IBM Plex Mono,monospace" font-size="8" text-anchor="middle">TARGET</text>
+            <path id="dtlArcGhost" d="" fill="none" stroke="#050606" stroke-width="9" opacity=".8"/>
+            <path id="dtlArcPath" class="arc-main geometry-focus" d="" fill="none" stroke="var(--canvas-arc)" stroke-width="2.7" stroke-linecap="round"/>
+            <path id="dtlDirectionRay" class="guide-line" d="" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-dasharray="5 5"/>
+            <g id="dtlClubGroup"><path d="M0 0L-9-68" stroke="#d0cdc5" stroke-width="3" opacity=".72"/><path d="M-11-8Q7-8 12 0Q8 8-10 9Z" fill="#8f8c85" stroke="#e1ded6"/></g>
+            <g id="dtlBallGroup"><circle r="13" fill="var(--copper)" opacity=".22" filter="url(#ballGlow)"/><circle r="11.5" fill="url(#ballFill)" stroke="#fff" stroke-opacity=".6"/></g>
+            <g class="measure-tag" id="dtlMeasureTag"><rect width="132" height="19" rx="5" fill="var(--recess)" stroke="var(--cyan)"/><text id="dtlMeasureText" x="66" y="13" fill="var(--cyan)" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="700" text-anchor="middle"></text></g>
+            <circle id="dtlImpactPoint" r="4" fill="var(--recess)" stroke="var(--magenta)" stroke-width="2"/>
           </g>
         </svg>
-        <span class="cap" id="viewCap">DTL</span>
-      </button>
-      <!-- AVVIK (D65/D17b): kølleknappen sykler tre køller; gress/pigg-glyfene
-           kodet UNDERLAGET og er fjernet — lie er egen input (chip + stegslider). -->
-      <button class="orb" id="btnClub" aria-label="Switch club">
-        <span class="cap" id="clubCap">MID-IRON</span>
-      </button>
-      <button class="orb" id="btnContact" aria-label="Open Strike contact zone" aria-controls="inset" aria-expanded="false">
-        <svg viewBox="0 0 44 40" aria-hidden="true">
-          <line x1="6" y1="30" x2="38" y2="30" stroke="rgba(130,185,85,.72)" stroke-width="1.6"/>
-          <path d="M7 19 C14 23 17 31 22 31 C27 31 30 23 37 19" fill="none"
-                stroke="var(--strike)" stroke-width="2" stroke-linecap="round" stroke-opacity=".9"/>
-          <circle cx="22" cy="31" r="2.6" fill="var(--strike)"/>
-          <path d="M12 30 v4 M32 30 v4" stroke="var(--strike)" stroke-opacity=".55" stroke-width="1.2"/>
-        </svg>
-        <span class="cap">STRIKE</span>
-      </button>
-    </div>
-  </div>
 
-  <div class="controls">
-    <div class="chips">
-      <button class="chip" data-p="plane"><span class="cl">SWING PLANE</span><span class="cv" id="cvPlane">60.0&deg;</span></button>
-      <button class="chip" data-p="dir"><span class="cl">SWING DIRECTION</span><span class="cv" id="cvDir">0.0&deg;</span></button>
-      <button class="chip active" data-p="low"><span class="cl">BALL POSITION</span><span class="cv" id="cvLow">0.0 cm</span></button>
-      <button class="chip" data-p="arc"><span class="cl">ARC HEIGHT</span><span class="cv" id="cvArc">0.0 cm</span></button>
-      <button class="chip" data-p="lie"><span class="cl">LIE</span><span class="cv" id="cvLie">HARDPAN</span></button>
-    </div>
-    <div class="sliderZone" id="sliderZone">
-      <div class="track"></div>
-      <div class="fill" id="fill"></div>
-      <div class="notch" id="notch"></div>
-      <input type="range" id="range" min="-20" max="20" step="0.1" value="0" />
-    </div>
-  </div>
+        <!-- D139: porten bor I scenen; alt krom rundt forblir aktivt -->
+        <div class="rotate" role="status">
+          <span class="ico" aria-hidden="true">
+            <svg viewBox="0 0 46 46"><rect x="14" y="7" width="18" height="32" rx="3.5"/>
+              <line x1="19" y1="34.5" x2="27" y2="34.5"/></svg>
+          </span>
+          <p>Rotate to portrait.</p>
+        </div>
+      </div>
+    </section>
 
-  <div class="rotate" role="status">
-    <!-- AVVIK (NAVIGASJON, låst): HOME finnes i BEGGE tilstander -->
-    <a class="ts-back rotate-home" href="../nav/index.html" aria-label="Home">HOME</a>
-    <span class="ico" aria-hidden="true">
-      <svg viewBox="0 0 46 46"><rect x="14" y="7" width="18" height="32" rx="3.5"/>
-        <line x1="19" y1="34.5" x2="27" y2="34.5"/></svg>
-    </span>
-    <p>Rotate to landscape &#8212; the arc needs width over height.</p>
-  </div>
+    <section class="control-deck" id="controlDeck" aria-label="Impact parameters">
+      <div class="active-instrument">
+        <div class="instrument-head">
+          <div>
+            <p class="active-label" id="activeLabel">Ball position</p>
+            <p class="active-value"><output id="activeValue" for="parameterSlider">0.0</output> <span class="unit" id="activeUnit">cm</span></p>
+          </div>
+        </div>
+        <div class="slider-row">
+          <span class="tick-label" id="minLabel"></span>
+          <input type="range" id="parameterSlider" min="-20" max="20" value="0" step="0.1" aria-label="Ball position in centimetres" aria-controls="swingSvg">
+          <span class="tick-label" id="maxLabel"></span>
+        </div>
+      </div>
+      <nav class="parameter-rail" id="parameterRail" aria-label="Choose parameter"></nav>
+    </section>
+
+    <p class="sr-only" id="statusAnnouncer" aria-live="polite"></p>
+  </main>
 
 <script type="module">
 /* ============================================================
- * MOTOR — engine/studioSolve (D13: mockens motorfil er IKKE portert).
- * All projeksjon/interpolasjon av motortall: adapter/studioShape (D61/D62).
- * All formatering: adapter (D28/D29/D67). Ingen trig i denne fila —
- * rotasjoner gjøres med enhetsvektor-transformer (fysikklinten står).
- * Farger konsumeres via tokens (CSS()/tint()) — naken hex kun for
- * scene-materiale uten token (gress, jord, dusk), meldt i STUDIO.md.
+ * MOTOR: engine/studioSolve via adapter (D13/D61/D62 — mock-formlene i
+ * Sol-handoffen er FJERNET; updateScene() driver SVG-en med adapterpunkter).
+ * Ingen trig her; all projeksjon i adapter/. Formater fra adapter (D28/D67).
  * ============================================================ */
 import { studioSolve, CLUB_GEOMETRY, LIE_PRESETS } from '../../engine/src/studioSolve.js';
-import { studioRadius, studioBallPositionOffsetCm } from '../../engine/src/constants.js';
 import {
   arcWorldPoint, arcWorldPoints, tangentWorld, planePoint,
   faceOnArcPoints, pinholeCamera, projectPoint,
 } from '../../adapter/src/studioShape.js';
-import { directionRay } from '../../adapter/src/traceShape.js';
 import { formatAngle } from '../../adapter/src/format.js';
 import {
-  formatLongitudinalCm, formatHeightCm, formatFaceOffsetMm, formatLieMm,
+  formatLongitudinalCm, formatLongitudinalMetres, formatHeightCm,
+  formatFaceOffsetMm, formatLieMm,
 } from '../../adapter/src/displayStudio.js';
 import haptics from './sa-haptics.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const RADIUS = studioRadius;                     // 1.20 m — motorens konstant
-const SWEEP_RAD = (48 * Math.PI) / 180;          // mockens tegnespenn (komposisjon)
 
-/* Token-oppslag for canvas: CSS(navn) gir hex, tint(navn, a) en rgba. */
-const CSS = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const RGBC = {};
-function rgbOf(token){
-  if (!RGBC[token]){
-    const h = CSS(token).replace('#', '');
-    RGBC[token] = parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16)
-      + ',' + parseInt(h.slice(4, 6), 16);
-  }
-  return RGBC[token];
-}
-const tint = (token, a) => 'rgba(' + rgbOf(token) + ',' + a + ')';
+/* D65 (eierlåst): tre køller, fast dynamisk loft merket som antagelse. */
+const CLUB_LABEL = { driver: 'DRIVER', threeWood: '3-WOOD', midIron: 'MID-IRON' };
+const DYNAMIC_LOFT = { driver: 12.5, threeWood: 15.0, midIron: 31.0 };
+const PLANE_PRESET = { driver: 50, threeWood: 55, midIron: 60 };
+const HEAD_MM = { driver: 96, threeWood: 68, midIron: 102 };
+const HEAD_IMG = { driver: './assets/driver-head.png', threeWood: './assets/driver-head.png', midIron: './assets/iron-head.png' };
 
-/* ============================================================ STATE */
-const PARAMS = {
-  /* AVVIK (D28, arvet): vinkler 1 desimal også på plane (mocken viste 0). */
-  plane: { min:30,  max:80, step:0.5, def:60,   bipolar:false, hue:'var(--plane)',
-           fmt:v=>formatAngle(v) },
-  dir:   { min:-12, max:12, step:0.1, def:0,    bipolar:true,  hue:'var(--path)',
-           fmt:v=>formatAngle(v, { signed:true }) },
-  /* AVVIK (D67, arvet): avstander bærer ord, aldri nakent fortegn. */
-  low:   { min:-20, max:20, step:0.1, def:0,    bipolar:true,  hue:'var(--primary)',
-           fmt:formatLongitudinalCm },
-  arc:   { min:-5,  max:5,  step:0.1, def:0,    bipolar:true,  hue:'var(--depth)',
-           fmt:formatHeightCm },
-  /* AVVIK (D93, tidl. D82): lie er en STEGSLIDER låst til de sju LIE_PRESETS-punktene —
-     aldri fri mm. Verdien er indeksen; navnet byttes øyeblikkelig ved steg.
-     D95: ingen parameterkulør — nøytral ink. */
-  lie:   { min:0,   max:6,  step:1,   def:0,    bipolar:false, hue:'var(--ink)',
-           fmt:i=>LIES[Math.round(i)].label },
+const LIE_LABEL = { hardpan: 'HARDPAN', tight: 'TIGHT', fairway: 'FAIRWAY',
+  lightRough: 'LIGHT ROUGH', rough: 'ROUGH', tee: 'TEE', teeHigh: 'HIGH TEE' };
+
+/* D89 (eierlåst): tre-trinns kvalitetsskala. Ordet bærer, fargen forsterker. */
+const BAND_TEXT = { Duff: 'DUFF', Fat: 'FAT', Pure: 'PURE', Thin: 'THIN', Whiff: 'WHIFF',
+  OffFace: 'OFF FACE', Low: 'LOW', Centre: 'CENTRE', High: 'HIGH' };
+const BAND_HUE = { Pure: 'var(--good)', Centre: 'var(--good)',
+  Thin: 'var(--strike-gold)', Fat: 'var(--strike-gold)', High: 'var(--strike-gold)', Low: 'var(--strike-gold)',
+  Duff: 'var(--bad)', Whiff: 'var(--bad)', OffFace: 'var(--bad)' };
+
+/* Handoffens tilstandskontrakt — steg rettet til spec 03 (0.1). */
+const parameterState = {
+  ballPosition: { label: 'Ball position', value: 0, min: -20, max: 20, step: .1, unit: 'cm',
+    aria: 'Ball position in centimetres', fmt: formatLongitudinalCm },
+  swingPlane: { label: 'Swing plane', value: 60, min: 30, max: 80, step: .5, unit: '°',
+    aria: 'Swing plane in degrees', fmt: v => formatAngle(v) },
+  swingDirection: { label: 'Swing direction', value: 0, min: -12, max: 12, step: .1, unit: '°',
+    aria: 'Swing direction in degrees', fmt: v => formatAngle(v, { signed: true }) },
+  arcHeight: { label: 'Arc height', value: 0, min: -5, max: 5, step: .1, unit: 'cm',
+    aria: 'Arc height in centimetres', fmt: formatHeightCm },
 };
-const PARAM_LABELS = { plane:'Swing plane', dir:'Swing direction', low:'Ball position',
-                       arc:'Arc height', lie:'Lie' };
-const LP_STANCE = studioBallPositionOffsetCm;    // cm foran stance-senter (motorens Pure-ideal)
+const defaults = JSON.parse(JSON.stringify(
+  Object.fromEntries(Object.entries(parameterState).map(([k, v]) => [k, { value: v.value }]))));
+let activeKey = 'ballPosition';
+let currentView = 'fo';
+let clubKey = 'midIron';
+let lieKey = 'fairway';   /* D138: standard-lie er FAIRWAY */
+let idleTimer;
+let viewTimer;
 
-/* AVVIK (D65): tre køller med fast dynamisk loft merket som antagelse.
-   3-wood-planpreset 55° eierlåst. AVVIK (D17b): ARC_Z0/zClub fjernet;
-   SWEET fra CLUB_GEOMETRY. */
-const CLUB_SEQ = ['driver', 'threeWood', 'midIron'];
-const CLUB_LABEL = { driver:'DRIVER', threeWood:'3-WOOD', midIron:'MID-IRON' };
-const DYNAMIC_LOFT = { driver:12.5, threeWood:15.0, midIron:31.0 };
-const PLANE_PRESET = { driver:50, threeWood:55, midIron:60 };
-const HEAD_MM = { driver:96, threeWood:68, midIron:102 };
-const HEAD_IMG = { driver:'driverHead', threeWood:'driverHead', midIron:'ironHead' };
-const LEAN = { driver:0, threeWood:2 * Math.PI / 180, midIron:6 * Math.PI / 180 };
+const $ = id => document.getElementById(id);
+const scene = $('stage');
+const deck = $('controlDeck');
+const rail = $('parameterRail');
+const slider = $('parameterSlider');
+const activeLabel = $('activeLabel');
+const activeValue = $('activeValue');
+const activeUnit = $('activeUnit');
+const minLabel = $('minLabel');
+const maxLabel = $('maxLabel');
+const sceneTitle = $('sceneTitle');
+const sceneDesc = $('sceneDesc');
+const clubSelect = $('clubSelect');
+const lieSelect = $('lieSelect');
+const attackValue = $('attackValue');
+const pathValue = $('pathValue');
+const statusAnnouncer = $('statusAnnouncer');
+const themeColor = $('themeColor');
 
-const LIES = [
-  { key:'hardpan',    label:'HARDPAN' },
-  { key:'tight',      label:'TIGHT' },
-  { key:'fairway',    label:'FAIRWAY' },
-  { key:'lightRough', label:'LIGHT ROUGH' },
-  { key:'rough',      label:'ROUGH' },
-  { key:'tee',        label:'TEE' },
-  { key:'teeHigh',    label:'HIGH TEE' },
-];
-const lieLabel = k => LIES.find(l => l.key === k).label;
-const lieIndex = k => LIES.findIndex(l => l.key === k);
+function setTheme(theme) {
+  const nextTheme = theme === 'titan' ? 'titan' : 'flightglass';
+  document.documentElement.dataset.theme = nextTheme;
+  themeColor.content = nextTheme === 'flightglass' ? '#07060C' : '#050606';
+  return nextTheme;
+}
+setTheme(document.documentElement.dataset.theme);
 
-const state = { view:'face', sel:'low', plane:60, dir:0, low:0, arc:0,
-                club:'midIron', lie:'hardpan', inspect:false };
-const ballLift = () => LIE_PRESETS[state.lie] / 1000;   // meter
-
+/* ── Motorkobling ─────────────────────────────────────────────────────── */
 let solved = null;
-function computeSolved(){
+function computeSolved() {
   solved = studioSolve({
-    swingPlane: state.plane,
-    swingDirection: state.dir,
-    ballPositionCm: state.low,
-    arcHeightCm: state.arc,
-    lieHeightMm: LIE_PRESETS[state.lie],
-    club: CLUB_GEOMETRY[state.club],
-    dynamicLoftDeg: DYNAMIC_LOFT[state.club],
+    swingPlane: parameterState.swingPlane.value,
+    swingDirection: parameterState.swingDirection.value,
+    ballPositionCm: parameterState.ballPosition.value,
+    arcHeightCm: parameterState.arcHeight.value,
+    lieHeightMm: LIE_PRESETS[lieKey],
+    club: CLUB_GEOMETRY[clubKey],
+    dynamicLoftDeg: DYNAMIC_LOFT[clubKey],
   });
 }
 computeSolved();
 
-/* AVVIK (F7/D17b/U1): standin-bånd → strikeBand v2: begge svar, alltid.
-   D89-kvalitetsskala: Pure/Centre → good · Thin/Fat/High/Low → strike-gull
-   · Duff/Whiff/off-face → bad. Ordet er bæreren, fargen forsterker (D10). */
-const BAND_TEXT = { Duff:'DUFF', Fat:'FAT', Pure:'PURE', Thin:'THIN', Whiff:'WHIFF',
-                    OffFace:'OFF FACE', Low:'LOW', Centre:'CENTRE', High:'HIGH' };
-const BAND_LEVEL = { Pure:'--good', Centre:'--good',
-                     Thin:'--strike', Fat:'--strike', High:'--strike', Low:'--strike',
-                     Duff:'--bad', Whiff:'--bad', OffFace:'--bad' };
+/* Verdivisning: adapterstrenger. For cm-akser splittes tall og ord/enhet
+   til handoffens value+unit-oppsett; vinkler er én token. */
+function splitCm(text) {
+  const i = text.indexOf(' ');
+  return [text.slice(0, i), text.slice(i + 1)];
+}
+function activeParts(key) {
+  const p = parameterState[key];
+  const text = p.fmt(p.value);
+  if (p.unit === 'cm') return splitCm(text);
+  return [text, ''];
+}
+const railValue = (key, config) => config.fmt(config.value);
 
-/* Presentation-only anchor for the reference clubhead (mockens regel). */
-function ghostClubAnchor(){
-  const t0g = solved.groundCrossingTheta0;
-  if (t0g !== null){
-    const entry = arcWorldPoint(solved, -t0g);
-    if (entry.x < -0.001) return { mode:'entry', point:entry };
+function setAdjusting() {
+  clearTimeout(idleTimer);
+  scene.classList.add('is-adjusting');
+  idleTimer = setTimeout(() => scene.classList.remove('is-adjusting'), 350);
+}
+
+function pulseView() {
+  clearTimeout(viewTimer);
+  scene.classList.remove('is-changing-view');
+  void scene.offsetWidth;
+  scene.classList.add('is-changing-view');
+  viewTimer = setTimeout(() => scene.classList.remove('is-changing-view'), 260);
+}
+
+function renderRail() {
+  rail.replaceChildren();
+  Object.entries(parameterState).filter(([key]) => key !== activeKey).forEach(([key, config]) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.parameter = key;
+    button.setAttribute('aria-label', `${config.label}, ${railValue(key, config)}`);
+    const label = document.createElement('span');
+    label.className = 'parameter-rail-label';
+    label.textContent = config.label;
+    const value = document.createElement('span');
+    value.className = 'parameter-rail-value';
+    value.textContent = railValue(key, config);
+    button.append(label, value);
+    button.addEventListener('click', () => switchParameter(key));
+    rail.appendChild(button);
+  });
+}
+
+function switchParameter(key) {
+  activeKey = key;
+  deck.classList.remove('is-swapping');
+  void deck.offsetWidth;
+  deck.classList.add('is-swapping');
+  setTimeout(() => deck.classList.remove('is-swapping'), 230);
+  syncInstrument();
+  renderRail();
+  setAdjusting();
+  statusAnnouncer.textContent = `${parameterState[key].label} selected. ${railValue(key, parameterState[key])}.`;
+  requestAnimationFrame(() => slider.focus({ preventScroll: true }));
+}
+
+function syncInstrument() {
+  const active = parameterState[activeKey];
+  activeLabel.textContent = active.label;
+  const [valPart, unitPart] = activeParts(activeKey);
+  activeValue.textContent = valPart;
+  activeUnit.textContent = unitPart;
+  slider.min = active.min;
+  slider.max = active.max;
+  slider.step = active.step;
+  slider.value = active.value;
+  slider.setAttribute('aria-label', active.aria);
+  slider.setAttribute('aria-valuetext', railValue(activeKey, active));
+  /* AVVIK (D67): endene bærer ord (20.0 cm before), aldri nakne fortegn */
+  minLabel.textContent = active.fmt(active.min);
+  maxLabel.textContent = active.fmt(active.max);
+  const fill = ((active.value - active.min) / (active.max - active.min)) * 100;
+  slider.style.setProperty('--fill', `${fill}%`);
+  updateScene();
+}
+
+/* ── Scene: FO — stancefast kamera (handoffens BACK/MID/FWD-verden).
+   Adapterpunkter er ball-relative meter; stanceskiftet er ballPos. ─────── */
+const FO = { S: 310, STANCE_X: 205, GROUND_Y: 250, BALL_R_PX: 12, SWEEP: 0.85 };
+/* Hybrid vertikal gain (eierens mock-beslutning fra landskapsflaten, arvet):
+   kontaktbåndet ~1:1, armene rampes glatt. tanh/cosh er ikke fysikk-lint-tema. */
+const PED_K = 1.7, PED_Z0 = 0.055;
+const pedF = z => PED_K * z - (PED_K - 1) * PED_Z0 * Math.tanh(z / PED_Z0);
+
+function foMap() {
+  const ballPosM = parameterState.ballPosition.value / 100;
+  const ballX = FO.STANCE_X + ballPosM * FO.S;
+  return {
+    ballX,
+    X: xm => ballX + xm * FO.S,                 // xm: ball-relativ meter
+    Y: zm => FO.GROUND_Y - pedF(zm) * FO.S,
+  };
+}
+
+function updateFaceOn() {
+  const M = foMap();
+  const lift = LIE_PRESETS[lieKey] / 1000;
+  const rM = solved.ballRadiusM;
+  const mmToBallPx = FO.BALL_R_PX / (rM * 1000);   // ball-rom (presentasjonsskala som mocken)
+
+  /* buen — motorens punkter, projisert i adapteren */
+  const pts = faceOnArcPoints(solved, 96, FO.SWEEP);
+  const d = pts.map(([x, z], i) => `${i ? 'L' : 'M'}${M.X(x).toFixed(1)} ${M.Y(z).toFixed(1)}`).join('');
+  $('foArcPath').setAttribute('d', d);
+  $('foArcGhost').setAttribute('d', d);
+
+  /* ball (oversized som i handoffen — presentasjon; tallene er motorens) */
+  const ballY = M.Y(lift) - FO.BALL_R_PX;
+  $('foBallGroup').setAttribute('transform', `translate(${M.ballX.toFixed(1)} ${ballY.toFixed(1)})`);
+
+  /* lie-visualer (G-4/D66): tee-sprite for tee-lies, strå for gress-lies */
+  const teeImg = $('foTeeImg');
+  const blades = $('foLieBlades');
+  const isTee = lieKey === 'tee' || lieKey === 'teeHigh';
+  const ballBottom = ballY + FO.BALL_R_PX * 0.9;
+  if (isTee) {
+    const teeH = Math.max(4, FO.GROUND_Y - ballBottom + 2);
+    const teeW = teeH * 0.55;
+    teeImg.style.display = '';
+    teeImg.setAttribute('x', (M.ballX - teeW / 2).toFixed(1));
+    teeImg.setAttribute('y', ballBottom.toFixed(1));
+    teeImg.setAttribute('width', teeW.toFixed(1));
+    teeImg.setAttribute('height', teeH.toFixed(1));
+    blades.innerHTML = '';
+  } else if (LIE_PRESETS[lieKey] > 0) {
+    teeImg.style.display = 'none';
+    const bx = M.ballX;
+    blades.innerHTML = [-6, -2, 3, 7].map(o =>
+      `<path d="M${(bx + o).toFixed(1)} ${FO.GROUND_Y} L${(bx + o * 0.6).toFixed(1)} ${(ballBottom + 1).toFixed(1)}"/>`).join('');
+  } else {
+    teeImg.style.display = 'none';
+    blades.innerHTML = '';
   }
-  return { mode:'impact', point:{ x:0, y:0, z:solved.clubHeightM } };
+
+  /* kølle: sprite kalibrert mot ballradius, ved hendelsen som forklarer
+     utfallet (entry ved turf-først, ellers treff) — mockens ghostregel */
+  const t0g = solved.groundCrossingTheta0;
+  let anchor = { x: 0, z: solved.clubHeightM };
+  if (t0g !== null) {
+    const entry = arcWorldPoint(solved, -t0g);
+    if (entry.x < -0.001) anchor = entry;
+  }
+  const headHpx = HEAD_MM[clubKey] * mmToBallPx;
+  const img = $('foClubImg');
+  img.setAttribute('href', HEAD_IMG[clubKey]);
+  img.setAttribute('width', (headHpx * 0.9).toFixed(1));
+  img.setAttribute('height', headHpx.toFixed(1));
+  img.setAttribute('x', (-headHpx * 0.9).toFixed(1));
+  img.setAttribute('y', (-headHpx).toFixed(1));
+  const clubX = M.X(anchor.x) - FO.BALL_R_PX * 0.92;
+  const clubY = M.Y(anchor.z);
+  $('foClubGroup').setAttribute('transform', `translate(${clubX.toFixed(1)} ${clubY.toFixed(1)})`);
+  /* D24: sweetspot-merke (over sålen, i ball-rom-skala) + kontaktpunkt der
+     ballsenteret møter flaten. Avstanden mellom dem ER faceCentreOffsetMm. */
+  const sweetY = -(solved.sweetSpotHeightMm * mmToBallPx);
+  $('foSweetNotch').setAttribute('x1', '-7');
+  $('foSweetNotch').setAttribute('x2', '1');
+  $('foSweetNotch').setAttribute('y1', sweetY.toFixed(1));
+  $('foSweetNotch').setAttribute('y2', sweetY.toFixed(1));
+  $('foContactDot').setAttribute('cx', '-3');
+  $('foContactDot').setAttribute('cy', (ballY - clubY).toFixed(1));
+
+  /* low point — markør + ord + verdi (D67-ord fra adapteren).
+     Merk (Sol-fasit/D134): markøren står FAST på skjermen mens BALLEN flytter
+     seg — stancefast kamera; svingens lavpunkt er stancens, ballen plasseres. */
+  const lpX = M.X(solved.effectiveLowPointX);
+  const lpY = M.Y(solved.lowPointZ);
+  $('foLowPoint').setAttribute('cx', lpX.toFixed(1));
+  $('foLowPoint').setAttribute('cy', lpY.toFixed(1));
+  $('foLowText').setAttribute('x', lpX.toFixed(1));
+  $('foLowVal').setAttribute('x', lpX.toFixed(1));
+  $('foLowVal').textContent = formatLongitudinalMetres(solved.effectiveLowPointX);
+  /* KONTRAKT (D114, rettet etter E-funn): dataset.lowPointMarker er
+     «view,x,y,1» i CSS-PIKSLER relativt #stage — aldri SVG-brukerenheter.
+     Mappingen er preserveAspectRatio="xMidYMax meet": uniform skala,
+     midtstilt x, bunnjustert y. Ved 0-målt boks (skjult fane) beholdes
+     forrige gyldige verdi framfor å skrive en villedende.
+     Kroken kjenner bare LOW POINT — som i v4 står FAST (D134, målt: identisk
+     verdi for ballpos −8/0/+12 mens ballen vandrer). En konsument som vil
+     verne «det som beveger seg» må ta ball OG low point som ETT anker, ikke
+     lese kroken alene. */
+  const svgRect = $('swingSvg').getBoundingClientRect();
+  const stageRect = scene.getBoundingClientRect();
+  if (svgRect.width > 0 && svgRect.height > 0) {
+    const sc = Math.min(svgRect.width / 390, svgRect.height / 330);
+    const cssX = (svgRect.left - stageRect.left) + (svgRect.width - 390 * sc) / 2 + lpX * sc;
+    const cssY = (svgRect.top - stageRect.top) + (svgRect.height - 330 * sc) + lpY * sc;
+    scene.dataset.lowPointMarker = ['fo', cssX.toFixed(1), cssY.toFixed(1), '1'].join(',');
+  }
+
+  /* entry/exit — alltid i FO når de finnes; ellers NO TURF CONTACT i
+     turf-regimet (muted — informasjon, ikke feiltilstand) */
+  const hasCross = t0g !== null;
+  const gy = FO.GROUND_Y;
+  if (hasCross) {
+    const e = arcWorldPoint(solved, -t0g), x = arcWorldPoint(solved, t0g);
+    const ex = M.X(e.x), xx = M.X(x.x);
+    $('foEntryLine').setAttribute('d', `M${ex.toFixed(1)} ${gy + 2}V${gy + 14}`);
+    $('foEntryText').setAttribute('x', ex.toFixed(1));
+    $('foEntryVal').setAttribute('x', ex.toFixed(1));
+    $('foEntryVal').textContent = formatLongitudinalMetres(e.x);
+    $('foExitLine').setAttribute('d', `M${xx.toFixed(1)} ${gy + 2}V${gy + 14}`);
+    $('foExitText').setAttribute('x', xx.toFixed(1));
+    $('foExitVal').setAttribute('x', xx.toFixed(1));
+    $('foExitVal').textContent = formatLongitudinalMetres(x.x);
+  }
+  for (const id of ['foEntryLine', 'foEntryText', 'foEntryVal', 'foExitLine', 'foExitText', 'foExitVal']) {
+    $(id).style.opacity = hasCross ? '1' : '0';
+  }
+  $('foNoTurf').style.opacity = (!hasCross && solved.hasTurfContact) ? '.8' : '0';
+
+  /* ballposisjons-guide + måletag (kun under justering — handoffens regel) */
+  $('foPositionGuide').setAttribute('d', `M${M.ballX.toFixed(1)} 207V257`);
+  $('foMeasureTag').setAttribute('transform', `translate(${(M.ballX - 46).toFixed(1)} ${(ballY - 42).toFixed(1)})`);
+  $('foMeasureText').textContent = formatLongitudinalCm(parameterState.ballPosition.value);
 }
 
-/* ============================================================ DOM */
-const $ = id => document.getElementById(id);
-const cv = $('scene'), ctx = cv.getContext('2d');
-let DPR = 1, W = 0, H = 0;
-function resize(){
-  DPR = Math.min(devicePixelRatio || 1, 2);
-  const r = cv.getBoundingClientRect();
-  W = Math.round(r.width); H = Math.round(r.height);
-  cv.width = W * DPR; cv.height = H * DPR;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  IW = 0;
-  syncOrientation?.();
-  layoutSlider(); kick();
+/* ── Scene: DTL — pinhole fra adapteren, mappet inn i handoffens ramme ─── */
+const DTL_SWEEP = (78 * Math.PI) / 180;
+function dtlCam() {
+  return pinholeCamera(
+    { pos: { x: -2.2, y: -0.9, z: 1.0 }, look: { x: 2.3, y: 0.25, z: 0.14 },
+      fovDeg: 40, xStretch: 0.95, screenX: 10 },
+    390, 330,
+  );
 }
-let syncOrientation = null;
-addEventListener('resize', resize);
-if (typeof ResizeObserver === 'function'){
-  const ro = new ResizeObserver(() => resize());
-  ro.observe($('stage'));
+
+function updateDtl() {
+  const B = dtlCam();
+  const P = p => projectPoint(p, B);
+
+  const worldPts = arcWorldPoints(solved, 120, DTL_SWEEP);
+  const proj = worldPts.map(P).filter(Boolean);
+  if (proj.length > 1) {
+    const d = proj.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join('');
+    $('dtlArcPath').setAttribute('d', d);
+    $('dtlArcGhost').setAttribute('d', d);
+  }
+
+  /* planet — kvadrat i svingplanet fra adapterens planePoint */
+  const quad = [planePoint(solved, -1.25, -0.04), planePoint(solved, 3.2, -0.04),
+    planePoint(solved, 3.2, 1.15), planePoint(solved, -1.25, 1.15)].map(P);
+  if (quad.every(Boolean)) {
+    $('dtlPlane').setAttribute('d',
+      `M${quad[0].x.toFixed(1)} ${quad[0].y.toFixed(1)}L${quad[1].x.toFixed(1)} ${quad[1].y.toFixed(1)}L${quad[2].x.toFixed(1)} ${quad[2].y.toFixed(1)}L${quad[3].x.toFixed(1)} ${quad[3].y.toFixed(1)}Z`);
+  }
+
+  /* target-linje langs +x og retningsstråle (tangenten ved treff = club path) */
+  const t0 = P({ x: -0.6, y: 0, z: 0 }), t1 = P({ x: 45, y: 0, z: 0 });
+  if (t0 && t1) {
+    $('dtlTargetLine').setAttribute('d', `M${t0.x.toFixed(1)} ${t0.y.toFixed(1)}L${t1.x.toFixed(1)} ${t1.y.toFixed(1)}`);
+    $('dtlTargetText').setAttribute('x', t1.x.toFixed(1));
+    $('dtlTargetText').setAttribute('y', (t1.y - 8).toFixed(1));
+  }
+  const imp = arcWorldPoint(solved, solved.thetaAtImpact);
+  const tv = tangentWorld(solved, solved.thetaAtImpact);
+  const n = Math.hypot(tv.x, tv.y, tv.z) || 1;
+  const rayEnd = P({ x: imp.x + tv.x / n * 1.4, y: imp.y + tv.y / n * 1.4, z: imp.z + tv.z / n * 1.4 });
+  const impP = P(imp);
+  if (impP && rayEnd) {
+    $('dtlDirectionRay').setAttribute('d', `M${impP.x.toFixed(1)} ${impP.y.toFixed(1)}L${rayEnd.x.toFixed(1)} ${rayEnd.y.toFixed(1)}`);
+  }
+  if (impP) {
+    $('dtlImpactPoint').setAttribute('cx', impP.x.toFixed(1));
+    $('dtlImpactPoint').setAttribute('cy', impP.y.toFixed(1));
+    $('dtlClubGroup').setAttribute('transform', `translate(${(impP.x - 9).toFixed(1)} ${(impP.y - 4).toFixed(1)})`);
+    $('dtlBallGroup').setAttribute('transform', `translate(${(impP.x + 4).toFixed(1)} ${(impP.y + 1).toFixed(1)})`);
+  }
+
+  const active = parameterState[activeKey];
+  $('dtlMeasureText').textContent = `${active.label.toUpperCase()} ${railValue(activeKey, active)}`;
+  const tagX = clamp((impP ? impP.x : 195) + 26, 14, 244);
+  $('dtlMeasureTag').setAttribute('transform', `translate(${tagX.toFixed(1)} 108)`);
 }
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) requestAnimationFrame(() => resize());
+
+/* ── Hovedoppdatering: motor → avlesninger + scener ──────────────────── */
+let prevLead = '';
+function updateScene() {
+  computeSolved();
+
+  attackValue.textContent = formatAngle(solved.attackAngle, { signed: true });
+  pathValue.textContent = formatAngle(solved.clubPath, { signed: true });
+
+  /* strike-stripen: begge svar, alltid (U1/D3b). Leder som ord i D89-hue,
+     mm-avviket med high/low-ord (D67), loftantagelsen som meta (D65). */
+  const lead = solved.strikeLead;
+  if (prevLead && lead !== prevLead) haptics.band('strike');
+  prevLead = lead;
+  $('strikeBandText').textContent = BAND_TEXT[lead];
+  $('strikeBandText').style.color = BAND_HUE[lead];
+  $('strikeOffsetText').textContent = formatFaceOffsetMm(solved.faceCentreOffsetMm);
+  $('strikeMeta').innerHTML =
+    `DYNAMIC LOFT ${formatAngle(DYNAMIC_LOFT[clubKey])}<span class="prov-chip">ASSUMED</span>`;
+
+  updateFaceOn();
+  updateDtl();
+
+  const active = parameterState[activeKey];
+  const [valPart, unitPart] = activeParts(activeKey);
+  activeValue.textContent = valPart;
+  activeUnit.textContent = unitPart;
+  slider.setAttribute('aria-valuetext', railValue(activeKey, active));
+}
+
+function setCurrentView(view) {
+  currentView = view === 'dtl' ? 'dtl' : 'fo';
+  document.querySelectorAll('[data-canvas-view]').forEach(group =>
+    group.toggleAttribute('hidden', group.dataset.canvasView !== currentView));
+  document.querySelectorAll('.view-switch button').forEach(button =>
+    button.setAttribute('aria-pressed', String(button.dataset.view === currentView)));
+  scene.dataset.view = currentView;
+  if (currentView === 'fo') {
+    sceneTitle.textContent = `${CLUB_LABEL[clubKey]} face-on swing arc at impact`;
+    sceneDesc.textContent = 'A face-on view of the club arc, golf ball, low point, turf entry and exit, and ground plane.';
+  } else {
+    sceneTitle.textContent = `${CLUB_LABEL[clubKey]} down-the-line plane and delivery`;
+    sceneDesc.textContent = 'A down-the-line view of the swing plane, target line, club arc and impact relationship.';
+  }
+  updateScene();
+  pulseView();
+  setAdjusting();
+  statusAnnouncer.textContent = `${currentView === 'fo' ? 'Face on' : 'Down the line'} view selected.`;
+}
+
+/* ── Hendelser ────────────────────────────────────────────────────────── */
+let prevSliderVal = null;
+slider.addEventListener('input', event => {
+  const nv = Number(event.currentTarget.value);
+  const p = parameterState[activeKey];
+  if (prevSliderVal !== null) {
+    if ((prevSliderVal < 0 && nv >= 0) || (prevSliderVal > 0 && nv <= 0)) haptics.tick('zero');
+    else if ((nv <= p.min && prevSliderVal > p.min) || (nv >= p.max && prevSliderVal < p.max)) haptics.tick('end');
+  }
+  prevSliderVal = nv;
+  p.value = nv;
+  const fill = ((p.value - p.min) / (p.max - p.min)) * 100;
+  slider.style.setProperty('--fill', `${fill}%`);
+  updateScene();
+  setAdjusting();
 });
-addEventListener('pageshow', () => requestAnimationFrame(() => resize()));
+slider.addEventListener('pointerdown', setAdjusting);
+slider.addEventListener('keydown', setAdjusting);
+slider.addEventListener('change', () => {
+  const active = parameterState[activeKey];
+  statusAnnouncer.textContent =
+    `${active.label} ${railValue(activeKey, active)}. Attack angle ${attackValue.textContent}. Club path ${pathValue.textContent}.`;
+});
 
-/* Escape = HOME (N-h, låst navigasjon) */
-document.addEventListener('keydown', (e) => {
+document.querySelectorAll('.view-switch button').forEach(button => {
+  button.addEventListener('click', () => setCurrentView(button.dataset.view));
+});
+
+clubSelect.addEventListener('change', () => {
+  clubKey = clubSelect.value;
+  /* mockens preset-regel: plane følger kølla, fritt justerbar etterpå */
+  parameterState.swingPlane.value = PLANE_PRESET[clubKey];
+  haptics.impact('light');
+  syncInstrument();
+  renderRail();
+  setCurrentView(currentView);
+  statusAnnouncer.textContent = `${CLUB_LABEL[clubKey]} selected.`;
+});
+
+lieSelect.addEventListener('change', () => {
+  lieKey = lieSelect.value;
+  haptics.tick('lie');
+  updateScene();
+  setAdjusting();
+  statusAnnouncer.textContent = `${LIE_LABEL[lieKey]}, ${formatLieMm(LIE_PRESETS[lieKey])} lie selected.`;
+});
+
+$('resetButton').addEventListener('click', () => {
+  Object.keys(parameterState).forEach(key => parameterState[key].value = defaults[key].value);
+  activeKey = 'ballPosition';
+  clubKey = 'midIron'; clubSelect.value = 'midIron';
+  lieKey = 'fairway'; lieSelect.value = 'fairway';   /* D138 */
+  haptics.impact('light');
+  syncInstrument();
+  renderRail();
+  setCurrentView('fo');
+  setAdjusting();
+});
+
+/* Escape = HOME (N-h) */
+document.addEventListener('keydown', e => {
   if (e.key === 'Escape') window.location.href = document.body.dataset.home;
 });
 
-/* outcome feedback: pulse only what changed */
-let prevOut = null, pulseTimer = 0, prevBand = '';
-function updateOutcomes(){
-  const out = { attack: solved.attackAngle, path: solved.clubPath,
-                strike: solved.faceCentreOffsetMm };
-  /* AVVIK (D29, arvet): retningsbærende vinkler bærer fortegn, også + */
-  $('vAttack').textContent = formatAngle(out.attack, { signed:true });
-  $('vPath').textContent = formatAngle(out.path, { signed:true });
+syncInstrument();
+renderRail();
+setCurrentView('fo');
 
-  const lead = solved.strikeLead;
-  if (prevBand && lead !== prevBand) haptics.band('strike');
-  prevBand = lead;
-  const qEl = $('insetQual');
-  qEl.textContent = BAND_TEXT[lead];
-  qEl.style.color = 'var(' + BAND_LEVEL[lead] + ')';
-  /* AVVIK (D67, arvet): mm 1 desimal med high/low-ord — ordet er også flatesvaret */
-  $('insetMm').textContent = formatFaceOffsetMm(solved.faceCentreOffsetMm);
-  /* D3b-kontekstraden (D93: lie-navn fast, mm caption) + D65-loft i maksimert */
-  $('insetCtx').innerHTML = `${CLUB_LABEL[state.club]} &middot; ${lieLabel(state.lie)} `
-    + `<span class="mmv">${formatLieMm(LIE_PRESETS[state.lie])}</span>`;
-  $('insetLoft').innerHTML = ` &middot; DYNAMIC LOFT ${formatAngle(DYNAMIC_LOFT[state.club])}`
-    + `<span class="prov-chip">ASSUMED</span>`;
-
-  if (prevOut){
-    const changed = {
-      attack: Math.abs(out.attack - prevOut.attack) > 0.005,
-      path:   Math.abs(out.path   - prevOut.path)   > 0.005,
-      strike: Math.abs(out.strike - prevOut.strike) > 0.05,
-    };
-    const any = changed.attack || changed.path || changed.strike;
-    for (const k of ['attack','path']){
-      const el = $('card' + k[0].toUpperCase() + k.slice(1));
-      el.classList.toggle('hit', changed[k]);
-      el.classList.toggle('dim', any && !changed[k]);
-    }
-    $('inset').classList.toggle('hit', changed.strike);
-    clearTimeout(pulseTimer);
-    pulseTimer = setTimeout(() => {
-      for (const k of ['attack','path'])
-        $('card' + k[0].toUpperCase() + k.slice(1)).classList.remove('hit','dim');
-      $('inset').classList.remove('hit');
-    }, 320);
-  }
-  prevOut = out;
-}
-
-/* cross-view hint: the change is clearer in the other perspective */
-let hintTimer = 0;
-function crossViewHint(){
-  const other = (state.sel === 'dir' || state.sel === 'plane') ? 'dtl' : 'face';
-  if (state.view === other) return;
-  const btn = $('btnView');
-  if (btn.classList.contains('pulse')) return;
-  btn.classList.add('pulse');
-  clearTimeout(hintTimer);
-  hintTimer = setTimeout(() => btn.classList.remove('pulse'), 240);
-}
-
-/* ============================================================ SLIDER */
-const range = $('range'), fillEl = $('fill'), notchEl = $('notch');
-function layoutSlider(){
-  const p = PARAMS[state.sel];
-  const zone = range.parentElement.getBoundingClientRect();
-  const inner = zone.width - 26;                // 13px inset each side (thumb radius)
-  const frac = v => (v - p.min) / (p.max - p.min);
-  const px = v => 13 + frac(v) * inner;
-  const vNow = state.sel === 'lie' ? lieIndex(state.lie) : state[state.sel];
-  if (p.bipolar){
-    notchEl.style.display = 'block';
-    notchEl.style.left = (px(0) - 1) + 'px';
-    const a = px(Math.min(0, vNow)), b = px(Math.max(0, vNow));
-    fillEl.style.left = a + 'px'; fillEl.style.width = Math.max(2, b - a) + 'px';
-  } else {
-    notchEl.style.display = 'none';
-    fillEl.style.left = '13px'; fillEl.style.width = Math.max(2, px(vNow) - 13) + 'px';
-  }
-}
-function sliderValueText(){
-  if (state.sel === 'lie')
-    return lieLabel(state.lie) + ' · ' + formatLieMm(LIE_PRESETS[state.lie]);
-  return PARAMS[state.sel].fmt(state[state.sel]);
-}
-function selectParam(key){
-  state.sel = key;
-  const p = PARAMS[key];
-  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.p === key));
-  document.querySelector('.sliderZone').style.setProperty('--slider-hue', p.hue);
-  range.min = p.min; range.max = p.max; range.step = p.step;
-  range.value = key === 'lie' ? lieIndex(state.lie) : state[key];
-  range.setAttribute('aria-label', PARAM_LABELS[key]);
-  range.setAttribute('aria-valuetext', sliderValueText());
-  prevSliderVal = parseFloat(range.value);
-  layoutSlider(); kick();
-}
-document.querySelectorAll('.chip').forEach(c =>
-  c.addEventListener('click', () => { haptics.tick('chip'); selectParam(c.dataset.p); }));
-let prevSliderVal = null;
-range.addEventListener('input', () => {
-  const nv = parseFloat(range.value);
-  const p = PARAMS[state.sel];
-  if (prevSliderVal !== null){
-    if (state.sel === 'lie'){
-      /* D93: stegslider — hvert stegskifte er en detent */
-      if (nv !== prevSliderVal) haptics.tick('lie-step');
-    } else if (p.bipolar && ((prevSliderVal < 0 && nv >= 0) || (prevSliderVal > 0 && nv <= 0)))
-      haptics.tick('zero');
-    else if ((nv <= p.min && prevSliderVal > p.min) || (nv >= p.max && prevSliderVal < p.max))
-      haptics.tick('end');
-  }
-  prevSliderVal = nv;
-  if (state.sel === 'lie') state.lie = LIES[Math.round(nv)].key;
-  else state[state.sel] = nv;
-  range.setAttribute('aria-valuetext', sliderValueText());
-  vecFlashAt = performance.now();
-  computeSolved();
-  updateChipValues(); layoutSlider(); updateOutcomes(); crossViewHint(); kick();
-});
-function updateChipValues(){
-  $('cvPlane').textContent = PARAMS.plane.fmt(state.plane);
-  $('cvDir').textContent = PARAMS.dir.fmt(state.dir);
-  $('cvLow').textContent = PARAMS.low.fmt(state.low);
-  $('cvArc').textContent = PARAMS.arc.fmt(state.arc);
-  $('cvLie').textContent = lieLabel(state.lie);
-}
-$('resetBtn').addEventListener('click', () => {
-  /* Reset = det dokumenterte eksemplet (spec 03 regel 5): parametre + lie;
-     kølla står (mockens oppførsel), plane følger køllas preset. */
-  for (const k of ['plane','dir','low','arc']) state[k] = PARAMS[k].def;
-  state.plane = PLANE_PRESET[state.club];
-  state.lie = 'hardpan';
-  range.value = state.sel === 'lie' ? lieIndex(state.lie) : state[state.sel];
-  range.setAttribute('aria-valuetext', sliderValueText());
-  haptics.impact('light');
-  vecFlashAt = performance.now();
-  computeSolved();
-  updateChipValues(); layoutSlider(); updateOutcomes(); kick();
-});
-function setClub(c){
-  state.club = c;
-  state.plane = PLANE_PRESET[c];              // auto-preset; freely adjustable after
-  /* AVVIK (D17b): arc height er absolutt — mockens nullstilling ved bytte utgår */
-  $('clubCap').textContent = CLUB_LABEL[c];
-  if (state.sel === 'plane') range.value = state.plane;
-  range.setAttribute('aria-valuetext', sliderValueText());
-  vecFlashAt = performance.now();
-  computeSolved();
-  updateChipValues(); layoutSlider(); updateOutcomes(); kick();
-}
-$('btnClub').addEventListener('click', () => {
-  haptics.impact('light');
-  setClub(CLUB_SEQ[(CLUB_SEQ.indexOf(state.club) + 1) % CLUB_SEQ.length]);
-});
-$('btnView').addEventListener('click', () => { haptics.impact('light'); setView(state.view === 'face' ? 'dtl' : 'face'); });
-$('btnContact').addEventListener('click', () => {
-  setInspect(!state.inspect);
-  haptics.impact('light');
-});
-$('insetMax').addEventListener('click', () => {
-  setInspect(!state.inspect);
-  haptics.impact('light');
-});
-function setInspect(on){
-  state.inspect = on;
-  $('inset').classList.toggle('inset--max', on);
-  $('insetMax').innerHTML = on ? '&#x2921;' : '&#x2922;';
-  $('insetMax').setAttribute('aria-label', on ? 'Close Strike contact zone' : 'Open Strike contact zone');
-  $('btnContact').setAttribute('aria-expanded', String(on));
-  $('btnContact').setAttribute('aria-label', on ? 'Close Strike contact zone' : 'Open Strike contact zone');
-  $('btnContact').classList.toggle('contact-active', on);
-  IW = 0;                                       // re-measure the inset canvas
-  kick();
-}
-let viewToastTimer = 0, viewToastHideTimer = 0;
-function showViewToast(label){
-  const toast = $('viewToast');
-  clearTimeout(viewToastTimer); clearTimeout(viewToastHideTimer);
-  toast.textContent = label;
-  toast.hidden = false;
-  toast.setAttribute('aria-hidden', 'false');
-  requestAnimationFrame(() => toast.classList.add('is-visible'));
-  viewToastTimer = setTimeout(() => {
-    toast.classList.remove('is-visible');
-    toast.setAttribute('aria-hidden', 'true');
-    viewToastHideTimer = setTimeout(() => { toast.hidden = true; }, 190);
-  }, 620);
-}
-function setView(v){
-  const changed = state.view !== v;
-  state.view = v;
-  if (v === 'dtl' && state.inspect) setInspect(false);   // inspeksjon er Face On-eid
-  $('camG').style.transform = v === 'face' ? 'rotate(-90deg)' : 'rotate(0deg)';
-  $('viewCap').textContent = v === 'face' ? 'DTL' : 'FO';
-  $('btnView').setAttribute('aria-label', v === 'face' ? 'Switch to Down the line' : 'Switch to Face on');
-  $('stage').dataset.view = v;
-  if (changed) showViewToast(v === 'face' ? 'FACE ON' : 'DOWN THE LINE');
-  applyStageBg();
-  vecFlashAt = performance.now();          // brief orientation flash on view switch
-  kick();
-}
-
-/* ============================================================ RENDER LOOP */
-const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let animStart = 0, rafId = 0;
-function kick(){
-  animStart = performance.now();
-  cancelAnimationFrame(rafId);
-  if (REDUCED) {
-    draw(1);
-    return;
-  }
-  const loop = now => {
-    draw(clamp((now - animStart) / 400, 0, 1));
-    if (now - animStart < 1750) rafId = requestAnimationFrame(loop);
-  };
-  rafId = requestAnimationFrame(loop);
-}
-
-function draw(t){
-  ctx.clearRect(0, 0, W, H);
-  $('stage').dataset.ghostAnchor = ghostClubAnchor().mode;
-  if (state.view === 'face') drawFace(t);
-  else drawDtl(t);
-  drawInset();                                  // contact preview remains available in both views
-}
-
-/* transient outcome vectors: full for ~900 ms after a parameter change */
-let vecFlashAt = -1e9;
-function flashAlpha(){
-  if (REDUCED) return 0;
-  const dt = performance.now() - vecFlashAt;
-  return dt < 900 ? 1 : clamp(1 - (dt - 900) / 700, 0, 1);
-}
-
-/* ============================================================ ASSETS
- * Eierens materialplater — fullt sett tilbake per D82/D88. */
-const ASSETS = {
-  turf:       './assets/turf.png',
-  skyFace:    './assets/sky-face.png',
-  bgDtl:      './assets/bg-dtl.png',
-  ball:       './assets/ball.png',
-  glint:      './assets/glint.png',
-  tee:        './assets/tee.png',
-  ironHead:   './assets/iron-head.png',
-  driverHead: './assets/driver-head.png',
+/* Handoffens test-API — bevart per akseptkontrakten (view-settet er fo/dtl
+   etter eierbeslutningen om å droppe strike-viewet). */
+window.__impactStudio = {
+  getState: () => ({ activeKey, currentView, club: CLUB_LABEL[clubKey], lie: lieKey,
+    parameters: Object.fromEntries(Object.entries(parameterState).map(([key, v]) => [key, v.value])) }),
+  setView: setCurrentView,
+  selectParameter: switchParameter,
+  setTheme,
+  getTheme: () => document.documentElement.dataset.theme,
 };
-const IMG = {};
-for (const k in ASSETS){
-  const im = new Image();
-  im.onload = () => { applyStageBg(); kick(); };
-  im.src = ASSETS[k];
-  IMG[k] = im;
-}
-const ready = k => IMG[k] && IMG[k].complete && IMG[k].naturalWidth > 0;
-function applyStageBg(){
-  /* mockens dusk-vask over Higgsfield-platene (scene-materiale) */
-  const st = document.getElementById('stage');
-  if (state.view === 'face' && ready('skyFace'))
-    st.style.background = 'linear-gradient(180deg, rgba(14,10,24,.9) 0%, rgba(36,21,54,.5) 55%, rgba(15,11,28,.92) 100%), url(' + ASSETS.skyFace + ') center/cover no-repeat var(--neutral)';
-  else if (state.view === 'dtl' && ready('bgDtl'))
-    st.style.background = 'linear-gradient(180deg, rgba(14,10,24,.85) 0%, rgba(36,21,54,.45) 55%, rgba(15,11,28,.9) 100%), url(' + ASSETS.bgDtl + ') center/cover no-repeat var(--neutral)';
-  else st.style.background = '';
-}
 
-/* outcome segment: the arc itself, lit up through the ball — white-hot core
- * over a token-hued glow (mockens tegning, D88). Chevron-strøm langs
- * tangenten; rotasjon via enhetsvektor, aldri trig. */
-function litSegment(pts, hue, fa, impactIdx){
-  if (pts.length < 2 || fa <= 0.01) return;
-  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  const strokePts = () => {
-    ctx.beginPath();
-    pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-    ctx.stroke();
-  };
-  const TS = W >= 700 ? 1.6 : 1.3;           // transient-oppskalering (telefonlesbarhet)
-  ctx.globalAlpha = 0.38 * fa; ctx.strokeStyle = hue; ctx.lineWidth = 11 * TS; strokePts();
-  /* white-hot core with a soft tapering tip */
-  const cut = Math.max(2, Math.floor(pts.length * 0.72));
-  const main = pts.slice(0, cut + 1), tail = pts.slice(cut);
-  const strokeSub = arr => {
-    ctx.beginPath();
-    arr.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-    ctx.stroke();
-  };
-  ctx.globalAlpha = fa; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4 * TS; strokeSub(main);
-  ctx.globalAlpha = 0.7 * fa; ctx.lineWidth = 2 * TS; strokeSub(tail);
-  /* arrow stream out of the strike point */
-  const ray = pts.slice(Math.max(0, Math.min(impactIdx ?? pts.length - 11, pts.length - 2)));
-  if (ray.length > 1){
-    const chevron = (x, y, ux, uy, al) => {
-      ctx.save(); ctx.translate(x, y); ctx.transform(ux, uy, -uy, ux, 0, 0); ctx.scale(TS, TS);
-      ctx.globalAlpha = al;
-      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      ctx.strokeStyle = hue; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(-6, -5.5); ctx.lineTo(2, 0); ctx.lineTo(-6, 5.5); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.3;
-      ctx.beginPath(); ctx.moveTo(-5, -4.3); ctx.lineTo(1.6, 0); ctx.lineTo(-5, 4.3); ctx.stroke();
-      ctx.restore();
-    };
-    const at = u => {
-      const fi = clamp(u, 0, 1) * (ray.length - 1);
-      const i0 = Math.min(Math.floor(fi), ray.length - 2), fr = fi - i0;
-      const a = ray[i0], b = ray[i0 + 1];
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const len = Math.hypot(dx, dy) || 1;
-      return { x: a.x + dx * fr, y: a.y + dy * fr, ux: dx / len, uy: dy / len };
-    };
-    if (REDUCED){
-      const c = at(0.55);
-      chevron(c.x, c.y, c.ux, c.uy, 0.8 * fa);
-    } else {
-      const phase = ((performance.now() - vecFlashAt) / 700) % 1;
-      for (let k = 0; k < 3; k++){
-        const u = (phase + k / 3) % 1;
-        const al = fa * (1 - u) * 0.95;
-        if (al <= 0.03) continue;
-        const c = at(u);
-        chevron(c.x, c.y, c.ux, c.uy, al);
-      }
-    }
-  }
-  ctx.restore();
-}
-
-/* scene clip: everything in the main canvas is drawn OUTSIDE the inset rect */
-function sceneClipPath(){
-  const r = cv.getBoundingClientRect();
-  const i = document.getElementById('inset').getBoundingClientRect();
-  const p = new Path2D();
-  p.rect(0, 0, W, H);
-  if (i.width > 0)
-    p.rect(i.left - r.left - 6, i.top - r.top - 6, i.width + 12, i.height + 12);
-  return p;
-}
-
-/* ============================================================ MINISKJERM
- * Zoomed contact zone (entry→exit) i strike-gull-språket (D84: gull = treffbånd). */
-const icv = document.getElementById('insetCv'), ictx = icv.getContext('2d');
-let IW = 0, IH = 0;
-function resizeInset(){
-  const r = icv.getBoundingClientRect();
-  IW = Math.round(r.width); IH = Math.round(r.height);
-  icv.width = IW * DPR; icv.height = IH * DPR;
-  ictx.setTransform(DPR, 0, 0, DPR, 0, 0);
-}
-function drawInset(){
-  if (!IW) resizeInset();
-  const t0g = solved.groundCrossingTheta0;
-  const lpx = solved.effectiveLowPointX;
-  const BALL_R = solved.ballRadiusM;
-  const sweetM = solved.sweetSpotHeightMm / 1000;
-  const clubZ = solved.clubHeightM;
-  const GOLD = CSS('--strike'), WARM = CSS('--primary'), LOW = CSS('--attack');
-  ictx.clearRect(0, 0, IW, IH);
-
-  /* world window: adaptive — always frames the whole contact zone */
-  let x0 = -0.08, x1 = 0.24;
-  if (t0g !== null){
-    x0 = Math.min(x0, arcWorldPoint(solved, -t0g).x - 0.04);
-    x1 = Math.max(x1, arcWorldPoint(solved, t0g).x + 0.05);
-  }
-  if (state.inspect){
-    const mid = (x0 + x1) / 2, half = Math.max(0.27, (x1 - x0) * 0.62);
-    x0 = mid - half; x1 = mid + half;
-  }
-  const sc = IW / (x1 - x0);
-  const gy = IH * 0.66;
-  const EXAG = 6, CAP = 0.035;
-  const X = xm => (xm - x0) * sc;
-  const Y = zm => gy - (zm >= 0 ? zm : -CAP * Math.tanh(-zm * EXAG / CAP)) * sc;
-
-  /* ground: grass on top, soil underneath (materialplate når lastet) */
-  {
-    if (ready('turf')){
-      ictx.drawImage(IMG.turf, 0, 0, IMG.turf.naturalWidth, IMG.turf.naturalHeight,
-                     0, gy - 1, IW, (IH - gy) + 1);
-      ictx.fillStyle = 'rgba(7,6,12,.42)';
-      ictx.fillRect(0, gy - 1, IW, (IH - gy) + 1);
-    }
-    const soil = ictx.createLinearGradient(0, gy, 0, IH);
-    soil.addColorStop(0, 'rgba(61,43,26,' + (ready('turf') ? 0.25 : 1) + ')');
-    soil.addColorStop(1, 'rgba(26,18,12,' + (ready('turf') ? 0.3 : 1) + ')');
-    ictx.fillStyle = soil; ictx.fillRect(0, gy, IW, IH - gy);
-    const grass = ictx.createLinearGradient(0, gy, 0, gy + 5);
-    grass.addColorStop(0, '#3f6b2e'); grass.addColorStop(1, '#2a4a22');
-    ictx.fillStyle = grass; ictx.fillRect(0, gy, IW, 5);
-    ictx.strokeStyle = 'rgba(200,225,150,.5)'; ictx.lineWidth = 1;
-    ictx.beginPath(); ictx.moveTo(0, gy); ictx.lineTo(IW, gy); ictx.stroke();
-  }
-
-  /* divot */
-  if (t0g !== null){
-    const seg = arcWorldPoints(solved, 22, t0g);
-    ictx.beginPath();
-    ictx.moveTo(X(seg[0].x), gy);
-    for (const p of seg) ictx.lineTo(X(p.x), Y(p.z));
-    ictx.lineTo(X(seg[seg.length - 1].x), gy); ictx.closePath();
-    ictx.fillStyle = 'rgba(24,15,8,.9)'; ictx.fill();
-    ictx.strokeStyle = 'rgba(205,142,78,.85)'; ictx.lineWidth = 1.5; ictx.stroke();
-  }
-
-  /* Reference clubhead: turf-before-ball moves it to ENTRY; otherwise impact. */
-  {
-    const hk = HEAD_IMG[state.club];
-    if (ready(hk)){
-      const im = IMG[hk];
-      const brH = BALL_R * sc;
-      const hPxI = HEAD_MM[state.club] * (brH / (BALL_R * 1000));
-      const wPxI = hPxI * (im.naturalWidth / im.naturalHeight);
-      const ghost = ghostClubAnchor();
-      const yBI = Y(ghost.point.z), xRI = X(ghost.point.x) - brH * 0.92;
-      ictx.save(); ictx.globalAlpha = 0.5;
-      ictx.translate(xRI, yBI); ictx.rotate(LEAN[state.club]);
-      ictx.drawImage(im, -wPxI, -hPxI, wPxI, hPxI);
-      ictx.restore();
-    }
-  }
-
-  /* gold arc through the zone (glow pass + warm core — mockens språk, D88) */
-  {
-    const thWin = 0.42;
-    const seg = arcWorldPoints(solved, 90, thWin);
-    for (const pass of [ [tint('--primary', 0.16), 8], [null, 2.6] ]){
-      ictx.save(); ictx.lineCap = 'round';
-      if (pass[0]) ictx.strokeStyle = pass[0];
-      else {
-        const g = ictx.createLinearGradient(0, 0, IW, 0);
-        g.addColorStop(0, '#fdf3e0'); g.addColorStop(0.55, GOLD); g.addColorStop(1, WARM);
-        ictx.strokeStyle = g;
-      }
-      ictx.lineWidth = pass[1];
-      ictx.beginPath();
-      let st = false;
-      for (const p of seg){
-        const px = X(p.x), py = Y(p.z);
-        if (px < -30 || px > IW + 30){ st = false; continue; }
-        if (!st){ ictx.moveTo(px, py); st = true; } else ictx.lineTo(px, py);
-      }
-      ictx.stroke(); ictx.restore();
-    }
-  }
-
-  /* ball (driver-lie: on the tee) + ember halo (mock, D88) */
-  const liftI = ballLift();
-  const br = BALL_R * sc, bx2 = X(0), by2 = Y(liftI) - br;
-  if (liftI > 0){
-    const tTop2 = by2 + br * 0.9, tH2 = gy - tTop2;
-    const isTee = state.lie === 'tee' || state.lie === 'teeHigh';
-    if (isTee && ready('tee') && tH2 > 4){
-      const tW2 = tH2 * (IMG.tee.naturalWidth / IMG.tee.naturalHeight);
-      ictx.drawImage(IMG.tee, bx2 - tW2 / 2, tTop2, tW2, tH2);
-    } else if (isTee){
-      ictx.save();
-      ictx.strokeStyle = 'rgba(210,205,225,.6)'; ictx.lineCap = 'round';
-      ictx.lineWidth = 2.5;
-      ictx.beginPath(); ictx.moveTo(bx2, gy); ictx.lineTo(bx2, by2 + br * 0.9); ictx.stroke();
-      ictx.restore();
-    } else {
-      /* AVVIK (D66/D93): gress-lie — ballen sitter oppå strå, ikke pigg */
-      ictx.save();
-      ictx.strokeStyle = 'rgba(130,185,85,.8)'; ictx.lineWidth = 1.4; ictx.lineCap = 'round';
-      for (const o of [-4, 0, 4]){
-        ictx.beginPath(); ictx.moveTo(bx2 + o, gy);
-        ictx.lineTo(bx2 + o * 0.6, by2 + br * 0.85); ictx.stroke();
-      }
-      ictx.restore();
-    }
-  }
-  {
-    const gr2 = br * 1.9;
-    const halo2 = ictx.createRadialGradient(bx2, by2, br * 0.4, bx2, by2, gr2);
-    halo2.addColorStop(0, tint('--strike', 0.28));
-    halo2.addColorStop(0.5, tint('--primary', 0.13));
-    halo2.addColorStop(1, tint('--primary', 0));
-    ictx.beginPath(); ictx.arc(bx2, by2, gr2, 0, Math.PI * 2);
-    ictx.fillStyle = halo2; ictx.fill();
-  }
-  if (ready('ball')){
-    ictx.drawImage(IMG.ball, bx2 - br - 1, by2 - br - 1, (br + 1) * 2, (br + 1) * 2);
-  } else {
-    ictx.beginPath(); ictx.arc(bx2, by2, br, 0, Math.PI * 2);
-    const bg2 = ictx.createRadialGradient(bx2 - br*0.3, by2 - br*0.35, br*0.15, bx2, by2, br);
-    bg2.addColorStop(0, 'rgba(255,255,255,.9)'); bg2.addColorStop(1, 'rgba(210,203,224,.55)');
-    ictx.fillStyle = bg2; ictx.fill();
-    ictx.strokeStyle = 'rgba(245,242,255,.9)'; ictx.lineWidth = 1.5; ictx.stroke();
-  }
-
-  /* kontakt-blush: ballen "husker" hvor den ble truffet */
-  {
-    const fa2 = flashAlpha();
-    const dyC = clamp(((clubZ + sweetM) - (liftI + BALL_R)) * (br / BALL_R),
-                      -br * 0.85, br * 0.85);
-    const cyB = by2 - dyC;
-    const cxB = bx2 - Math.sqrt(Math.max(0, br * br - dyC * dyC)) * 0.9;
-    const rB = br * 0.55;
-    const gB = ictx.createRadialGradient(cxB, cyB, 0, cxB, cyB, rB);
-    const aB = 0.26 + 0.42 * fa2;
-    gB.addColorStop(0, 'rgba(255,196,120,' + aB.toFixed(3) + ')');
-    gB.addColorStop(0.45, tint('--primary', +(aB * 0.55).toFixed(3)));
-    gB.addColorStop(1, tint('--primary', 0));
-    ictx.save();
-    ictx.beginPath(); ictx.arc(bx2, by2, br, 0, Math.PI * 2); ictx.clip();
-    ictx.fillStyle = gB;
-    ictx.beginPath(); ictx.arc(cxB, cyB, rB, 0, Math.PI * 2); ictx.fill();
-    ictx.restore();
-  }
-
-  /* strike-location reference on the ghosted face: ember dot = ball centre
-     against the face; faint notch = sweetspot (CLUB_GEOMETRY, D17b) */
-  if (ready(HEAD_IMG[state.club])){
-    const fxI = bx2 - br * 0.92;
-    const yCtI = by2;
-    const ySwI = by2 - ((clubZ + sweetM) - (liftI + BALL_R)) * (br / BALL_R);
-    ictx.save();
-    ictx.strokeStyle = 'rgba(245,242,255,.5)'; ictx.lineWidth = 1.5;
-    ictx.beginPath(); ictx.moveTo(fxI - 7, ySwI); ictx.lineTo(fxI + 1, ySwI); ictx.stroke();
-    ictx.beginPath(); ictx.arc(fxI, yCtI, 2.6, 0, Math.PI * 2);
-    ictx.fillStyle = tint('--primary', 0.95); ictx.fill();
-    ictx.strokeStyle = 'rgba(255,255,255,.75)'; ictx.lineWidth = 1; ictx.stroke();
-    ictx.restore();
-  }
-
-  /* strike height: warm tick + mm bracket (gull = treffbånd, D84) */
-  const czI = clamp(clubZ + sweetM, liftI, liftI + 2 * BALL_R);
-  const sy = Y(czI);
-  ictx.strokeStyle = WARM; ictx.lineWidth = 2;
-  ictx.beginPath(); ictx.moveTo(bx2 - br - 5, sy); ictx.lineTo(bx2 + br + 5, sy); ictx.stroke();
-  const cyy = by2, bxr = bx2 + br + 11;
-  ictx.strokeStyle = tint('--strike', 0.8); ictx.lineWidth = 1.5;
-  ictx.beginPath(); ictx.moveTo(bxr, cyy); ictx.lineTo(bxr, sy); ictx.stroke();
-  ictx.beginPath(); ictx.moveTo(bxr - 3.5, cyy); ictx.lineTo(bxr + 3.5, cyy); ictx.stroke();
-  ictx.beginPath(); ictx.moveTo(bxr - 3.5, sy); ictx.lineTo(bxr + 3.5, sy); ictx.stroke();
-
-  /* gold tick markers: ENTRY / LOW / EXIT */
-  function tickMark(xm, name){
-    const px = X(xm);
-    if (px < 4 || px > IW - 4) return;
-    ictx.strokeStyle = GOLD; ictx.lineWidth = 1.5; ictx.globalAlpha = 0.9;
-    ictx.beginPath(); ictx.moveTo(px, gy + 2); ictx.lineTo(px, gy + 9); ictx.stroke();
-    ictx.globalAlpha = 1;
-    iLabel(name, px, gy + 16, '#eec07a', 9);
-  }
-  function iLabel(txt, x, y, col, size, align){
-    ictx.save();
-    if (state.inspect) size = size * 1.6;
-    ictx.font = '700 ' + size + 'px "Geist",sans-serif';
-    ictx.textAlign = align || 'center'; ictx.textBaseline = 'middle';
-    ictx.strokeStyle = 'rgba(5,4,10,.9)'; ictx.lineWidth = 3; ictx.lineJoin = 'round';
-    ictx.strokeText(txt, x, y);
-    ictx.fillStyle = col; ictx.fillText(txt, x, y);
-    ictx.restore();
-  }
-  if (t0g !== null){
-    tickMark(arcWorldPoint(solved, -t0g).x, 'ENTRY');
-    tickMark(arcWorldPoint(solved, t0g).x, 'EXIT');
-  } else if (solved.hasTurfContact){
-    /* AVVIK (U1/D3b + D84): informasjon, ikke feiltilstand — muted, ikke bad.
-       Teed-regime uten kryssing er korrekt og taus (mockens driverregel). */
-    iLabel('NO TURF CONTACT', IW / 2, gy + 14, CSS('--muted'), 9);
-  }
-
-  /* inspeksjonsmodus: stance-kontekst — gull-basislinje + BACK/MID/FWD */
-  if (state.inspect){
-    const stanceC = -state.low / 100;
-    const selBall = state.sel === 'low';
-    const aB2 = selBall ? 0.55 : 0.30;
-    const xs0 = X(stanceC - 0.20), xs1 = X(stanceC + 0.20);
-    const nx = X(stanceC + LP_STANCE / 100);
-    ictx.save(); ictx.globalAlpha = aB2;
-    ictx.strokeStyle = tint('--strike', 0.9); ictx.lineWidth = 1.5;
-    ictx.beginPath(); ictx.moveTo(Math.max(4, xs0), gy + 30); ictx.lineTo(Math.min(IW - 4, xs1), gy + 30); ictx.stroke();
-    if (nx > 4 && nx < IW - 4){
-      ictx.lineWidth = 2.5;
-      ictx.beginPath(); ictx.moveTo(nx, gy + 24); ictx.lineTo(nx, gy + 36); ictx.stroke();
-    }
-    ictx.restore();
-    for (const t2 of [[-0.11,'BACK'], [0,'MID'], [0.11,'FWD']]){
-      const tx = X(stanceC + t2[0]);
-      if (tx < 24 || tx > IW - 24) continue;
-      ictx.save(); ictx.globalAlpha = 0.75;
-      ictx.strokeStyle = CSS('--muted'); ictx.lineWidth = 1.5;
-      ictx.beginPath(); ictx.moveTo(tx, gy + 26); ictx.lineTo(tx, gy + 34); ictx.stroke();
-      ictx.restore();
-      iLabel(t2[1], tx, gy + 47, CSS('--muted'), 9);
-    }
-  }
-  /* low point keeps the attack-pink semantic (parameterpaletten, v3) */
-  {
-    const px = X(lpx), py = Y(solved.lowPointZ);
-    if (px > 16 && px < IW - 16){
-      ictx.beginPath(); ictx.arc(px, py, 3.2, 0, Math.PI * 2);
-      ictx.fillStyle = LOW; ictx.fill();
-      if (t0g !== null && Math.abs(px - X(arcWorldPoint(solved, -t0g).x)) > 30)
-        iLabel('LOW', px, gy + 16, LOW, 9);
-    }
-  }
-}
-
-/* ---------- helpers ---------- */
-function heroAlpha(key){                    // selected-input spotlight
-  return state.sel === key ? 1 : 0.4;
-}
-function label(txt, x, y, color, size, align, mono, alpha){
-  ctx.save();
-  ctx.globalAlpha = alpha == null ? 1 : alpha;
-  ctx.font = (mono ? '700 ' : '600 ') + size + 'px ' + (mono
-    ? '"IBM Plex Mono",monospace'
-    : '"Geist",sans-serif');
-  ctx.textAlign = align || 'left'; ctx.textBaseline = 'middle';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = 'rgba(5,4,10,.85)'; ctx.lineWidth = 3;   // dark halo, not glow
-  ctx.strokeText(txt, x, y);
-  ctx.fillStyle = color; ctx.fillText(txt, x, y);
-  ctx.restore();
-}
-/* transient-callout: stor, tabulær etikett på mørk plate med fargekant */
-function plateLabel(txt, x, y, hue, size, align, alpha){
-  ctx.save();
-  const a = alpha == null ? 1 : alpha;
-  ctx.font = '700 ' + size + 'px "IBM Plex Mono",monospace';
-  const w = ctx.measureText(txt).width;
-  const padX = size * 0.55, h = size * 1.75;
-  let lx = align === 'right' ? x - w : align === 'center' ? x - w / 2 : x;
-  const rail = document.querySelector('.rail');
-  if (rail){
-    const stageRect = cv.getBoundingClientRect(), railRect = rail.getBoundingClientRect();
-    const railTop = railRect.top - stageRect.top, railBottom = railRect.bottom - stageRect.top;
-    const overlapsRailY = y + h / 2 > railTop - 4 && y - h / 2 < railBottom + 4;
-    if (getComputedStyle(rail).flexDirection === 'row' || overlapsRailY){
-      const rightLimit = railRect.left - stageRect.left - 6;
-      lx = Math.min(lx, rightLimit - w - padX);
-    }
-  }
-  lx = Math.max(6 + padX, lx);
-  ctx.globalAlpha = a * 0.86;
-  ctx.beginPath();
-  ctx.roundRect(lx - padX, y - h / 2, w + padX * 2, h, h / 2 - 2);
-  ctx.fillStyle = 'rgba(8,5,14,.9)'; ctx.fill();
-  ctx.globalAlpha = a * 0.6; ctx.strokeStyle = hue; ctx.lineWidth = 1.5; ctx.stroke();
-  ctx.globalAlpha = a;
-  ctx.fillStyle = hue; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText(txt, lx, y + 0.5);
-  ctx.restore();
-  return { left:lx - padX, top:y - h / 2, right:lx + w + padX, bottom:y + h / 2 };
-}
-function lowPointMarker(x, y, hue, view, ground, tangent){
-  /* Måleinstrument, ikke badge (mockens tegning, bloom tilbake per D88).
-     D88-vaktregelen: den opake kjernen ER punktet — bloomen ligger under. */
-  const tLen = Math.hypot(tangent?.x || 0, tangent?.y || 0) || 1;
-  const tx = (tangent?.x || 1) / tLen, ty = (tangent?.y || 0) / tLen;
-  const gdx = (ground?.x ?? x) - x, gdy = (ground?.y ?? y) - y;
-  const gLen = Math.hypot(gdx, gdy);
-  const gx = gLen > 0.01 ? gdx / gLen : -ty;
-  const gyv = gLen > 0.01 ? gdy / gLen : tx;
-  const age = performance.now() - vecFlashAt;
-  const pulse = !REDUCED && age >= 0 && age < 280 ? 1 - age / 280 : 0;
-
-  ctx.save();
-  ctx.lineCap = 'round';
-
-  /* Exact elevation/depth relationship: pin to the projected turf datum. */
-  if (ground && gLen > 0.75){
-    const inset = Math.min(5.5, gLen * 0.35);
-    ctx.globalAlpha = 0.42;
-    ctx.strokeStyle = hue; ctx.lineWidth = 0.8;
-    ctx.setLineDash([1.5, 2.5]);
-    ctx.beginPath();
-    ctx.moveTo(x + gx * inset, y + gyv * inset);
-    ctx.lineTo(ground.x, ground.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 0.62;
-    ctx.beginPath();
-    ctx.moveTo(ground.x - tx * 3.5, ground.y - ty * 3.5);
-    ctx.lineTo(ground.x + tx * 3.5, ground.y + ty * 3.5);
-    ctx.stroke();
-  }
-
-  ctx.translate(x, y);
-  ctx.transform(tx, ty, -ty, tx, 0, 0);
-
-  /* Soft lens bloom stays subordinate to the white swing arc (D88). */
-  const halo = ctx.createRadialGradient(0, 0, 1, 0, 0, 13);
-  halo.addColorStop(0, 'rgba(255,255,255,.08)');
-  halo.addColorStop(0.26, hue);
-  halo.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = 0.13;
-  ctx.fillStyle = halo;
-  ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-
-  /* Open opposing apertures align the point to the local arc. */
-  ctx.strokeStyle = hue; ctx.lineWidth = 1;
-  ctx.globalAlpha = 0.72;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 8.5, 5.5, 0, -Math.PI * 0.28, Math.PI * 0.28);
-  ctx.ellipse(0, 0, 8.5, 5.5, 0, Math.PI * 0.72, Math.PI * 1.28);
-  ctx.stroke();
-  ctx.globalAlpha = 0.58;
-  ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  ctx.moveTo(-13, 0); ctx.lineTo(-8, 0);
-  ctx.moveTo(8, 0); ctx.lineTo(13, 0);
-  ctx.stroke();
-
-  /* One short response to a model update. */
-  if (pulse > 0){
-    const p = 1 - pulse;
-    ctx.globalAlpha = pulse * 0.24;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 10 + p * 7, 6.5 + p * 4, 0, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-
-  /* The 3 px solid core is the sole exact point and remains fully opaque. */
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = hue;
-  ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.72)'; ctx.lineWidth = 0.65; ctx.stroke();
-  ctx.restore();
-
-  $('stage').dataset.lowPointMarker = [view, x.toFixed(1), y.toFixed(1), '1'].join(',');
-  $('stage').dataset.lowPointInstrument = [view, gLen.toFixed(1), 'aperture-survey'].join(',');
-}
-function arrowHead(x, y, ux, uy, size, color, alpha){
-  ctx.save();
-  ctx.globalAlpha = alpha == null ? 1 : alpha;
-  ctx.translate(x, y); ctx.transform(ux, uy, -uy, ux, 0, 0);
-  ctx.beginPath();
-  ctx.moveTo(0, 0); ctx.lineTo(-size, size * 0.55); ctx.lineTo(-size, -size * 0.55);
-  ctx.closePath(); ctx.fillStyle = color; ctx.fill();
-  ctx.restore();
-}
-function coreLine(x1, y1, x2, y2, color, width, dash, alpha){
-  ctx.save();
-  ctx.globalAlpha = alpha == null ? 1 : alpha;
-  ctx.lineCap = 'round';
-  if (dash) ctx.setLineDash(dash);
-  ctx.strokeStyle = color; ctx.lineWidth = width;
-  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-  ctx.restore();
-}
-
-/* ============================================================ FACE ON
- * Impact-centred reframe with HYBRID vertical gain (eierens mock-beslutning). */
-const PED_K = 1.7, PED_Z0 = 0.055;
-const pedF  = z => PED_K * z - (PED_K - 1) * PED_Z0 * Math.tanh(z / PED_Z0);
-const pedKz = z => PED_K - (PED_K - 1) / Math.cosh(z / PED_Z0) ** 2;
-function faceMap(){
-  const winM = W >= 700 ? 0.90 : 0.82;
-  const scale = W / winM;
-  const bx = W * 0.57, gy = H * 0.71;
-  return { scale, bx, gy, K: PED_K, Kz: pedKz,
-    X: xm => bx + xm * scale,
-    Y: zm => gy - pedF(zm) * scale };
-}
-function drawFace(t){
-  const M = faceMap();
-  const t0g = solved.groundCrossingTheta0;
-  const thImp = solved.thetaAtImpact;
-  const lpx = solved.effectiveLowPointX;
-  const BALL_R = solved.ballRadiusM;
-  const sweetM = solved.sweetSpotHeightMm / 1000;
-  const clubZ = solved.clubHeightM;
-  const ballR = BALL_R * M.scale;
-  /* Parameterpaletten (v3): attack-rosa lavpunkt/attack-transient,
-     depth-orkidé arc-brakett, plane-periwinkle glass, strike-gull mål. */
-  const A = { attack: CSS('--attack'), depth: CSS('--depth'), ink: CSS('--ink'),
-              muted: CSS('--muted'), ghost: CSS('--ghost') };
-  const fa = flashAlpha();
-
-  ctx.save();
-  ctx.clip(sceneClipPath(), 'evenodd');       // never draw under the mini screen
-
-  /* --- ground: green grass layer on top, soil underneath --- */
-  const gy = M.gy;
-  {
-    if (ready('turf')){
-      ctx.drawImage(IMG.turf, 0, 0, IMG.turf.naturalWidth, IMG.turf.naturalHeight,
-                    0, gy - 2, W, (H - gy) + 2);
-      ctx.fillStyle = 'rgba(7,6,12,.4)';       // seat it in the dusk scene
-      ctx.fillRect(0, gy - 2, W, (H - gy) + 2);
-    }
-    const soil = ctx.createLinearGradient(0, gy, 0, H);
-    soil.addColorStop(0, 'rgba(61,43,26,' + (ready('turf') ? 0.25 : 1) + ')');
-    soil.addColorStop(0.5, 'rgba(42,29,18,' + (ready('turf') ? 0.25 : 1) + ')');
-    soil.addColorStop(1, 'rgba(26,18,12,' + (ready('turf') ? 0.3 : 1) + ')');
-    ctx.fillStyle = soil; ctx.fillRect(0, gy, W, H - gy);
-    const grass = ctx.createLinearGradient(0, gy, 0, gy + 8);
-    grass.addColorStop(0, '#3f6b2e'); grass.addColorStop(1, '#2a4a22');
-    ctx.fillStyle = grass; ctx.fillRect(0, gy, W, 8);
-    ctx.strokeStyle = 'rgba(200,225,150,.55)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
-    ctx.strokeStyle = 'rgba(130,185,85,.7)'; ctx.lineWidth = 1.5;
-    for (let x = 8; x < W; x += 15){
-      ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x + ((x % 30) ? 2 : -2), gy - 5); ctx.stroke();
-    }
-  }
-
-  /* --- footprints: stance is fixed in the world, the ball fixed on screen --- */
-  {
-    const stanceC = -state.low / 100;
-    const selBall = state.sel === 'low';
-    const fAlpha = selBall ? 0.30 : 0.16;
-    for (const off of [-0.20, 0.20]){
-      const fx = M.X(stanceC + off);
-      if (fx < -30 || fx > W + 30) continue;
-      ctx.save(); ctx.globalAlpha = fAlpha;
-      ctx.beginPath();
-      ctx.ellipse(fx, gy + 4, 23, 7, 0, 0, Math.PI * 2);
-      ctx.fillStyle = A.ghost; ctx.fill();
-      ctx.restore();
-    }
-    /* svingens lavpunkt er FAST i stance: attack-rosa basislinje med hakk */
-    {
-      const aB = selBall ? 0.5 : 0.16;
-      const x0a = M.X(stanceC - 0.20), x1a = M.X(stanceC + 0.20);
-      const nx = M.X(stanceC + LP_STANCE / 100);
-      ctx.save(); ctx.globalAlpha = aB;
-      ctx.strokeStyle = A.attack; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(x0a, gy + 9); ctx.lineTo(x1a, gy + 9); ctx.stroke();
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(nx, gy + 5); ctx.lineTo(nx, gy + 13); ctx.stroke();
-      ctx.restore();
-    }
-    if (selBall){
-      for (const t2 of [[-0.11,'BACK'], [0,'MID'], [0.11,'FWD']]){
-        const tx = M.X(stanceC + t2[0]);
-        if (Math.abs(tx - M.X(lpx)) < 18) continue;
-        coreLine(tx, gy + 12, tx, gy + 17, A.muted, 1.5, null, 0.75);
-        label(t2[1], tx, gy + 26, A.muted, 9, 'center', false, 0.8);
-      }
-    }
-  }
-
-  /* --- glass (swing plane + direction) behind the arc: mockens periwinkle
-     via --plane-tokenet. Fill only, no border. --- */
-  {
-    const heroP = state.sel === 'plane' || state.sel === 'dir';
-    const pt2 = (a, b2) => {
-      const p = planePoint(solved, a, b2);
-      return { x: M.X(p.x), y: M.Y(p.z) };
-    };
-    const quad = [pt2(-0.95, -0.04), pt2(0.95, -0.04), pt2(0.95, 1.0), pt2(-0.95, 1.0)];
-    ctx.save();
-    const grad = ctx.createLinearGradient(0, 0, 0, gy);
-    const aG = heroP ? 0.30 : 0.16;
-    grad.addColorStop(0, tint('--plane', aG * 0.25));
-    grad.addColorStop(0.7, tint('--plane', aG * 0.7));
-    grad.addColorStop(1, tint('--plane', aG));
-    ctx.beginPath();
-    quad.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-    ctx.closePath();
-    ctx.fillStyle = grad; ctx.fill();
-    ctx.lineWidth = 1;
-    for (const bf of [0.30, 0.65]){
-      const b2 = -0.04 + bf * 1.04;
-      const ra = pt2(-0.95, b2), rb = pt2(0.95, b2);
-      ctx.strokeStyle = tint('--plane', heroP ? 0.16 : 0.10);
-      ctx.beginPath(); ctx.moveTo(ra.x, ra.y); ctx.lineTo(rb.x, rb.y); ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  /* --- reference clubhead: at turf ENTRY when that happens before the ball --- */
-  {
-    const hk = HEAD_IMG[state.club];
-    if (ready(hk)){
-      const im = IMG[hk];
-      const hPx = HEAD_MM[state.club] * (ballR / (BALL_R * 1000));
-      const wPx = hPx * (im.naturalWidth / im.naturalHeight);
-      const ghost = ghostClubAnchor();
-      const yB = M.Y(ghost.point.z), xR = M.X(ghost.point.x) - ballR * 0.92;
-      ctx.save(); ctx.globalAlpha = 0.45;
-      ctx.translate(xR, yB); ctx.rotate(LEAN[state.club]);
-      ctx.drawImage(im, -wPx, -hPx, wPx, hPx);
-      ctx.restore();
-    }
-  }
-
-  /* --- swing arc (mockens pass: glød + kjerne, D88). Hero når Arc Height
-     er valgt: buen selv lyser. --- */
-  const arcPts = faceOnArcPoints(solved, 120, SWEEP_RAD);
-  if (state.sel === 'arc'){
-    strokeArc(arcPts, M, tint('--plane', 0.14), 18);
-    strokeArc(arcPts, M, 'rgba(255,255,255,.30)', 6);
-  }
-  strokeArc(arcPts, M, 'rgba(255,255,255,.16)', 9);
-  strokeArc(arcPts, M, 'rgba(255,255,255,.92)', 3);
-
-  /* --- ball (live object → ember-comet glow); tee-lie: ball on a tee --- */
-  const bx = M.bx, by = M.Y(ballLift()) - ballR;
-  const isTee = state.lie === 'tee' || state.lie === 'teeHigh';
-  if (ballLift() > 0){
-    const tTop = by + ballR * 0.9, tH = gy - tTop;
-    if (isTee && ready('tee') && tH > 6){
-      const tW = tH * (IMG.tee.naturalWidth / IMG.tee.naturalHeight);
-      ctx.drawImage(IMG.tee, bx - tW / 2, tTop, tW, tH);
-    } else if (isTee){
-      ctx.save();
-      ctx.strokeStyle = 'rgba(210,205,225,.65)'; ctx.lineCap = 'round';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath(); ctx.moveTo(bx, gy); ctx.lineTo(bx, by + ballR * 0.9); ctx.stroke();
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(bx - 5, by + ballR * 0.92); ctx.lineTo(bx + 5, by + ballR * 0.92); ctx.stroke();
-      ctx.restore();
-    } else {
-      /* AVVIK (D66/D93): gress-lie — strå bærer ballen */
-      ctx.save();
-      ctx.strokeStyle = 'rgba(130,185,85,.8)'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
-      for (const o of [-6, -2, 3, 7]){
-        ctx.beginPath(); ctx.moveTo(bx + o, gy);
-        ctx.lineTo(bx + o * 0.6, by + ballR * 0.8); ctx.stroke();
-      }
-      ctx.restore();
-    }
-  }
-  {
-    /* hvile-halo + hero-forsterkning (mock, D88) */
-    const heroBall = state.sel === 'low';
-    const gr = ballR * (heroBall ? 2.8 : 2.1);
-    const halo = ctx.createRadialGradient(bx, by, ballR * 0.4, bx, by, gr);
-    halo.addColorStop(0, tint('--strike', heroBall ? 0.5 : 0.34));
-    halo.addColorStop(0.5, tint('--primary', heroBall ? 0.28 : 0.16));
-    halo.addColorStop(1, tint('--primary', 0));
-    ctx.beginPath(); ctx.arc(bx, by, gr, 0, Math.PI * 2);
-    ctx.fillStyle = halo; ctx.fill();
-  }
-  if (ready('ball')){
-    ctx.drawImage(IMG.ball, bx - ballR - 2, by - ballR - 2, (ballR + 2) * 2, (ballR + 2) * 2);
-  } else {
-    const grad = ctx.createRadialGradient(bx - ballR*0.35, by - ballR*0.4, ballR*0.15, bx, by, ballR);
-    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.75, '#efe9f2'); grad.addColorStop(1, '#c8bfd2');
-    ctx.beginPath(); ctx.arc(bx, by, ballR, 0, Math.PI * 2);
-    ctx.fillStyle = grad; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,175,120,.4)'; ctx.lineWidth = 1; ctx.stroke();
-  }
-
-  /* kontakt-blush på hovedballen + ankerpunkt for glinten */
-  let contactPt = null;
-  {
-    const fa2 = flashAlpha();
-    const dyC = clamp(((clubZ + sweetM) - (ballLift() + BALL_R)) * (ballR / BALL_R),
-                      -ballR * 0.85, ballR * 0.85);
-    const cyB = by - dyC;
-    const cxB = bx - Math.sqrt(Math.max(0, ballR * ballR - dyC * dyC)) * 0.9;
-    contactPt = { x: cxB, y: cyB };
-    const rB = ballR * 0.55;
-    const gB = ctx.createRadialGradient(cxB, cyB, 0, cxB, cyB, rB);
-    const aB = 0.26 + 0.42 * fa2;
-    gB.addColorStop(0, 'rgba(255,196,120,' + aB.toFixed(3) + ')');
-    gB.addColorStop(0.45, tint('--primary', +(aB * 0.55).toFixed(3)));
-    gB.addColorStop(1, tint('--primary', 0));
-    ctx.save();
-    ctx.beginPath(); ctx.arc(bx, by, ballR, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = gB;
-    ctx.beginPath(); ctx.arc(cxB, cyB, rB, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-
-  /* strike-location reference on the ghosted face */
-  if (ready(HEAD_IMG[state.club])){
-    const fx2 = M.bx - ballR * 0.92;
-    const yCt = by;
-    const ySw = by - ((clubZ + sweetM) - (ballLift() + BALL_R)) * (ballR / BALL_R);
-    ctx.save();
-    ctx.strokeStyle = 'rgba(245,242,255,.5)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(fx2 - 7, ySw); ctx.lineTo(fx2 + 1, ySw); ctx.stroke();
-    ctx.beginPath(); ctx.arc(fx2, yCt, 3, 0, Math.PI * 2);
-    ctx.fillStyle = tint('--primary', 0.95); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.restore();
-  }
-
-  /* --- underground gold: the arc segment below ground (entry→low→exit),
-     strike-gull, fades with the flash (mock, D88) --- */
-  if (t0g !== null && fa > 0.01){
-    ctx.save(); ctx.lineCap = 'round';
-    const seg = arcWorldPoints(solved, 30, t0g);
-    const ex0 = M.X(seg[0].x), ex1 = M.X(seg[seg.length - 1].x);
-    const segDraw = pass => {
-      ctx.beginPath();
-      seg.forEach((p, i) => i ? ctx.lineTo(M.X(p.x), M.Y(p.z)) : ctx.moveTo(M.X(p.x), M.Y(p.z)));
-      ctx.lineWidth = pass; ctx.stroke();
-    };
-    ctx.globalAlpha = 0.20 * fa;
-    ctx.strokeStyle = tint('--primary', 1); segDraw(8);
-    ctx.globalAlpha = fa;
-    const gGold = ctx.createLinearGradient(ex0, 0, ex1, 0);
-    gGold.addColorStop(0, '#fdf3e0'); gGold.addColorStop(0.55, CSS('--strike')); gGold.addColorStop(1, CSS('--primary'));
-    ctx.strokeStyle = gGold; segDraw(2.6);
-    ctx.restore();
-  }
-
-  /* --- CLUB ATTACK: springs OUT of the arc exactly at the strike point --- */
-  if (fa > 0.01){
-    const segPts = [];
-    for (let i = 0; i <= 16; i++){
-      const th = thImp - 0.16 + (0.16 * i) / 16;
-      const p = arcWorldPoint(solved, th);
-      segPts.push({ x: M.X(p.x), y: M.Y(p.z) });
-    }
-    const impactIdx = segPts.length - 1;
-    const tv = tangentWorld(solved, thImp);
-    const zK = tv.z * M.Kz(clubZ);   // lokal gain ved kontakt: sann retning ved ballen
-    const len2 = Math.hypot(tv.x, zK) || 1;
-    const dx = tv.x / len2, dz = zK / len2;
-    const p0 = segPts[segPts.length - 1];
-    const Lout = W >= 700 ? 104 : 78;
-    for (let i = 1; i <= 10; i++){
-      const d = (Lout * i) / 10;
-      segPts.push({ x: p0.x + dx * d, y: p0.y - dz * d });
-    }
-    litSegment(segPts, A.attack, fa, impactIdx);
-    if (ready('glint') && !REDUCED && contactPt){   // impact glint (mock, D88)
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = 0.85 * fa;
-      ctx.drawImage(IMG.glint, contactPt.x - 27, contactPt.y - 27, 54, 54);
-      ctx.restore();
-    }
-  }
-
-  /* --- hero: arc height (vertical bracket ground ↔ arc bottom) --- */
-  if (state.sel === 'arc'){
-    const x = Math.min(M.X(lpx), bx) - 52;
-    const yA = gy, yB = M.Y(solved.lowPointZ);
-    coreLine(x, yA, x, yB, A.depth, 2.5, null, 1);
-    coreLine(x - 6, yA, x + 6, yA, A.depth, 2, null, 1);
-    coreLine(x - 6, yB, x + 6, yB, A.depth, 2, null, 1);
-    if (Math.abs(yB - yA) > 8)
-      arrowHead(x, yB, 0, yB < yA ? -1 : 1, 7, A.depth, 1);
-    /* AVVIK (D67, arvet): «ARC 2.0 cm above», aldri nakent fortegn */
-    label('ARC ' + formatHeightCm(state.arc), x - 10,
-          Math.abs(yB - yA) > 16 ? (yA + yB) / 2 : yA - 18, A.depth, 11, 'right', true);
-  }
-
-  /* Permanent physical low point, above every transient teaching vector. */
-  {
-    const before = arcWorldPoint(solved, -0.015), after = arcWorldPoint(solved, 0.015);
-    const lp = { x:M.X(lpx), y:M.Y(solved.lowPointZ) };
-    const ground = { x:lp.x, y:gy };
-    const tangent = { x:M.X(after.x) - M.X(before.x),
-                      y:M.Y(after.z) - M.Y(before.z) };
-    lowPointMarker(lp.x, lp.y, A.attack, 'face', ground, tangent);
-  }
-
-  ctx.restore();                              // close the inset punch-out clip
-}
-function strokeArc(pts2, M, style, width){
-  ctx.save();
-  ctx.strokeStyle = style; ctx.lineWidth = width; ctx.lineCap = 'round';
-  ctx.beginPath();
-  pts2.forEach(([xm, zm], i) => {
-    const x = M.X(xm), y = M.Y(zm);
-    if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
-  });
-  ctx.stroke();
-  ctx.restore();
-}
-
-/* ============================================================ DOWN THE LINE */
-function dtlCamSpec(){
-  const tallStage = W / Math.max(H, 1) < 2;
-  return { pos:{ x:-2.2, y:-0.9, z:1.0 }, look:{ x:2.3, y:0.25, z:0.14 },
-           fovDeg: tallStage ? 44 : (H < 240 ? 37 : 34),
-           xStretch:tallStage ? 0.92 : 1.02,
-           screenX:W * (tallStage ? 0.05 : 0.075) };
-}
-const DTL_SWEEP = (78 * Math.PI) / 180;       // longer arc into the perspective
-function drawDtl(t){
-  const B = pinholeCamera(dtlCamSpec(), W, H);
-  const P = p => projectPoint(p, B);
-  const A = { path: CSS('--path'), attack: CSS('--attack'), sec: CSS('--secondary'),
-              depth: CSS('--depth'), ink: CSS('--ink'), muted: CSS('--muted') };
-  const fa = flashAlpha();
-
-  ctx.save();
-  ctx.clip(sceneClipPath(), 'evenodd');       // never draw under the mini screen
-
-  /* ground plane wash + subtle grid */
-  const horizon = P({ x: 60, y: 0, z: 0 });
-  if (horizon){
-    const gGrad = ctx.createLinearGradient(0, horizon.y, 0, H);
-    gGrad.addColorStop(0, 'rgba(46,74,34,.0)');
-    gGrad.addColorStop(0.25, 'rgba(46,74,34,.4)');
-    gGrad.addColorStop(1, 'rgba(30,50,24,.6)');
-    ctx.fillStyle = gGrad; ctx.fillRect(0, horizon.y, W, H - horizon.y);
-  }
-  ctx.save(); ctx.globalAlpha = 0.5;
-  for (const off of [-1.5, -0.75, 0.75, 1.5]){
-    const a = P({ x: -0.5, y: off, z: 0 }), b = P({ x: 40, y: off, z: 0 });
-    if (a && b) coreLine(a.x, a.y, b.x, b.y, 'rgba(255,255,255,.07)', 1);
-  }
-  for (let xm = 1; xm <= 9; xm += 2){
-    const a = P({ x: xm, y: -1.8, z: 0 }), b = P({ x: xm, y: 1.8, z: 0 });
-    if (a && b) coreLine(a.x, a.y, b.x, b.y, 'rgba(255,255,255,.05)', 1);
-  }
-  ctx.restore();
-
-  /* target line: neutral solid reference to the vanishing point */
-  {
-    const a = P({ x: -0.6, y: 0, z: 0 }), b = P({ x: 45, y: 0, z: 0 });
-    if (a && b){
-      coreLine(a.x, a.y, b.x, b.y, 'rgba(245,242,255,.5)', 2, null, 1);
-      label('TARGET', b.x, b.y - 12, 'rgba(245,242,255,.75)', 11, 'center');
-    }
-  }
-
-  /* Swing Direction ground reference (secondary, mockens rolle).
-     Retningsvektor fra adapterens directionRay (D63). */
-  {
-    const ray = directionRay(state.dir);      // [sin, cos]
-    const v = { x: ray[1], y: ray[0] };
-    const a = P({ x:-0.25*v.x, y:-0.25*v.y, z:0.008 });
-    const b = P({ x:11*v.x, y:11*v.y, z:0.008 });
-    if (a && b){
-      const hero = state.sel === 'dir';
-      coreLine(a.x, a.y, b.x, b.y, A.sec, hero ? 2.8 : 1.35, [7,6], hero ? 0.9 : 0.35);
-      const dxl = b.x - a.x, dyl = b.y - a.y, ll = Math.hypot(dxl, dyl) || 1;
-      arrowHead(b.x, b.y, dxl / ll, dyl / ll, hero ? 8 : 6, A.sec, hero ? 0.9 : 0.42);
-      if (hero){
-        const m = P({ x:6.4*v.x, y:6.4*v.y, z:0.008 });
-        if (m) plateLabel('SWING DIRECTION ' + formatAngle(state.dir, { signed:true }),
-          clamp(m.x + 14, 12, W - 280), clamp(m.y - 20, 20, H - 20), A.sec,
-          W >= 700 ? 15 : 13, 'left', 1);
-      }
-    }
-  }
-
-  /* soft contact shadow under the arc's low region — anchors it to the ground */
-  {
-    const lpw = solved.lowPointWorld;
-    const c = P({ x: lpw.x, y: lpw.y, z: 0 });
-    const e1 = P({ x: lpw.x - 0.45, y: lpw.y, z: 0 });
-    const e2 = P({ x: lpw.x + 0.45, y: lpw.y, z: 0 });
-    if (c && e1 && e2){
-      const rx = Math.hypot(e2.x - e1.x, e2.y - e1.y) / 2;
-      const zLift = Math.max(0, solved.lowPointZ);
-      const aS = clamp(0.38 - zLift * 7, 0.08, 0.38);
-      const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, rx);
-      g.addColorStop(0, 'rgba(5,3,10,' + aS + ')');
-      g.addColorStop(1, 'rgba(5,3,10,0)');
-      ctx.save();
-      ctx.translate(c.x, c.y); ctx.scale(1, 0.28); ctx.translate(-c.x, -c.y);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(c.x, c.y, rx, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  /* swing-plane glass: one job, showing plane. Density gradient + rim light —
-     no outline. (mockens tegning; glasset består, eierlåst i D76-runden) */
-  {
-    const heroG = state.sel === 'plane';
-    const alpha = heroG ? 1 : 0.45;
-    const a0 = -1.25, a1 = 3.2, b0 = -0.04, b1 = 1.15;
-    const poly = [planePoint(solved, a0, b0), planePoint(solved, a1, b0),
-                  planePoint(solved, a1, b1), planePoint(solved, a0, b1)].map(P);
-    if (poly.every(Boolean)){
-      ctx.save(); ctx.globalAlpha = alpha;
-      ctx.beginPath();
-      poly.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-      ctx.closePath();
-      const mb = { x: (poly[0].x + poly[1].x) / 2, y: (poly[0].y + poly[1].y) / 2 };
-      const mt = { x: (poly[3].x + poly[2].x) / 2, y: (poly[3].y + poly[2].y) / 2 };
-      const base = heroG ? 0.26 : 0.11;
-      const gg = ctx.createLinearGradient(mb.x, mb.y, mt.x, mt.y);
-      gg.addColorStop(0, tint('--plane', base));
-      gg.addColorStop(0.55, tint('--plane', +(base * 0.55).toFixed(3)));
-      gg.addColorStop(1, tint('--secondary', +(base * 0.28).toFixed(3)));
-      ctx.fillStyle = gg;
-      ctx.fill();
-      ctx.lineWidth = 1;
-      for (const bf of [0.30, 0.65]){
-        const b2 = b0 + bf * (b1 - b0);
-        const ra = P(planePoint(solved, a0, b2)), rb = P(planePoint(solved, a1, b2));
-        if (ra && rb){
-          ctx.strokeStyle = tint('--plane', heroG ? 0.11 : 0.07);
-          ctx.beginPath(); ctx.moveTo(ra.x, ra.y); ctx.lineTo(rb.x, rb.y); ctx.stroke();
-        }
-      }
-      /* rim light along the upper edge sells the pane as glass */
-      ctx.strokeStyle = 'rgba(190,200,255,' + (heroG ? 0.5 : 0.22) + ')';
-      ctx.lineWidth = 1.5; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(poly[3].x, poly[3].y); ctx.lineTo(poly[2].x, poly[2].y); ctx.stroke();
-      ctx.restore();
-    }
-  }
-
-  /* swing arc: depth-tapered ribbon (mockens fire pass, D88). */
-  {
-    const worldPts = arcWorldPoints(solved, 150, DTL_SWEEP);
-    const pts = [];
-    for (let i = 0; i < worldPts.length; i++){
-      const p = P(worldPts[i]);
-      if (p) pts.push({ x: p.x, y: p.y, d: p.d, u: i / (worldPts.length - 1) });
-    }
-    if (pts.length > 8){
-      let dMin = Infinity, dMax = -Infinity;
-      for (const p of pts){ if (p.d < dMin) dMin = p.d; if (p.d > dMax) dMax = p.d; }
-      const span = Math.max(0.001, dMax - dMin);
-      const tOf = p => (p.d - dMin) / span;
-      const tip = uu => clamp(Math.min(uu, 1 - uu) / 0.12, 0, 1);
-      const litA = state.sel === 'arc' ? 1 : fa;
-      const CH = 16;
-      ctx.save(); ctx.lineCap = 'butt'; ctx.lineJoin = 'round';
-      const passes = [];                       /* [wNear,wFar,aNear,aFar,color,gate] */
-      if (litA > 0.01) passes.push([24, 8, 0.13, 0.03, tint('--plane', 1), litA]);
-      passes.push([11, 3.5, 0.15, 0.05, 'rgba(255,255,255,1)', 1]);
-      if (litA > 0.01) passes.push([7, 2.2, 0.32, 0.09, 'rgba(255,255,255,1)', litA]);
-      passes.push([4.2, 1.2, 0.95, 0.30, 'rgba(255,255,255,1)', 1]);
-      for (const [wN, wF, aN, aF, col, gate] of passes){
-        ctx.strokeStyle = col;
-        const per = Math.ceil((pts.length - 1) / CH);
-        for (let c0 = 0; c0 < pts.length - 1; c0 += per){
-          const c1 = Math.min(c0 + per, pts.length - 1);
-          const mid = pts[Math.floor((c0 + c1) / 2)];
-          const tt = tOf(mid);
-          ctx.globalAlpha = gate * (aN + (aF - aN) * tt) * tip(mid.u);
-          ctx.lineWidth = wN + (wF - wN) * tt;
-          ctx.beginPath();
-          for (let i = c0; i <= c1; i++) i === c0 ? ctx.moveTo(pts[i].x, pts[i].y) : ctx.lineTo(pts[i].x, pts[i].y);
-          ctx.stroke();
-        }
-      }
-      ctx.restore();
-    }
-  }
-
-  /* arc-height bracket (hero when arc selected) */
-  if (state.sel === 'arc'){
-    const g = P({ x: solved.effectiveLowPointX, y: 0, z: 0 });
-    const l = P(arcWorldPoint(solved, 0));
-    if (g && l && Math.abs(l.y - g.y) > 2){
-      coreLine(g.x - 26, g.y, l.x - 26, l.y, A.depth, 2.5);
-      coreLine(g.x - 32, g.y, g.x - 20, g.y, A.depth, 2);
-      coreLine(l.x - 32, l.y, l.x - 20, l.y, A.depth, 2);
-      label('ARC ' + formatHeightCm(state.arc), g.x - 38, (g.y + l.y) / 2,
-            A.depth, 11, 'right', true);
-    } else if (g){
-      label('ARC ' + formatHeightCm(state.arc), g.x - 38, g.y - 14, A.depth, 11, 'right', true);
-    }
-  }
-
-  /* ball (tee-lie: on the tee; gress-lie: strå) */
-  {
-    const lift = ballLift();
-    const b = P({ x: 0, y: 0, z: lift + solved.ballRadiusM });
-    const gnd = P({ x: 0, y: 0, z: 0 });
-    const bb = P({ x: 0, y: 0, z: lift });
-    if (b && gnd && bb){
-      if (lift > 0){
-        const isTee = state.lie === 'tee' || state.lie === 'teeHigh';
-        coreLine(gnd.x, gnd.y, bb.x, bb.y,
-                 isTee ? 'rgba(210,205,225,.6)' : 'rgba(130,185,85,.7)', 2.5);
-      }
-      const r = Math.max(6, (gnd.y - b.y) * 0.55);
-      if (state.sel === 'low'){                // ball hero: ember glow (mock)
-        const gr = r * 3;
-        const halo = ctx.createRadialGradient(b.x, b.y, r * 0.4, b.x, b.y, gr);
-        halo.addColorStop(0, tint('--strike', 0.4));
-        halo.addColorStop(0.5, tint('--primary', 0.2));
-        halo.addColorStop(1, tint('--primary', 0));
-        ctx.beginPath(); ctx.arc(b.x, b.y, gr, 0, Math.PI * 2);
-        ctx.fillStyle = halo; ctx.fill();
-      }
-      const grad = ctx.createRadialGradient(b.x - r*0.3, b.y - r*0.35, r*0.15, b.x, b.y, r);
-      grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#b9b2c4');
-      ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = grad; ctx.fill();
-    }
-  }
-
-  /* underground gold: same θ-segment as Face On, no text, fades out */
-  {
-    const t0g = solved.groundCrossingTheta0;
-    if (t0g !== null && fa > 0.01){
-      ctx.save(); ctx.lineCap = 'round';
-      const seg = arcWorldPoints(solved, 30, t0g).map(P).filter(Boolean);
-      if (seg.length > 1){
-        const segDraw = wpx => {
-          ctx.beginPath();
-          seg.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-          ctx.lineWidth = wpx; ctx.stroke();
-        };
-        ctx.globalAlpha = 0.20 * fa;
-        ctx.strokeStyle = tint('--primary', 1); segDraw(8);
-        ctx.globalAlpha = fa;
-        const gGold = ctx.createLinearGradient(seg[0].x, seg[0].y,
-          seg[seg.length - 1].x, seg[seg.length - 1].y);
-        gGold.addColorStop(0, '#fdf3e0'); gGold.addColorStop(0.55, CSS('--strike')); gGold.addColorStop(1, CSS('--primary'));
-        ctx.strokeStyle = gGold; segDraw(2.6);
-      }
-      ctx.restore();
-    }
-  }
-
-  /* CLUB PATH: springs OUT of the arc at the strike point */
-  if (fa > 0.01){
-    const thImp = solved.thetaAtImpact;
-    const segPts = [];
-    for (let i = 0; i <= 16; i++){
-      const th = thImp - 0.16 + (0.16 * i) / 16;
-      const p = P(arcWorldPoint(solved, th));
-      if (p) segPts.push(p);
-    }
-    const impactIdx = segPts.length - 1;
-    const tv = tangentWorld(solved, thImp);
-    const n = Math.hypot(tv.x, tv.y, tv.z) || 1;
-    const dir3 = { x: tv.x / n, y: tv.y / n, z: tv.z / n };
-    const imp3 = arcWorldPoint(solved, thImp);
-    for (let i = 1; i <= 10; i++){
-      const d = (0.9 * i) / 10;
-      const p = P({ x: imp3.x + dir3.x * d, y: imp3.y + dir3.y * d, z: imp3.z + dir3.z * d });
-      if (p) segPts.push(p);
-    }
-    litSegment(segPts, A.path, fa, impactIdx);
-    const impP = P(arcWorldPoint(solved, thImp));
-    if (impP && ready('glint') && !REDUCED){   // impact glint, additive (mock, D88)
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = 0.8 * fa;
-      ctx.drawImage(IMG.glint, impP.x - 24, impP.y - 24, 48, 48);
-      ctx.restore();
-    }
-  }
-
-  /* Draw last so neither Club Path nor another transient can cover it. */
-  {
-    const lowWorld = arcWorldPoint(solved, 0);
-    const lp = P(lowWorld);
-    const ground = P({ x:lowWorld.x, y:lowWorld.y, z:0 });
-    const before = P(arcWorldPoint(solved, -0.015)), after = P(arcWorldPoint(solved, 0.015));
-    if (lp) lowPointMarker(lp.x, lp.y, A.attack, 'dtl', ground,
-      before && after ? { x:after.x - before.x, y:after.y - before.y } : { x:1, y:0 });
-  }
-
-  ctx.restore();                              // close the inset punch-out clip
-}
-
-/* ============================================================ orientation-vakt
- * Fra eierens sa-app-shell.js (inert-håndteringen), uten IAP/analytics
- * (eierstrippet). D59: betingelsen er orientering + minimum. */
-function installOrientationGuard(){
-  const overlay = document.querySelector('.rotate');
-  if (!overlay || !window.matchMedia) return;
-  const media = matchMedia('(orientation: landscape) and (min-width: 568px) and (min-height: 320px)');
-  const managed = new Map();
-  let lastFocus = null;
-  const sync = () => {
-    const blocked = !media.matches;
-    overlay.toggleAttribute('data-sa-orientation-blocked', blocked);
-    if (blocked){
-      lastFocus = document.activeElement;
-      overlay.setAttribute('role', 'dialog');
-      overlay.setAttribute('aria-modal', 'true');
-      overlay.setAttribute('tabindex', '0');
-      for (const child of document.body.children){
-        if (child === overlay || child.tagName === 'SCRIPT') continue;
-        if (!managed.has(child)) managed.set(child, child.hasAttribute('inert'));
-        child.setAttribute('inert', '');
-      }
-      requestAnimationFrame(() => overlay.focus({ preventScroll: true }));
-      return;
-    }
-    overlay.setAttribute('role', 'status');
-    overlay.removeAttribute('aria-modal');
-    overlay.removeAttribute('tabindex');
-    for (const [child, wasInert] of managed){
-      if (!wasInert) child.removeAttribute('inert');
-    }
-    managed.clear();
-    if (lastFocus instanceof HTMLElement && lastFocus.isConnected){
-      lastFocus.focus({ preventScroll: true });
-    }
-    lastFocus = null;
-  };
-  media.addEventListener?.('change', sync);
-  /* WKWebView/innebygde webviews kan droppe change-eventet — remål på resize
-     OG fra canvasens ResizeObserver (mockens egen WKWebView-advarsel). */
-  addEventListener('resize', sync);
-  sync();
-  return sync;
-}
-
-/* ============================================================ boot */
-syncOrientation = installOrientationGuard();
-updateChipValues();
-selectParam('low');
-updateOutcomes();
-prevOut = null; updateOutcomes();   // seed without pulsing
-vecFlashAt = performance.now();     // one orientation flash on load, then fade
-applyStageBg();
-resize();
-
-/* D56/D99 — navngitt inngrep fra strøm E. Onboardingens steg 4–5 kjører INNE i
-   denne skjermen (aldri i en kopi), og trenger å skrive tilstanden, lese det
-   løste svaret, og åpne strike-insetten (D3b krever underlaget synlig). Alt
-   går gjennom skjermens EGNE funksjoner — ingen ny fysikk, ingen parallell
-   tilstand, ingen ny tegnevei. */
-const studioApi = {
-  state,
-  get solved() { return solved; },
-  applyStudio(patch) {
-    Object.assign(state, patch);
-    if (patch.club) state.plane = patch.plane ?? PLANE_PRESET[patch.club];
-    $('clubCap').textContent = CLUB_LABEL[state.club];
-    computeSolved();
-    updateChipValues();
-    selectParam(state.sel);           // remåler slideren mot ny verdi
-    updateOutcomes();
-    kick();
+/* Strøm E-sømmen (window.__studio) — nøkkelmapping fra landskapskontrakten.
+   setInspect-aliaset er FJERNET etter E-grønt (D141-porten lukket; E sin
+   portrettvert kaller den ikke) — varslet før fjerning, som avtalt. */
+const KEY_MAP = { plane: 'swingPlane', dir: 'swingDirection', low: 'ballPosition', arc: 'arcHeight' };
+window.__studio = {
+  get state() {
+    return { plane: parameterState.swingPlane.value, dir: parameterState.swingDirection.value,
+      low: parameterState.ballPosition.value, arc: parameterState.arcHeight.value,
+      club: clubKey, lie: lieKey, view: currentView };
   },
-  selectParam,
-  setInspect,
-  reset() { $('resetBtn').click(); },
+  get solved() { return solved; },
+  applyStudio({ plane, dir, low, arc, club, lie }) {
+    if (plane !== undefined) parameterState.swingPlane.value = plane;
+    if (dir !== undefined) parameterState.swingDirection.value = dir;
+    if (low !== undefined) parameterState.ballPosition.value = low;
+    if (arc !== undefined) parameterState.arcHeight.value = arc;
+    if (club !== undefined) { clubKey = club; clubSelect.value = club; }
+    if (lie !== undefined) { lieKey = lie; lieSelect.value = lie; }
+    syncInstrument(); renderRail(); updateScene();
+  },
+  selectParam(key) {
+    if (key === 'lie') { lieSelect.focus(); return; }
+    switchParameter(KEY_MAP[key] || key);
+  },
+  reset() { $('resetButton').click(); },
 };
-window.__studio = studioApi;
 
 /* D56 — onboardingen monteres OPPÅ skjermen. Er den ikke i gang, skjer intet. */
 Promise.all([
   import('../onboarding/onboarding.js'),
   import('../onboarding/host-studio.js'),
-]).then(([ob, host]) => ob.mountOnboarding(host.studioHost(studioApi)));
+]).then(([ob, host]) => ob.mountOnboarding(host.studioHost(window.__studio))).catch(() => {});
 </script>
 </body>
 </html>

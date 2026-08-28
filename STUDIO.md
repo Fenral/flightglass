@@ -1,6 +1,107 @@
 # Impact Studio — leveranse fra strøm B
 
-## v3-reverseringen (2026-08-26, D82-kjeden)
+## v4: Portrett på Sol-handoffen (2026-08-28, eierbesluttet i intervju, ført til orkestrator)
+
+Eier fikk ekstern UI/UX-handoff («Sol»: QA-testet interaktiv portrett-flate,
+A/B-tema flightglass/titan, tilstandskontrakt, deklarert motorsøm) og besluttet
+i strukturert intervju: **portrett i V1** (D8/D12/D59 omgjøres; landskapsflaten
+bevart som `app/studio/landscape.html` = V2), **handoffen som komposisjonsfasit**,
+**STRIKE-viewet droppet** (alt i FACE ON), **lie som navngitt velger ved
+køllevelgeren** (D93-kjernen består: diskret, navngitt, aldri fri mm),
+**A/B-tema beholdes** til mobiltest (`?theme=titan|flightglass`).
+
+Utført i `app/studio/index.html`:
+- **Motor i sømmen:** handoffens mock-formler er FJERNET; `updateScene()` driver
+  SVG-en med `studioSolve` + adapterprojeksjoner (FO: stancefast kamera med
+  BACK/MID/FWD, ball-relative adapterpunkter skiftet med ballPos; DTL: pinhole
+  fra adapteren inn i handoffens ramme). Ingen trig i app; fysikklint 0 funn.
+- **Strike-stripen** (ny, lav): båndord i D89-hue + mm med high/low-ord (D67) +
+  `DYNAMIC LOFT x°` med ASSUMED-chip (D65) — begge svar alltid synlige (U1);
+  lie-navnet står i velgeren i samme visning (D3b).
+- **Entry/Low/Exit i FO** med ord og verdier (`18.1 cm before`-format);
+  `NO TURF CONTACT` i muted i turf-regime uten kryssing.
+- **D24 i scenen:** kølle-sprite (Higgsfield-hodene, kalibrert mot ballradius)
+  med sweetspot-hakk + kontaktpunkt; turf-platen tonet inn i bakkebåndet.
+- **Låste vedtak integrert:** 0.1-steg, D67-ord på sliderendene, HOME-ordsirkel
+  (N-b) + Escape (N-h), ingen «+0.0» (adapterformater), Geist/Plex Mono/Space
+  Grotesk (D83), plane-preset per kølle (50/55/60).
+- **Sømmer bevart:** `window.__impactStudio` (handoffens testkontrakt, view-sett
+  fo/dtl) og `window.__studio` (strøm E-onboarding, nøkkelmappet; `setInspect`
+  er no-op siden strike alltid er synlig — meldt).
+- Speilvendt rotasjonsport («Rotate to portrait.» — ordlyd meldt for låsing)
+  med HOME i begge tilstander.
+
+Verifisert 2026-08-28: motor live (−4.3°/+2.5°), 375×812/390×844, landskapsport,
+DUFF/OFF FACE/PURE-nivåene, driver+tee, plane-preset, DTL, temabytte, seam-API,
+reset, ingen konsollfeil/overflow, mål ≥ 44 px. Engine 465 + adapter 65 grønne.
+
+Mine presentasjonsvalg meldt for låsing: strike-stripens plassering (under
+Attack/Path-kortene), tittel-lockup «FLIGHT GLASS / Impact Studio» (Sols
+«Delivery instrument» droppet som nytt produktutsagn), oversized ball i
+FO (handoffens presentasjonsskala; tallene er motorens), portgate-ordlyden.
+
+### v4-tillegg etter D133–D139-føringen + G-overleveringen (2026-08-28)
+
+- **D138:** standard-lie er FAIRWAY (åpning og reset) — åpningsbildet viser
+  strå fra første sekund; B2-e-hardpan omgjort.
+- **D139/D142:** rotasjonsporten er et SCENE-overlegg inne i #stage (blur over
+  canvasen alene) — alt krom rundt står synlig og aktivt; ingen HOME i porten
+  (skjebnen følger D126). **D142: porten er WEB-FALLBACK, ikke produktatferd**
+  — V1-appen orienteringslåses til portrett i native (SwiftUI-deklarasjon,
+  D70), så porten finnes ikke i produktet og skal IKKE bygges av SwiftUI-laget.
+  Ordlyden er eierlåst til kortformen «Rotate to portrait.» (ingen
+  begrunnelsesprosa — dette er spec-lab). Implementeringen matcher allerede;
+  koden har en foreldet «venter eierlåsing»-kommentar som rettes ved første
+  opptining etter E-grønt (flaten er frosset per D141).
+- **G-4:** gressbåndet utvidet til ~24 px, strå tegnet OPPÅ turf-platen langs
+  bakkelinjen, lie-visualer ved ballen (tee-sprite for TEE/HIGH TEE, strå for
+  gress-lies).
+- **G-1/D114-kroken:** `stage.dataset.lowPointMarker` skrives av SVG-scenen i
+  samme format — verifisert lest av onboardingens markørvakt.
+- **D116 KJØRT GRØNN:** E-sekvensens steg 4–5 kjørt ende-til-ende på den nye
+  flaten (sessionStorage-drevet, ekte skjermer, med H sin innerHeight-vakt —
+  fella slo faktisk til og ble omgått med resize): steg 4 monterer i sonen
+  (ingen overlapp med strike-stripe/velgere/dekk/markør), resolved-tekst med
+  adapterord («2.0 cm before»), NEXT → steg 5, skript (arc −3, fairway),
+  båndvandring til Pure, U1-payoff-teksten ordrett (D105, «8 mm» fra
+  LIE_PRESETS), NEXT → navigerte til Connections med steg 6. E-siden
+  (host-studio.js/steps.js) var samtidig-revidert av E etter FØR-varselet
+  mitt; min side bevarte kontrakten (state/solved/applyStudio/selectParam/
+  reset + markørkroken; `setInspect` består som no-op-ALIAS per D141/S13 til
+  E melder grønt — fjernes først da). Mine tre forsøkte host-redigeringer
+  feilet på samtidig-endring og ble forkastet — app/onboarding/* er urørt av
+  strøm B (D141/D131-grensen holdt).
+- D3b eksplisitt verifisert: lie-velgeren (navn + mm) er synlig i hver
+  tilstand som viser turfstatus (strike-stripen og velgerne deler visning i
+  både FO og DTL; porten viser ingen turfstatus).
+
+### E-grønt-rettelsene (2026-08-28, D141-porten lukket)
+
+- **Markørkontrakten rettet (E-funn):** `stage.dataset.lowPointMarker` skrev
+  SVG-brukerenheter (131 px feil for kontraktstro konsumenter). Skriver nå
+  CSS-piksler relativt #stage via xMidYMax-meet-mappingen (uniform skala,
+  midtstilt x, bunnjustert y), med vakt: ved 0-målt boks (skjult fane)
+  beholdes forrige gyldige verdi. Kontrakten står nå eksplisitt i koden.
+- **Ankerbyttet dokumentert (Sol-fasit-egenskap, D134):** i portrett-v4 står
+  low point-markøren FAST på skjermen mens BALLEN flytter seg — motsatt av
+  landskapsflaten (ball fast, markør flytter). Stancefast kamera: svingens
+  lavpunkt er stancens (stance-senter + 10.5 cm), ballen plasseres i stancen.
+  Vakter og konsumenter skal beskytte MARKØRENS piksel, ikke ballens.
+- **`setInspect`-aliaset fjernet** fra `window.__studio` etter E-grønt, med
+  FØR-varsel (S13-mellomtilstanden avsluttet).
+- **Driftsadvarsel fra E (måleprosedyre):** flaten krever REN tilstand per
+  måling — kall `window.__studio.reset()` (eller RESET) før hver probe; en
+  etterlatt ballposisjon gir feil bånd i første avlesning.
+- **Sonepresisering (E-avvik, orkestratorgodkjent — skal STÅ):** coachmark-
+  sonen ligger OVER ankeret (y 244–511 ved 390×844), ikke i båndet mellom
+  markør og kontrolldekk (det er bare 57 px — boksen er 155–179). Harde
+  kanter: `.topbar`/`#strikeStrip`/`.scene-tools`; D114-vakten holder mot
+  ankeret. Regelen som gjelder er D107 («okkuper det steget ikke bruker»),
+  ikke spec-bokstaven fra remapping-planen min.
+
+---
+
+## Historikk: v3-reverseringen (2026-08-26, D82-kjeden)
 
 Ommalingen er avlyst; mockens visuelle språk er fasit og `app/studio/index.html`
 er malt TILBAKE via de regenererte v3-tokens (som er mockens palett).

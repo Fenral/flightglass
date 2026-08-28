@@ -61,6 +61,26 @@ med portrett-først-prompten).
   hovedvedtaket MÅ inkludere N-a/N-b-revisjonen (HOME-sirkel kun i landskap,
   veien ut i portrett er menyen — G §15.1/H §3) · safe-area-avklaring G↔H
   pågår (56 px stripe = 90 px med inset på 390-klassen).
+- SOL-PIVOTEN 2026-08-28 (D133–D137): B · Geometry var eierens eksterne
+  ChatGPT-handoff. Studio går PORTRETT i V1 (landskap = V2, bevart fil),
+  Sol-handoffen er ny Studio-fasit, STRIKE-viewet droppet (alt i FACE ON,
+  inset utgår — omgjør D128/D129/D130, D115 uanvendelig), lie = velger ved
+  køllevalg, aldri fortegn på null (appvidt). B bygger og bærer D116-plikten
+  (E-steg 4–5 + D107-remåling). G er PARKERT med heder (målingene er
+  premissene; planen = V2-arkiv). H: G-e/landskap → V2-scope. E varslet om
+  kommende steg-5-tekstrevisjon. VENTER: B sin LEVERT · rotasjonsport-ordlyd
+  til låsing · evt. window.__studio-API-varsel FØR endring.
+  TIL H-HOVEDVEDTAKS-RADEN når eier velger (H §T12): «HOME-sirkelen finnes
+  ikke i V1» er UTFALLSUAVHENGIG (alle tre retninger har bunnstripe i
+  portrett); utfallsavhengig er kun sirkelens V2-skjebne og at H3 mister
+  særtrekket sitt (railen = V2). Home som speiler Studio-tilstand må lese
+  lie fra flaten, ikke anta hardpan (D138-konsekvens for variant C).
+- v4 FORMELT LEVERT ~2026-08-28: E kjørte full sekvens grønn på ny flate
+  (D141-porten lukket). Sekvensen er nå REN PORTRETT (rotasjonen mellom steg
+  3–4 forsvant) — enklere sømtest. B retter tre restpunkter (lowPointMarker-
+  enheter, ankerbytte-dokumentasjon, setInspect-fjerning). D142: native
+  orienteringslås, web-port kun fallback. VENTER: B sin RETTET · eierens
+  sømtest (eneste gjenværende port for E) · H-hovedvalg + variant A/B/C.
 - Hos eier: kun å åpne E-økten når ønsket.
 
 ## Porter som alltid gjelder

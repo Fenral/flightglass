@@ -189,6 +189,100 @@ Fire feil sto grønne i koden og falt først da jeg dro i de ekte kontrollene:
 
 ---
 
+## D116-eksekveringen mot Studio v4 (D141) — utført 2026-08-28
+
+Studio er portrett nå. Verten er skrevet om; sonelogikken er forenklet fordi
+det ikke finnes siderail lenger. Nye roller i `rect()`:
+
+| Før (landskap) | Nå (portrett v4) |
+|---|---|
+| `.top` | `.strike-strip` (nederste opptatte topp-element) |
+| `#inset` | `.scene-tools` — bærer kølle- og lie-velgerne |
+| `.rail` | *finnes ikke* |
+| `.controls` | `.control-deck` |
+
+**D3b har fått nytt hjem og holder:** lie-velgeren viser «FAIRWAY · 8 mm» i
+samme visning som strike-stripen, gjennom alle fem bånd. Sonen slipper den aldri.
+
+### Feil funnet og rettet i denne runden
+
+**Markørkroken pekte 131 px feil.** `stage.dataset.lowPointMarker` er bevart i
+navn, men v4 er SVG og tallene er i **SVG-brukerenheter**, ikke CSS-piksler.
+Datasettet meldte y 250 mens elementet sto på skjerm-y 549. Landskapsverten la
+verdien til `stage.top` — korrekt den gangen, feil nå.
+
+**Og det er ikke lenger low point som beveger seg.** Målt: `#foLowPoint` står
+fast (x 235) mens `#foBallGroup` vandrer (x 181 → 240 over −8…+12 cm). v4 har
+byttet hvilket element som er ankeret.
+
+Begge løst ved å måle de EKTE SVG-elementene (`#foLowPoint`, `#foBallGroup` og
+DTL-motstykkene) i stedet for datasettet. De har riktige skjermkoordinater av
+seg selv og overlever neste ombygging uten enhetskonvertering som kan ryke.
+
+### Målt etter revisjonen
+
+| | 390 × 844 (D118-gulvet) | 375 × 812 |
+|---|---|---|
+| Steg 4 | boks 22–365 × 332–511 · 12 px over ballen | boks 22–353 × 327–506 |
+| Steg 5 | — | boks 22–353 × 374–506 |
+
+Klar av `.topbar` · `.metrics` · `.strike-strip` · `.scene-tools` ·
+`.control-deck` · ballen · low point — i hver ballposisjon og hvert bånd.
+
+### Tekstkontrollen (D105) — INGEN avvik
+
+Begge stegtekstene har full dekning i v4:
+
+- Steg 4: «Low point is now **1.5 cm before** the ball» — `#foLowVal` på skjermen
+  leser «1.5 cm before», ordrett, fra samme adapter-formatter.
+- Steg 5: «Pure — and **no ground crossing at all**» — målt at entry/exit-merkene
+  går til opasitet 0 ved Pure/Thin/Whiff mens «no turf»-etiketten kommer opp,
+  og står i full styrke ved Duff/Fat. «8 mm» kommer fra `LIE_PRESETS`, uendret.
+
+Ingen tekstrevisjon å be om.
+
+### Sekvensen
+
+Kjørt ende-til-ende: Home → splash → enheter → steg 1–6 → DONE → Home.
+Alle seks steg grønne. **Sekvensen er nå ren portrett** — rotasjonen mellom
+steg 3 og 4 er borte med landskapsstudioet.
+
+---
+
+## Varsel: steg 4–5 får ny flate (D133–D137)
+
+Impact Studio bygges om til portrett-V1; strike-viewet droppes og insetten
+utgår. Onboarding-steg 4–5 bor på den flaten. D116-plikten ligger på laget som
+bygger: de tilpasser stegene og kjører sekvensen grønn før LEVERT.
+
+**Det steg 4–5 faktisk henger i** — hele kontaktflaten, så den kan designes for
+framfor å oppdages:
+
+| Kilde | Brukes til |
+|---|---|
+| `window.__studio.state` | `low`, `arc`, `lie`, `club` |
+| `window.__studio.solved` | `turfBand`, `effectiveLowPointX` |
+| `applyStudio` · `selectParam` · `reset` | skriptet tilstand (D99), aktiv parameter, hopp (D102) |
+| `stage.dataset.lowPointMarker` | markørvakten i sonen (D114) — canvas, ikke DOM |
+| Rektangler: `inset` `rail` `controls` `topStrip` | coachmark-sonen (D107) |
+| `LIE_PRESETS[state.lie]` | «8 mm» i steg 5-teksten |
+
+**Den viktige:** insetten bar D3b — «underlaget skal ALLTID være synlig når
+turfkontakt-status vises». Forsvinner insetten uten at lie-avlesningen får et
+nytt hjem, er D3b brutt for hele Studio, ikke bare for onboardingen. Steg 5 sitt
+poeng (U1: `Pure` UTEN bakkekryssing) er uleselig uten den.
+
+**Teksten er eierlåst ordrett (D105).** Steg 5-linjen henter «8 mm» fra
+`LIE_PRESETS`, ikke fra insetten, så den overlever et flatebytte — men enhver
+omskriving er en eierbeslutning, ikke en tilpasning.
+
+**Sonelogikken bør overleve uendret:** `place()` bærer ingen koordinater, den
+måler vertens elementer ved montering. Det er nettopp derfor A sin V1-kirurgi
+ikke krevde en eneste endring her. Får de nye elementene samme roller i
+`rect()`, følger plasseringen etter av seg selv.
+
+---
+
 ## Kjent gjeld og det som ikke er bygget
 
 - **Innstillinger-flaten finnes ikke.** D27 sier enheten skal kunne endres der.

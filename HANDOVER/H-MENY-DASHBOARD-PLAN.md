@@ -1118,9 +1118,9 @@ modulmenyen** — som er nøyaktig grammatikkregel 1 og 2 i §2, og ny regel 6.
 Modulnivået i Ball Flight-portrett er dermed H1-retningen, eierbekreftet.
 
 Og G §15.1 har fjernet HOME-sirkelen fra portrett i demoen sin, med henvisning
-til §5 her. Det er riktig etter H1 — men det **rører N-a/N-b**: «tilbakeveien
-forsvinner aldri bak en rotasjon». Etter H1 er veien ut i portrett menyen, og
-sirkelen finnes kun i landskap. Det står allerede som omgjøring i §3-tabellen
+til §5 her. Det følger av alle tre retningene — men det **rører N-a/N-b**:
+«tilbakeveien forsvinner aldri bak en rotasjon». Med en bunnmeny er veien ut i
+portrett menyen, og sirkelen finnes kun i landskap. Det står allerede som omgjøring i §3-tabellen
 (N-a rule 4, N-b skopet til landskap) og må låses i samme vedtak som
 hovedvalget. **Ingen ny beslutning trengs — men den må skrives, ikke antas.**
 
@@ -1252,3 +1252,124 @@ Sidesak, lukkes av G: jeg overskrev `_artifacts/studio-split-demo.html` under
 en determinismesjekk mens G redigerte kilden. G har bygget den på nytt
 (tidsstempel 22:49); **G har ordet på om saken er lukket.**
 Lærdom ført i README: determinismesjekk skal bygge til midlertidig sti.
+
+---
+
+## T11 · Etter D131–D137 (2026-08-28)
+
+### T11.1 · Landskap er ute av V1 — §5 og G-e gjelder nå V2
+
+D133 sender Impact Studio i **portrett i V1**; landskap blir V2 og bevares som
+`app/studio/landscape.html`. Konsekvensen for denne planen:
+
+| Del | Ny status |
+|---|---|
+| **§5 / G-e-svaret** (ingen bunnmeny i landskap; sirkelen åpner menyen) | **V2.** Ingen landskapsflate finnes i V1 |
+| **§1.5** Studios landskapsmål (568 × 320, chip-raden, railen) | **V2-referanse** |
+| **§3 H1 sin Studio-rad**, landskapshalvdelen | **V2** |
+| **H3 sin 72 px venstrerail** | **V2** — H3s eneste særtrekk mot H1 er dermed et V2-anliggende |
+| **§2** «ny regel 6: én form per orientering» | Gjelder fortsatt, men **V1 har bare én orientering** |
+
+> **Følgen ingen har skrevet ned ennå: i V1 finnes HOME-sirkelen ikke noe sted
+> — og det gjelder under ALLE TRE H-retningene, ikke bare H1.** Alle tre
+> legger en stripe i portrett og skoper sirkelen (eller ankerpillen) til
+> landskap; landskap var dens eneste hjem i hver av dem. Modulnivået bæres
+> derfor av menycellen alene i V1, og N-a §3s kromtak er omgjort i sin helhet
+> der — ikke «skopet til portrett», slik §2 formulerte det da landskap fantes.
+> Sirkelen blir en **V2-forpliktelse**. Ingen bør bygge en sirkelgren i V1.
+>
+> *Presisering (D139-runden): H-hovedvalget er IKKE tatt. Setningen over er
+> likevel utfallsuavhengig — den følger av at alle tre retningene har
+> bunnstripe i portrett, ikke av at H1 vinner.*
+
+### T11.2 · Rotasjonsporten er en felle som må lukkes — ny sak
+
+D133 gir V1 en **speilvendt rotasjonsport**: roterer brukeren til landskap,
+møter han en oppfordring om å rotere tilbake. Dagens port i
+`app/studio/index.html` er `position: fixed`, fullskjerm, **z 60** — den
+dekker alt. Den bærer i dag en HOME-lenke, med en kodekommentar som sier
+hvorfor: *«AVVIK (NAVIGASJON, låst): HOME finnes i BEGGE tilstander.»*
+
+**Under alle tre H-retningene finnes ikke HOME-sirkelen i V1** (T11.1).
+Bygges den speilvendte porten med
+samme fullskjermsmønster, dekker den menyen — og da er den en blindvei.
+Det er nøyaktig feilen E dokumenterte som funn 4 («HOME var en felle»), og
+den N-a §4 er skrevet for å forby.
+
+Tre veier, og valget er eierens:
+1. **Menyen står synlig på rotasjonsporten** *(anbefalt — porten blir et
+   sceneoverlegg, ikke et skjermoverlegg; menyen ER modulnivået i V1, og
+   koster ingenting ekstra å la stå)*
+2. Porten bærer sin egen utveisknapp — men da finnes to former for
+   modulnivå igjen, som regel 6 forbyr
+3. Rotasjon blokkerer ikke — flaten står i portrettlayout uansett
+   *(målt i dag: gjør den ikke; fire av fem chip-etiketter ellipserer)*
+
+Dette er **navigasjon**, altså H sitt (D111/D126) — men det bygges i B sin
+flate. Må låses før B bygger porten.
+
+### T11.3 · D131 — byggehygienen er nå regel
+
+D131 låser at determinismekjøringer aldri skriver til en annen strøms
+`_artifacts/`-utdata. Regelen kom av min overskriving 22:44; README-en i
+`tools/artifact-build/` er ført i samme retning. **Saken er dermed lukket med
+en regel framfor en beklagelse**, som er riktig utfall.
+
+### T11.4 · D132 verifisert på menyen — målt, ikke antatt
+
+D132 krever `elementFromPoint`-måling av enhver treffsone. Kjørt på den
+publiserte artifacten, alle fire celler:
+
+| Celle | Boks | Vertikalt treffspenn | Venstre/høyre kant |
+|---|---|---:|---|
+| HOME · IMPACT · GEOMETRY · LINKS | 97 × 55 | **56 px** | svarer begge |
+
+Krav 44 px — oppfylt med 12 px margin, på hver celle.
+
+**Målefelle verdt å notere:** første kjøring ga 0 px treff på alle celler.
+Årsaken var ikke menyen, men at nettleserpanelets `innerHeight` var **0** —
+uten viewport finnes ingen treffesting i det hele tatt. En `resize_window`
+gjenopprettet den. Rapporterer man den første avlesningen, melder man et
+brudd som ikke finnes.
+
+### T11.5 · D137 er allerede oppfylt i visningslaget
+
+«Aldri fortegn på null» er **allerede adapterens oppførsel**: målt
+`displayValue('signedAngle', 0)` → `0.0°`, mens `+2.0°` og `−4.3°` beholder
+fortegnet. Home-mocken arver det gjennom adapteren og bryter altså ikke
+vedtaket. D137s tallformatarbeid ligger i Sol-handoffen, som hadde nakne
+fortegn — ikke i adapteren og ikke her.
+
+---
+
+## T12 · D138–D139, og en rettelse av min egen drift (2026-08-28)
+
+**D139 låser rotasjonsporten som sceneoverlegg** — menyen står synlig og aktiv
+mens porten vises; fullskjermsmønsteret (fixed, z 60) gjenbrukes ikke; HOME
+bygges ikke inn i V1-porten. Byggekrav til B.
+
+### Rettelsen: jeg skrev «etter H1» om noe som ikke var valgt
+
+Orkestrator påpekte at **H-hovedvalget ikke er tatt**, og at jeg tre steder
+skrev «etter H1» som om det var det. Riktig påpekt — teksten er rettet.
+
+Men rettelsen avdekket at formuleringen min var **svakere enn funnet**:
+
+> Alle tre retningene legger en stripe i portrett, og alle tre skoper
+> sirkelen (H1/H3) eller ankerpillen (H2) til landskap. **Konklusjonen «i V1
+> finnes HOME-sirkelen ikke noe sted» er derfor utfallsuavhengig** — den
+> følger av at hver retning har bunnstripe i portrett, ikke av at H1 vinner.
+
+Det er nettopp derfor D139 kunne formuleres nøytralt og likevel bite: premisset
+den hviler på holder under alle tre utfall. Rettelsen gjør planen mer presis,
+ikke mindre — men den var nødvendig, og drift av dette slaget er verdt å fange.
+
+**Det som faktisk ER utfallsavhengig**, og som hører til hovedvedtaks-raden:
+sirkelens V2-skjebne, og at H3 mister sitt eneste særtrekk mot H1 når railen
+blir et V2-anliggende (T11.1).
+
+### D138 · standard-lie er FAIRWAY
+
+Ingen konsekvens for meny eller Home: Home-mocken viser ikke lie. Notert fordi
+variant C viser D60-standardslaget, og et framtidig Home som speiler Studios
+tilstand må lese lie fra flaten, ikke anta hardpan.

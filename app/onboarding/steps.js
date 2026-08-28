@@ -46,66 +46,46 @@ function between(topEdge, bottomEdge, gap = 12) {
 }
 
 /**
- * STUDIO-SONEN (D107) — den ledige flaten i landskap, målt hver gang.
+ * STUDIO-SONEN (D107) — den ledige flaten, målt hver gang.
  *
- * Rettelse etter G-1/G-2 (D114). Den gamle utgaven ga `place()` bare to
- * kanter — `inset.right` og `rail.left` — og tok for gitt at det fantes plass
- * mellom dem. To målte brudd viste at antagelsen ikke holder:
+ * Returnerer en HEL sone med fire kanter og lar `applyPlacement` klemme boksen
+ * inn i den. Sonen bærer arven fra to runder med målte brudd:
  *
- *   G-1  Insetten kan MAKSIMERES, og da spenner den nesten hele scenen
- *        (x 19–913 av 932). «Venstrekanten» ble da 913 mot railens 861:
- *        sonen både kollapset og snudde, og boksen havnet 101 px utenfor.
- *   G-2  Ved 568×320 er båndet 218 px bredt, teksten brøt til 194 px høyde,
- *        og uten en toppvakt vokste boksen opp i toppstripen og dekket
- *        CLUB PATH-verdien — nøyaktig det D107 forbyr.
+ *   G-1/G-2 (D114)  Boksen havnet 101 px utenfor skjermen, og dekket
+ *        CLUB PATH-verdien. Lærdommen som består: toppen er en HARD kant,
+ *        aldri en anbefaling, og boksen klemmes alltid inn i sonen.
+ *   Markøren  Steg 4 handler om å se low point flytte seg. Den er tegnet i
+ *        scenen, ikke i DOM, så den overlevde en full runde grønne
+ *        DOM-sjekker mens boksen lå oppå den. Sonen stopper OVER den.
  *
- * Derfor returnerer denne en HEL sone med fire kanter, og lar
- * `applyPlacement` klemme boksen inn i den. To ekstra regler faller ut av
- * målingene: er båndet mellom inset og rail for smalt til å bære tekst,
- * bruker vi hele bredden og legger oss i stedet UNDER railen; og toppstripen
- * er alltid en hard kant, aldri en anbefaling.
+ * v4 (D133–D141): Studio er portrett. Det finnes ingen siderail og ingen
+ * inset lenger, så sidebånd-logikken er borte — sonen er scenens bredde.
+ * `contextTools` (kølle- og lie-velgerne) er ny og slippes ALDRI: den bærer
+ * underlaget, og uten det er «Pure uten bakkekryssing» en selvmotsigelse
+ * (D3b/U1).
  */
-/* Smaleste bånd som fortsatt bærer en lesbar linje. Målt: ved 568×320 er
-   sonen mellom inset og rail 194 px, og den ER brukbar. En høyere terskel
-   (jeg prøvde 260) forkastet den og tvang boksen ut i full bredde — der den
-   la seg over insetten, som bærer LIE og er selve D3b-kravet i steg 5. */
-const MIN_BAND = 160;
-
 function studioZone(host) {
-  const inset = host.rect('inset');
-  const rail = host.rect('rail');
+  const stage = host.rect('stage');
   const controls = host.rect('controls');
   const top = host.rect('topStrip');
+  const tools = host.rect('contextTools');
+  const marker = host.rect('lowPointMarker');
   const gap = 12;
 
-  /* Bakkelinjen er gulvet, ikke kontrollraden. Low point-markøren ligger PÅ
-     den (målt: y 251 uendret gjennom hele ballposisjon-vandringen ved
-     932×430), og det er nettopp den bevegelsen steg 4 ber brukeren se. Lå
-     boksen bare «over kontrollene», dekket den markøren i hver eneste
-     posisjon — G-2 sitt andre punkt. Sonen stopper derfor OVER markøren når
-     scenen har tegnet; har den ikke det ennå, faller vi tilbake til
-     kontrollraden. */
-  const marker = host.rect('lowPointMarker');
-  const bottom = marker ? marker.top - gap : controls.top - gap;
-  let left = inset.right + gap;
-  let right = rail.left - gap;
-  let topEdge = top.bottom + gap;
+  const strike = host.rect('strikeStrip');
 
-  /* Er sonen mellom inset og rail borte eller for smal — typisk når insetten
-     er maksimert, eller på den minste D59-flaten — legger vi oss under railen
-     og bruker bredden fra insetten og ut. */
-  /* Er båndet mellom inset og rail borte eller ubrukelig smalt — typisk om
-     insetten skulle bli maksimert — legger vi oss under railen og bruker
-     bredden fra insetten og ut. Insetten slippes ALDRI som venstrekant:
-     den bærer LIE, og D3b krever at underlaget er synlig når turfstatus er
-     det. Heller en lav boks som ruller enn en bred som skjuler svaret. */
-  if (right - left < MIN_BAND) {
-    left = inset.right + gap;
-    right = window.innerWidth - gap;
-    topEdge = Math.max(topEdge, rail.bottom + gap);
-  }
-
-  return { zone: { left, right, top: topEdge, bottom }, pointer: null };
+  return {
+    zone: {
+      left: stage.left + gap,
+      right: stage.right - gap,
+      /* Tre harde kanter på toppen (B sin spec): tittelraden, strike-stripen
+         som overtok insettens D3b-jobb, og velgerne som bærer lie-navnet.
+         Sonen starter under den nederste av dem. */
+      top: Math.max(top.bottom, strike.bottom, tools.bottom) + gap,
+      bottom: marker ? marker.top - gap : controls.top - gap,
+    },
+    pointer: null,
+  };
 }
 
 export const STEPS = Object.freeze([
@@ -178,11 +158,10 @@ export const STEPS = Object.freeze([
     enter: (host) => host.setActiveParam('low'),
     gate: null,
     watch: (host) => { if (host.read('low') >= 12) host.progress.reachedForward = true; },
-    /* AVVIK fra brevet, målt: «sidestilt» finnes ikke. Venstre side av scenen
-       er strike-insetten, høyre er orb-railen. Eneste ledige flate er
-       midtbåndet — og der tegnes buen. Boksen legges i midtbåndets NEDRE kant,
-       over chips-raden, så low point-markøren og begge kortene står fri.
-       D107/D114: sonen måles hver gang og toppstripen er en hard kant. */
+    /* AVVIK fra brevet, målt: «sidestilt» finnes ikke — brevet forutsatte et
+       landskapsstudio som er erstattet (D133–D141). I portrett-v4 er sonen
+       scenens bredde mellom velgerne og low point-markøren, så attack- og
+       path-avlesningene i toppen står fri — de ER svaret steget viser. */
     place: studioZone,
     text: (host, refs) => (host.progress.reachedForward
       ? COPY[4].resolved(refs.step4())
@@ -194,19 +173,16 @@ export const STEPS = Object.freeze([
     n: 5,
     screen: 'studio',
     script: Object.freeze({ ...STUDIO_BASIS, low: 0, arc: -3 }),
-    /* D3b: underlaget MÅ være synlig når turfstatus vises — og det ER det:
-       den KOMPAKTE insetten bærer allerede «MID-IRON · FAIRWAY 8 mm»
-       (STUDIO.md B2-g; maksimert modus legger kun til ASSUMED-loftcaptionen).
-       D114/G-1: insetten maksimeres derfor IKKE lenger. Målt spente den
-       maksimerte insetten x 19–913 av 932 px og etterlot null ledig flate —
-       steget kunne ikke både maksimere og bære en coachmark. Kompakt gir
-       D3b uten å spise sonen. */
+    /* D3b: underlaget MÅ være synlig når turfstatus vises — og det ER det.
+       Insetten som bar det er borte i v4; lie-velgeren i `.scene-tools` viser
+       nå «FAIRWAY · 8 mm» i samme visning som strike-stripen. Sonen holder seg
+       unna velgeren, så underlaget aldri kan bli dekket av veiledningen. */
     enter: (host) => { host.setActiveParam('arc'); },
     gate: null,
     watch: (host) => { host.progress.bands ??= new Set(); host.progress.bands.add(host.read('turfBand')); },
     /* AVVIK fra brevet, målt: «øvre område, som er tomt her» er den mest
-       opptatte sonen — full toppstripe (HOME · ATTACK · PATH · RESET) og
-       insetten rett under. Samme sone som steg 4. */
+       opptatte sonen — tittel, begge avlesningene, strike-stripen og
+       velgerne. Samme sone som steg 4. */
     place: studioZone,
     text: (host, refs) => (host.read('turfBand') === 'Pure'
       ? COPY[5].resolved(refs.step5())
