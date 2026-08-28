@@ -89,6 +89,13 @@ med portrett-først-prompten).
   bygget; app/studio/index.html står som v4. Ved valg: fire kostnader i
   D143-raden må inn i byggeplanen, og DESIGN.md må omskrives (Colors +
   Elevation + «enkelttema mørkt»-setningen).
+  KOSTNADSBILDE FOR VARIANTVALGET (B, etter D144): C4 er billigst — mørkt
+  kontrolldekk gjør at krom og scene kan dele aksentverdi, store deler av
+  tokensplitten faller bort. C2 (slagskygger) og C3 (hårlinjer) krever
+  FLERE tokens enn edge-light/edge-shadow, fordi D144-regelen forbyr
+  per-tema-overstyringer i komponent-CSS — effektene må uttrykkes som
+  tokenverdier. Studiens html[data-theme="cN"]-overstyringer er STILLAS og
+  porteres ikke. Antall ekstra tokens avklares når varianten er valgt.
 - Hos eier: kun å åpne E-økten når ønsket.
 
 ## Porter som alltid gjelder
